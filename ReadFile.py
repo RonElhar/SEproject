@@ -15,11 +15,14 @@ def seperateDocsInDir(path):
                 currentContent.__add__(line)
                 if line ==  "</DOC>":
                     docsContent.__add__(currentContent)
+                    break
                     currentContent = ""
+        break
+    print docsContent
     return docsContent
 
                     
 
 
 #problem with permissions in corpus file, couldn't make it work
-seperateDocsInDir("C:\Users\USER\Desktop\SearchEngine\corpus")
+#seperateDocsInDir("C:\Users\USER\Desktop\SearchEngine\corpus")
