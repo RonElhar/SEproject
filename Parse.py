@@ -24,8 +24,6 @@ class Parse:
 
 
 
-
-
     def number_term(self, index, list_strings):
         reg_num_with_letters = re.compile('([0-9]+[.,]?[0-9]+)([a-zA-Z]+)')
         m = reg_num_with_letters.match(list_strings[index])
