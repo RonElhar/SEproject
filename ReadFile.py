@@ -38,7 +38,7 @@ class ReadFile:
         return docText
 
 
-    def getTerms(text):
+    def getTerms(self,text):
         terms = str.split(text, " ")
         terms = filter(None, terms)
         tCount = 0
@@ -46,11 +46,14 @@ class ReadFile:
             terms[tCount] = re.sub('[^A-Za-z0-9\-$%/.]+', '', term)
             if not re.match("^\d+?\.\d+?$", terms[tCount]) and not re.match(r'^\d+/\d+$', terms[tCount]):
                 terms[tCount] = re.sub('[^A-Za-z0-9\-$%]+', '', terms[tCount])
+            if tCount + 1< terms.__len__() and re.match(r'^\d+/\d+$', terms[tCount+1]):
+                    terms[tCount] += ' ' + terms[tCount+1]
+                    terms[tCount+1] = ''
             terms[tCount] = terms[tCount].replace('\n', '')
             tCount += 1
         terms = filter(None, terms)
         return terms
 
-
-ReadFile.getTerms("23.4, 25.1, 3/4")
+reader = ReadFile()
+reader.getTerms("23.4, 25, 3/4")
 # seperateDocsInDir("C:\Users\USER\Desktop\SearchEngine\corpus")
