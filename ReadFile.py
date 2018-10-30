@@ -24,10 +24,10 @@ class ReadFile:
         # return docsContent
 
 
-    def getText():
+    def getText(self):
         docText = ""
         isText = False
-        docContent = seperateDocsInDir("C:\Users\USER\Desktop\SearchEngine\corpus")
+        docContent = self.seperateDocsInDir("C:\Users\USER\Desktop\SearchEngine\corpus")
         for line in docContent:
             if line.__contains__("</TEXT>"):
                 isText = False
@@ -44,7 +44,7 @@ class ReadFile:
         tCount = 0
         for term in terms:
             terms[tCount] = re.sub('[^A-Za-z0-9\-$%/.]+', '', term)
-            if not re.match("^\d+?\.\d+?$", terms[tCount]) and not re.match(r'^\d+/\d+$', terms[tCount]) :
+            if not re.match("^\d+?\.\d+?$", terms[tCount]) and not re.match(r'^\d+/\d+$', terms[tCount]):
                 terms[tCount] = re.sub('[^A-Za-z0-9\-$%]+', '', terms[tCount])
             terms[tCount] = terms[tCount].replace('\n', '')
             tCount += 1
@@ -52,5 +52,5 @@ class ReadFile:
         return terms
 
 
-getTerms("23.4, 25.1, 3/4")
+ReadFile.getTerms("23.4, 25.1, 3/4")
 # seperateDocsInDir("C:\Users\USER\Desktop\SearchEngine\corpus")
