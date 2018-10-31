@@ -1,9 +1,6 @@
 import os
 import re
 
-import Parse
-
-
 class ReadFile:
 
     def createSeperatedDoc(path, filename, currentContent):
