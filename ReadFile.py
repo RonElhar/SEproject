@@ -1,12 +1,13 @@
 import os
 import re
 
+import Parse
+
 
 class ReadFile:
 
     def createSeperatedDoc(path, filename, currentContent):
         pass
-
 
     def seperateDocsInDir(path):
         docsContent = []  # This is the Array of the content of each doc (including tags);
@@ -54,6 +55,4 @@ class ReadFile:
         terms = filter(None, terms)
         return terms
 
-reader = ReadFile()
-reader.getTerms("23.4, 25, 3/4")
 # seperateDocsInDir("C:\Users\USER\Desktop\SearchEngine\corpus")
