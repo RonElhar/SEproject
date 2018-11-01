@@ -50,7 +50,7 @@ class Parse:
         length = len(list_strings)
         reg_num_with_letters = re.compile('([0-9]+[.,]?[0-9]+)([a-zA-Z]+)')
         m = reg_num_with_letters.match(list_strings[index])
-        reg_num_with_dollar = re.compile('([0-9]+[.,]?[0-9]+)\$')
+        reg_num_with_dollar = re.compile(r'\$?([0-9]+[.,]?[0-9]+)')
         m2 = reg_num_with_dollar.match(list_strings[index])
         # Check if percent
         term = ""
@@ -122,6 +122,6 @@ class Parse:
 
 
 parse = Parse()
-parse.main_parser(["May", "1994", "14", "MAY", "JUNE", "4", "20.6bn", "Dollars", "32bn", "Dollars", "1000", "Dollars",
+parse.main_parser(["$200", "May", "1994", "14", "MAY", "JUNE", "4", "20.6bn", "Dollars", "32bn", "Dollars", "1000", "Dollars",
                    "40.5", "Dollars", "100", "billion", "U.S.", "dollars", "320", "million", "U.S.", "dollars", "1",
                    "trillion", "U.S.", "dollars", "22 3/4", "Dollars"])

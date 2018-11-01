@@ -7,7 +7,6 @@ class ReadFile:
     def createSeperatedDoc(path, filename, currentContent):
         pass
 
-
     def seperateDocsInDir(path):
         docsContent = []  # This is the Array of the content of each doc (including tags);
         for filename in os.listdir(path):
