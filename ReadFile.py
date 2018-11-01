@@ -4,38 +4,85 @@ import re
 
 class ReadFile:
 
-    def createSeperatedDoc(path, filename, currentContent):
+    def __init__(self):
         pass
 
-    def seperateDocsInDir(self, path):
-        docs_content = []  # This is the Array of the content of each doc (including tags);
+    def read_directory_files(self, path):
+        files = {}
+        docs = []
         for filename in os.listdir(path):
-            cur_file = open(path + "\\" + filename + "\\" + filename, "r")
-            lines = cur_file.readlines()
-            current_content = []
-            for line in lines:
-                current_content.append(line)
-                if line.__contains__("</DOC>"):
-                    docs_content.append(current_content)
-                    return docs_content[0]
-                    # current_content = ""
-        # print(docs_content[0])
-        # return docs_content
+            files.__setitem__(filename, self.separate_docs_in_file(path, filename))
+        return files
 
-    def get_text(self):
+    def separate_docs_in_file(self, path, filename):
+        docs = []  # This is the Array of the content of each doc (including tags);
+        doc_index = 0
+        cur_file = open(path + "\\" + filename + "\\" + filename, "r")
+        lines = cur_file.readlines()
+        current_content = []
         doc_text = ""
-        isText = False
-        doc_content = self.seperateDocsInDir("C:\\Users\\ronel\\Desktop\\Search Engine\\corpus")
+        doc_name = ""
+        doc_id = ""
+        doc_city = ""
+        doc_title = ""
+        doc_date = ""
+        is_text = False
+        for line in lines:
+            if line.__contains__("</TEXT>"):
+                is_text = False
+            if is_text:
+                doc_text += line
+                continue
+            if line.__contains__("<DOC>"):
+                doc_text = ""
+                doc_id = ""
+                doc_city = ""
+                doc_title = ""
+                doc_date = ""
+                doc_index += 1
+                continue
+            if line.__contains__("</DOC>"):
+                docs.append(Document(doc_id, doc_date, doc_title, doc_city, doc_text))
+                continue
+            if line.__contains__("<DOCNO>"):
+                line = line.replace("<DOCNO>", '')
+                line = line.replace("</DOCNO>", '')
+                doc_id = line.replace('\n','')
+                continue
+            if line.__contains__("<TI>"):
+                line = line.replace("<TI>", '')
+                line = line.replace("</TI>", '')
+                line = line.replace("<H3>", '')
+                line = line.replace("</H3>", '')
+                doc_title = line.replace('\n','')
+                continue
+            if line.__contains__('<F P=104>'):
+                temp = line.split('>')
+                temp = temp[1].split('<')
+                temp = temp[0].split(' ')
+                doc_city = temp[0]
+            if line.__contains__('<DATE1>'):
+                line = line.replace('<DATE1>', '')
+                line = line.replace('</DATE1>', '')
+                doc_date = line.replace('\n','')
+                continue
+            if line.__contains__("<TEXT>"):
+                is_text = True
+        return docs
+    @staticmethod
+    def get_text(doc_content):
+        doc_text = ""
+        is_text = False
         for line in doc_content:
             if line.__contains__("</TEXT>"):
-                isText = False
-            if isText:
+                is_text = False
+            if is_text:
                 doc_text += line
             if line.__contains__("<TEXT>"):
-                isText = True
+                is_text = True
         return doc_text
 
-    def getTerms(self, text):
+    def get_terms(self, text):
         terms = str.split(text, " ")
         terms = filter(None, terms)
         tCount = 0
@@ -58,6 +105,19 @@ class ReadFile:
         terms = filter(None, terms)
         return terms
 
-# reader = ReadFile()
-# terms = reader.getTerms(reader.getText())
-# 3var = ""
+
+class Document:
+    def __init__(self, doc_id, date, title, city, text):
+        self.id = doc_id
+        self.date = date
+        self.title = title
+        self.origin_city = city
+        self.length = 0
+        self.text = text
+
+    def set_length(self, length):
+        self.length = length
+
+
+reader = ReadFile()
+reader.read_directory_files(os.path.dirname(os.path.abspath(__file__)) + '\\corpus')
