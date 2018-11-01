@@ -69,6 +69,7 @@ class ReadFile:
             if line.__contains__("<TEXT>"):
                 is_text = True
         return docs
+
     @staticmethod
     def get_text(doc_content):
         doc_text = ""
@@ -82,29 +83,6 @@ class ReadFile:
                 is_text = True
         return doc_text
 
-    def get_terms(self, text):
-        terms = str.split(text, " ")
-        terms = filter(None, terms)
-        tCount = 0
-        for term in terms:
-            terms[tCount] = re.sub('[^A-Za-z0-9\-$%/.]+', '', term)
-            if not re.match("^\d+?\.\d+?$", terms[tCount]) and not re.match(r'^\d+/\d+$', terms[tCount]):
-                terms[tCount] = re.sub('[^A-Za-z0-9\-$%]+', '', terms[tCount])
-            if re.match(r'^\d+\d+$', terms[tCount]) and tCount + 1 < terms.__len__() and re.match(r'^\d+/\d+$',
-                                                                                                  terms[tCount + 1]):
-                terms[tCount] += ' ' + terms[tCount + 1]
-                terms[tCount + 1] = ''
-            if term.__contains__('-') and not re.search('[a-zA-Z]', term) and not re.search('[0-9]', term):
-                terms.__delitem__(tCount)
-            elif term.__contains__('-'):
-                words = str.split(term, '-')
-                if words[words.__len__() - 1] == '':
-                    terms[tCount] = terms[tCount].replace('-', '')
-            terms[tCount] = terms[tCount].replace('\n', '')
-            tCount += 1
-        terms = filter(None, terms)
-        return terms
-
 
 class Document:
     def __init__(self, doc_id, date, title, city, text):
@@ -117,7 +95,3 @@ class Document:
 
     def set_length(self, length):
         self.length = length
-
-
-reader = ReadFile()
-reader.read_directory_files(os.path.dirname(os.path.abspath(__file__)) + '\\corpus')
