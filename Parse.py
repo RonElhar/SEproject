@@ -27,6 +27,7 @@ def get_converted_number(number):
 
 
 class Parse:
+    index = 0
     def __init__(self):
         self.date_dict = {'JANUARY': '01', 'January': '01', 'JAN': '01', 'Jan': '01', 'FEBRUARY': '02',
                           'February': '02', 'FEB': '02', 'Feb': '02', 'MARCH': '03', 'March': '03', 'MAR': '03',
@@ -44,15 +45,17 @@ class Parse:
     def main_parser(self, text):
         list_strings = self.get_terms(text)
         reg_number = re.compile(r'\$?[0-9]+')
-        for index, word in enumerate(list_strings):
-            if self.range_term(index, list_strings):
-                continue
-            elif self.stop_words.__contains__(word):
+        while Parse.index < list_strings.__len__():
+            if self.range_term(Parse.index, list_strings):
                 pass
-            elif reg_number.match(word):
-                self.number_term(index, list_strings)
+            elif self.stop_words.__contains__(list_strings[Parse.index]):
+                pass
+            elif reg_number.match(list_strings[Parse.index]):
+                self.number_term(Parse.index, list_strings)
             else:
-                self.big_letter_term(list_strings[index])
+                self.big_letter_term(list_strings[Parse.index])
+            Parse.index += 1
+
         self.add_big_letters_terms()
         print self.doc_dict
 
@@ -136,7 +139,7 @@ class Parse:
         if index + 1 < length and list_strings[index + 1] == "percent"\
                 or list_strings[index + 1] == "percentage":
             term = "{}%".format(list_strings[index])
-            list_strings.__delitem__(index + 1)
+            Parse.index += 1
         # Check if money
         elif m is not None:
             # 100bn or 100m cases
@@ -144,33 +147,32 @@ class Parse:
                 term = "{} M Dollars".format(m.group(1))
             elif m.group(2) == "bn" and index + 1 < length and list_strings[index + 1] == "Dollars":
                 term = "{} M Dollars".format(int(float(m.group(1)) * 1000))
-            list_strings.__delitem__(index + 1)
+            Parse.index += 1
         # $100 cases
         elif reg_num_with_dollar.match(list_strings[index]):
             if index + 1 < length and list_strings[index + 1] == "million":
                 term = "{} M Dollars".format(m2.group(1))
-                list_strings.__delitem__(index + 1)
+                Parse.index += 1
             elif index + 1 < length and list_strings[index + 1] == "billion":
                 term = "{} M Dollars".format(int(float(m2.group(1)) * 1000))
-                list_strings.__delitem__(index + 1)
+                Parse.index += 1
             elif index + 1 < length and list_strings[index + 1] == "trillion":
                 term = "{} M Dollars".format(int(float(m2.group(1)) * 1000000))
-                list_strings.__delitem__(index + 1)
+                Parse.index += 1
             else:
                 if int(float(m2.group(1))) > 1000000:
                     term = "{} M Dollars".format(int(float(m2.group(1))) / 1000000)
                 else:
                     term = "{} Dollars".format(m2.group(1))
         elif index + 3 < length and list_strings[index + 2] == "U.S." and list_strings[index + 3] == "dollars":
+            print list_strings[index]
             if list_strings[index + 1] == "million":
                 term = "{} M Dollars".format(list_strings[index])
             elif list_strings[index + 1] == "billion":
                 term = "{} M Dollars".format(int(list_strings[index]) * 1000)
             elif list_strings[index + 1] == "trillion":
                 term = "{} M Dollars".format(int(list_strings[index]) * 1000000)
-            list_strings.__delitem__(index + 3)
-            list_strings.__delitem__(index + 2)
-            list_strings.__delitem__(index + 1)
+            Parse.index += 3
         elif index + 1 < length and list_strings[index + 1] == "Dollars":
             if list_strings[index].__contains__("/"):
                 term = "{} Dollars".format(list_strings[index])
@@ -186,6 +188,7 @@ class Parse:
             month = ""
             if index + 1 < length and self.date_dict.has_key(list_strings[index + 1]):
                 month = self.date_dict.get(list_strings[index + 1])
+                Parse.index += 1
             elif index - 1 >= 0 and self.date_dict.has_key(list_strings[index - 1]):
                 month = self.date_dict.get(list_strings[index - 1])
             if int(list_strings[index]) < 32:
@@ -198,16 +201,16 @@ class Parse:
         else:
             if index + 1 < length and list_strings[index + 1] == "Thousand":
                 term = "{}".format(list_strings[index], 'K')
-                list_strings.__delitem__(index + 1)
+                Parse.index += 1
             elif index + 1 < length and list_strings[index + 1] == "Million":
                 term = "{}".format(list_strings[index], 'M')
-                list_strings.__delitem__(index + 1)
+                Parse.index += 1
             elif index + 1 < length and list_strings[index + 1] == "Billion":
                 term = "{}".format(list_strings[index], 'B')
-                list_strings.__delitem__(index + 1)
+                Parse.index += 1
             elif index + 1 < length and list_strings[index + 1] == "Trillion":
                 term = "{}".format(float(list_strings[index]) / 100, 'B')
-                list_strings.__delitem__(index + 1)
+                Parse.index += 1
             elif not str.__contains__(list_strings[index], '/') and not re.search('[a-zA-Z]', list_strings[index]):
                 term = get_converted_number(float(list_strings[index]))
             else:
