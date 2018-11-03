@@ -17,6 +17,9 @@ class Main:
         docs = self.reader.separate_docs_in_file(self.ROOT_DIR, "FB396001")
         self.parser.main_parser(docs[1].text)
 
+    def continue_try(self,corpus_path,posting_path):
+        pass
+
 main = Main()
 main.start()
 
