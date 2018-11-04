@@ -3,7 +3,7 @@ import re
 
 
 def get_stop_words():
-    stop_words_file = open("stopwords.txt")
+    stop_words_file = open("C:\\Users\\ronel\\Desktop\\Search Engine\\SEproject\\stopwords.txt")
     lines = stop_words_file.readlines()
     stop_words = []
     for word in lines:
