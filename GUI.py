@@ -45,9 +45,9 @@ class IndexView:
 
     def show(self):
         dict_window = Tk()
-        i=30
-        #dict = sorted(self.controller.get_dict())
-        dict = {'Ron':1,'gal':3,'lian':4,}
+        i = 30
+        # dict = sorted(self.controller.get_dict())
+        dict = {'Ron': 1, 'gal': 3, 'lian': 4, }
         scrollbar = Scrollbar(master=dict_window)
         text_display = Text(master=dict_window)
         scrollbar.pack(side=RIGHT, fill=Y)
@@ -55,10 +55,10 @@ class IndexView:
         scrollbar.config(command=text_display.yview())
         text_display.config(yscrollcommand=scrollbar.set)
 
-        while i>0:
+        while i > 0:
             for key in dict:
-                text_display.insert(END,key+' - '+ str(dict.get(key)) + '\n')
-                i-=1
+                text_display.insert(END, key + ' - ' + str(dict.get(key)) + '\n')
+                i -= 1
         pass
 
     def stem_control(self):
@@ -91,7 +91,6 @@ class IndexView:
         reset_button = Button(master=self.index_window, text='Reset', width=6, command=self.reset)
         reset_button.grid(row=4, column=3)
         self.index_window.mainloop()
-
 
 
 view = IndexView(Main)

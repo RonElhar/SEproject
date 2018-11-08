@@ -15,8 +15,9 @@ class Main:
         #     docs = self.reader.separate_docs_in_file(self.ROOT_DIR, filename)
 
         docs = self.reader.separate_docs_in_file(self.ROOT_DIR, "FB396001")
-        self.parser.main_parser(docs[1].text)
-
+        for doc in docs:
+            terms = self.parser.main_parser(docs[1].text)
+            #indexer.index(terms,doc)
 
 
 main = Main()

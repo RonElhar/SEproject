@@ -5,6 +5,7 @@ import re
 class ReadFile:
 
     def __init__(self):
+        self.cities = set()
         pass
 
     def read_directory_files(self, path):
@@ -61,6 +62,7 @@ class ReadFile:
                 temp = temp[1].split('<')
                 temp = temp[0].split(' ')
                 doc_city = temp[0]
+                self.cities.add(doc_city)
             if line.__contains__('<DATE1>'):
                 line = line.replace('<DATE1>', '')
                 line = line.replace('</DATE1>', '')
