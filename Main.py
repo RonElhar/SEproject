@@ -1,4 +1,5 @@
 import os
+from Indexer import Indexer
 from ReadFile import ReadFile
 from Parse import Parse
 from ReadFile import Document
@@ -8,14 +9,22 @@ class Main:
         self.reader = ReadFile()
         self.ROOT_DIR = os.path.dirname(os.path.abspath(__file__)) + "\\corpus"
         self.parser = Parse()
+        self.indexer = Indexer()
 
     def start(self):
         docs = []
+        docs_dict = {}
         # for filename in os.listdir(self.ROOT_DIR):
         #     docs = self.reader.separate_docs_in_file(self.ROOT_DIR, filename)
 
         docs = self.reader.separate_docs_in_file(self.ROOT_DIR, "FB396001")
-        self.parser.main_parser(docs[1].text)
+        d_c = 0
+        for doc in docs:
+            #print(doc.id)
+            docs_dict[doc] = self.parser.main_parser(docs[d_c].text)
+            d_c+=1
+        self.indexer.index_terms1(docs_dict,docs)
+
 
 main = Main()
 main.start()

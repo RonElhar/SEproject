@@ -95,3 +95,6 @@ class Document:
 
     def set_length(self, length):
         self.length = length
+
+    def tostr(self):
+        return self.id+', '  + self.title
