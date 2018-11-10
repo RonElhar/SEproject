@@ -1,0 +1,25 @@
+import urllib, json
+
+
+def get_city_details(city):
+    url = "http://getcitydetails.geobytes.com/GetCityDetails?fqcn=" + city
+    response = urllib.urlopen(url)
+    data = json.loads(response.read())
+    print data
+
+
+def get_capital_details(city):
+    url = "https://restcountries.eu/rest/v2/capital/" + city
+    response = urllib.urlopen(url)
+    data = json.loads(response.read())
+    print data
+
+
+def get_city_population(city):
+    url = "https://public.opendatasoft.com/api/records/1.0/search/?dataset=worldcitiespop&q=" + city
+    response = urllib.urlopen(url)
+    data = json.loads(response.read())
+    print data
+
+
+get_city_details("Ashdod")
