@@ -9,7 +9,7 @@ class Main:
         self.reader = ReadFile()
         self.ROOT_DIR = os.path.dirname(os.path.abspath(__file__)) + "\\corpus"
         self.parser = Parse()
-        self.indexer = Indexer()
+        self.indexer = Indexer("posting path")
 
     def start(self):
         docs = []

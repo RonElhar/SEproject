@@ -40,7 +40,7 @@ class Indexer:
                 docs_tf_dict[term].append([doc.id,docs_dict[doc][term]])
 
         for term in df_dict:
-            posting_list.append(term+ ': ' + str(df_dict[term]) + str(docs_tf_dict[term]))
+            posting_list.append(term+ ': ' + str(df_dict[term])+ ', ' + str(docs_tf_dict[term]))
         posting_list = sorted(posting_list)
         self.post(posting_list)
         with open('PostingExample', 'rb') as f:
