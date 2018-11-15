@@ -45,8 +45,8 @@ class Indexer:
         self.post(posting_list)
         with open('PostingExample', 'rb') as f:
             my_list = pickle.load(f)
-        for line in my_list:
-            print line
+        for post in my_list:
+            print(post)
 
     def post(self, posting_list):
         with open('PostingExample', 'wb') as f:
