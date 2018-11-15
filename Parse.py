@@ -12,6 +12,7 @@ def get_stop_words():
         stop_words.add(word)
     return stop_words
 
+
 class Parse:
 
     def __init__(self):
@@ -42,31 +43,30 @@ class Parse:
         self.loc_dict = {}
         self.big_letters_dict = {}
         self.index = 0
-        '''
-        list_strings = ["world", "6-7", "1000-2000", "Aviad", "between", "6000", "and", "7000", "World", "May", "1994", "14",
-                   "MAY", "JUNE", "4", "20.6bn", "Dollars", "32bn", "Dollars", "Aviad", "$100", "million", "40.5",
-                   "Dollars", "100", "billion", "U.S.", "dollars", "NBA", "4-5", "million", "U.S.", "dollars", "1",
-                   "trillion", "U.S.", "dollars", "22 3/4", "Dollars", "NBA", "$100", "billion"]
-        '''
-        list_strings = self.get_terms(text)
-            #self.get_terms(text)
+        list_strings = ["world", "6-7", "1000-2000", "Aviad", "between", "6000", "and", "7000", "World", "May", "1994",
+                        "14",
+                        "MAY", "JUNE", "4", "20.6bn", "Dollars", "32bn", "Dollars", "Aviad", "$100", "million", "40.5",
+                        "Dollars", "100", "billion", "U.S.", "dollars", "NBA", "4-5", "million", "U.S.", "dollars", "1",
+                        "trillion", "U.S.", "dollars", "22 3/4", "Dollars", "NBA", "$100", "billion"]
+        # list_strings = self.get_terms(text)
+        # self.get_terms(text)
         reg_number = re.compile(r'\$?[0-9]+$')
         reg_word = re.compile(r'[a-zA-Z]$')
         while self.index < list_strings.__len__():
             token = list_strings[self.index]
             if self.stop_words.__contains__(str.lower(token)):
                 pass
-            elif reg_word.match(token) and not str.__contains__(token,'between'):
+            elif reg_word.match(token) and not str.__contains__(token, 'between'):
                 self.big_letter_term(token)
             elif reg_number.match(token):
                 self.number_term(self.index, list_strings)
-            elif str.__contains__(list_strings[self.index], '-') and reg_number.match(list_strings[self.index]):
+            elif str.__contains__(list_strings[self.index], '-'):
                 numbers = str.split(list_strings[self.index], '-')
                 if reg_number.match(numbers[0]) and reg_number.match(numbers[1]):
                     term = "{}-{}".format(self.number_term(0, [numbers[0]]), self.number_term(0, [numbers[1]]))
                 else:
                     term = list_strings[self.index]
-                self.add_to_dict(term,self.index)
+                self.add_to_dict(term, self.index)
             elif self.index + 3 < list_strings.__len__() and list_strings[self.index] == "between" and reg_number.match(
                     list_strings[self.index + 1]) and list_strings[self.index + 2] == "and" and reg_number.match(
                 list_strings[self.index + 3]):
@@ -80,7 +80,7 @@ class Parse:
         self.add_big_letters_terms()
         end = timer()
         #  self.main_parser_time += float(end - start)
-        #print self.terms_dict
+        # print self.terms_dict
         return self.terms_dict
 
     def get_terms(self, text):
@@ -175,8 +175,8 @@ class Parse:
         m2 = reg_num_with_dollar.match(list_strings[index])
         term = ""
 
-        if index + 1 < length and list_strings[index + 1] == "percent" \
-                or list_strings[index + 1] == "percentage":
+        if index + 1 < length and (list_strings[index + 1] == "percent" \
+                                   or list_strings[index + 1] == "percentage"):
             term = "{}%".format(list_strings[index])
             self.index += 1
         elif index + 3 < length and list_strings[index + 2] == "U.S." and list_strings[
@@ -210,7 +210,7 @@ class Parse:
                 else:
                     term = "{} Dollars".format(list_strings[index])
             self.index += 1  # Check if Date
-        elif not re.search('[a-zA-Z]', list_strings[index]) and (self.date_dict.has_key(
+        elif not index + 1 < length and index - 1 > 0 and (self.date_dict.has_key(
                 list_strings[index + 1]) or (index - 1 >= 0 and self.date_dict.has_key(list_strings[index - 1]))):
             month = ""
             if self.date_dict.has_key(list_strings[index + 1]):
@@ -225,7 +225,7 @@ class Parse:
                     term = "{}-{}".format(month, list_strings[index])
             else:
                 term = "{}-{}".format(list_strings[index], month)
-        elif self.num_word.__contains__(list_strings[index + 1]):
+        elif index + 1 <length and self.num_word.__contains__(list_strings[index + 1]):
             term = ''
             if list_strings[index + 1] == "Thousand":
                 term = "{}".format(list_strings[index], 'K')
@@ -258,6 +258,8 @@ class Parse:
         end = timer()
         # self.number_terms_time += float(end - start)
         return term
+
+
 ''''
     def number_with_percent(self, index, list_strings):
         term = ''
@@ -374,7 +376,7 @@ parse = Parse()
 print(parse.number_term(0, ['10','August']))
 '''''
 
-#list = [1,2,3,4]
-#index =4
-#if index + 1 < len(list) and list[index+1] ==2:
+# list = [1,2,3,4]
+# index =4
+# if index + 1 < len(list) and list[index+1] ==2:
 #    print "foo"
