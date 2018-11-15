@@ -59,7 +59,7 @@ class Parse:
         self.index = 0
         list_strings = ["world", "6-7", "1000-2000", "Aviad", "Between", "6000", "and", "7000", "World", "May", "1994", "14",
                    "MAY", "JUNE", "4", "20.6bn", "Dollars", "32bn", "Dollars", "Aviad", "$100", "million", "40.5",
-                   "Dollars", "100", "billion", "U.S.", "dollars", "NBA", "4-5", "million", "U.S.", "dollars", "1",
+                   "Dollars", "100", "billion", "U.S.", "dollars", "NBA", "320", "million", "U.S.", "dollars", "1",
                    "trillion", "U.S.", "dollars", "22 3/4", "Dollars", "NBA", "$100", "billion"]
             #self.get_terms(text)
         reg_number = re.compile(r'\$?[0-9]+')
@@ -75,7 +75,7 @@ class Parse:
                 pass
             elif reg_number.match(token):
                 self.number_term(self.index, list_strings)
-            print token
+                print token
             self.index += 1
         self.add_big_letters_terms()
         end = timer()
