@@ -39,7 +39,7 @@ class Parse:
                           'October': '10', 'OCT': '10', 'Oct': '10', 'NOVEMBER': '11', 'November': '11', 'NOV': '11',
                           'Nov': '11', 'DECEMBER': '12', 'December': '12', 'DEC': '12', 'Dec': '12'}
         self.num_dict = {'Million': 1000000, 'million': 1000000, 'm': 1000000, 'Thousand': 1000}
-        self.num_word = {'Million,Billion,Thousand,Trillion'}
+        self.num_word = {'Million, Billion, Thousand, Trillion'}
         self.stop_words = get_stop_words()
         self.terms_dict = {}
         self.loc_dict = {}
@@ -57,23 +57,30 @@ class Parse:
         self.loc_dict = {}
         self.big_letters_dict = {}
         self.index = 0
-        list_strings = self.get_terms(text)
+        list_strings = ["world", "6-7", "1000-2000", "Aviad", "Between", "6000", "and", "7000", "World", "May", "1994", "14",
+                   "MAY", "JUNE", "4", "20.6bn", "Dollars", "32bn", "Dollars", "Aviad", "$100", "million", "40.5",
+                   "Dollars", "100", "billion", "U.S.", "dollars", "NBA", "4-5", "million", "U.S.", "dollars", "1",
+                   "trillion", "U.S.", "dollars", "22 3/4", "Dollars", "NBA", "$100", "billion"]
+            #self.get_terms(text)
         reg_number = re.compile(r'\$?[0-9]+')
         reg_word = re.compile(r'[a-zA-Z]')
         while self.index < list_strings.__len__():
-            if self.stop_words.__contains__(list_strings[self.index]) or \
-                    self.stop_words.__contains__(str.lower(list_strings[self.index])):
+            token = list_strings[self.index]
+            if self.stop_words.__contains__(token) or \
+                    self.stop_words.__contains__(str.lower(token)):
                 pass
-            elif reg_word.match(list_strings[self.index]):
-                self.big_letter_term(list_strings[self.index])
+            elif reg_word.match(token):
+                self.big_letter_term(token)
             elif self.range_term(self.index, list_strings):
                 pass
-            elif reg_number.match(list_strings[self.index]):
+            elif reg_number.match(token):
                 self.number_term(self.index, list_strings)
+            print token
             self.index += 1
         self.add_big_letters_terms()
         end = timer()
         #  self.main_parser_time += float(end - start)
+        print self.terms_dict
         return self.terms_dict
 
     def get_terms(self, text):
@@ -150,7 +157,6 @@ class Parse:
                 term = "{}-{}".format(self.number_term(0, [numbers[0]]), self.number_term(0, [numbers[1]]))
             else:
                 term = list_strings[index]
-            self.index += 1
         if term is not '':
             self.add_to_dict(term, index)
             end = timer()
@@ -199,6 +205,7 @@ class Parse:
             elif m is None and list_strings[index + 1] == "Dollars":
                 if list_strings[index].__contains__("/"):
                     term = "{} Dollars".format(list_strings[index])
+                else:
                     num = float(list_strings[index])
                     if num >= 1000000:
                         term = "{} M Dollars".format(int(list_strings[index]) / 1000000)
