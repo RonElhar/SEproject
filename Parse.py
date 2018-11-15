@@ -155,7 +155,7 @@ class Parse:
                 self.terms_dict[word] = self.terms_dict[word] + 1
             else:
                 self.terms_dict[word] = 1
-                
+
     def range_term(self, index, list_strings):
         start = timer()
         term = ''
