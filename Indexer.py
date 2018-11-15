@@ -30,11 +30,12 @@ class Indexer:
             posting_list.append(term + ': ' + str(df_dict[term]) + ', ' + str(docs_tf_dict[term]))
         posting_list = sorted(posting_list)
         self.post(posting_list)
+        '''''
         with open('PostingExample', 'rb') as f:
             my_list = pickle.load(f)
         for post in my_list:
             print(post)
-
+        '''''
     def post(self, posting_list):
         with open('PostingExample','wb') as f:
             # with open('C:\\Users\\ronel\\Desktop\\Search Engine\\SEproject\\Postings\\posting'+str(self.post_count), 'wb') as f:

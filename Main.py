@@ -31,12 +31,10 @@ class Main:
      #   print "rangeTerms time " + str(self.parser.range_term_time)
       #  print "uniteDicts time: " + str(self.parser.unite_dicts_time)
       #  print "total parse time: " + str(self.parser.main_parser_time)
-'''
 start = timer()
 main = Main()
 main.start()
 end = timer()
 print("total time: " + str(end-start))
-'''
-parse = Parse()
-parse.main_parser(" ")
+#parse = Parse()
+#parse.main_parser(" ")
