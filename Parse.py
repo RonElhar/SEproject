@@ -54,7 +54,7 @@ class Parse:
                    "trillion", "U.S.", "dollars", "NBA", "$100", "billion"]
             #self.get_terms(text)
 
-        reg_number = re.compile('\$([0-9]+[.,]?[0-9]?)$')
+        reg_number = re.compile(r'\$?[0-9]+.?[0-9]?$')
         reg_word = re.compile(r'[a-zA-Z]$')
         while self.index < list_strings.__len__():
             token = list_strings[self.index]
@@ -64,7 +64,7 @@ class Parse:
                 self.big_letter_term(token)
             elif reg_number.match(token):
                 self.number_term(self.index, list_strings)
-            elif str.__contains__(list_strings[self.index], '-') and reg_number.match(list_strings[self.index]):
+            elif str.__contains__(list_strings[self.index], '-'):
                 numbers = str.split(list_strings[self.index], '-')
                 if reg_number.match(numbers[0]) and reg_number.match(numbers[1]):
                     term = "{}-{}".format(self.number_term(0, [numbers[0]]), self.number_term(0, [numbers[1]]))
@@ -187,23 +187,19 @@ class Parse:
             index + 3] == "dollars":
             if list_strings[index + 1] == "million" or list_strings[index + 1] == 'm':
                 term = "{} M Dollars".format(list_strings[index])
-                self.index += 3
             elif list_strings[index + 1] == "billion" or list_strings[index + 1] == 'bn':
                 term = "{} M Dollars".format(int(list_strings[index]) * 1000)
-                self.index += 3
             elif list_strings[index + 1] == "trillion":
                 term = "{} M Dollars".format(int(list_strings[index]) * 1000000)
-                self.index += 3
+            self.index += 3
         elif index + 1 < length and index + 2 < length and list_strings[index + 2] == "Dollars":
             if list_strings[index + 1] == "million" or list_strings[index + 1] == 'm':
                 term = "{} M Dollars".format(list_strings[index])
-                self.index += 3
             elif list_strings[index + 1] == "billion" or list_strings[index + 1] == 'bn':
                 term = "{} M Dollars".format(int(list_strings[index]) * 1000)
-                self.index += 3
             elif list_strings[index + 1] == "trillion":
                 term = "{} M Dollars".format(int(list_strings[index]) * 1000000)
-                self.index += 3
+            self.index += 2
         elif index + 1 < length and list_strings[index + 1] == "Dollars":
             if list_strings[index].__contains__("/"):
                 term = "{} Dollars".format(list_strings[index])
@@ -229,7 +225,7 @@ class Parse:
                     term = "{}-{}".format(month, list_strings[index])
             else:
                 term = "{}-{}".format(list_strings[index], month)
-        elif self.num_word.__contains__(list_strings[index + 1]):
+        elif index + 1 < length and self.num_word.__contains__(list_strings[index + 1]):
             term = ''
             if list_strings[index + 1] == "Thousand":
                 term = "{}".format(list_strings[index], 'K')
@@ -239,6 +235,7 @@ class Parse:
                 term = "{}".format(list_strings[index], 'B')
             elif list_strings[index + 1] == "Trillion":
                 term = "{}".format(float(list_strings[index]) * 100, 'B')
+            self.index += 1
         else:
             term = str.replace(list_strings[index], ',', '')
             if not str.__contains__(term, '/') and str.isdigit(term):
