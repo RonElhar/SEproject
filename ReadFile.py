@@ -1,7 +1,6 @@
 import os
 import re
 
-
 class ReadFile:
 
     def __init__(self):
