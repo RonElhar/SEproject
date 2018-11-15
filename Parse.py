@@ -44,13 +44,17 @@ class Parse:
         self.index = 0
         '''
         list_strings = ["world", "6-7", "1000-2000", "Aviad", "between", "6000", "and", "7000", "World", "May", "1994", "14",
-                   "MAY", "JUNE", "4", "20.6bn", "Dollars", "32bn", "Dollars", "Aviad", "$100", "million", "40.5",
-                   "Dollars", "100", "billion", "U.S.", "dollars", "NBA", "4-5", "million", "U.S.", "dollars", "1",
+                   "MAY", "JUNE", "4", "20.6", "Dollars", "32", "bn", "Dollars", "Aviad", "$100", "million", "40.5",
+                   "Dollars", "100", "billion", "U.S.", "dollars", "NBA", "32", "million", "U.S.", "dollars", "1",
                    "trillion", "U.S.", "dollars", "22 3/4", "Dollars", "NBA", "$100", "billion"]
         '''
-        list_strings = self.get_terms(text)
+        list_strings = ["22 3/4", "Dollars", "world", "6-7", "1000-2000", "Aviad", "between", "6000", "and", "7000", "World", "May", "1994", "14",
+                   "MAY", "JUNE", "4", "20.6", "Dollars", "32", "bn", "Dollars", "Aviad", "$100", "million", "40.5",
+                   "Dollars", "100", "billion", "U.S.", "dollars", "NBA", "32", "million", "U.S.", "dollars", "1",
+                   "trillion", "U.S.", "dollars", "NBA", "$100", "billion"]
             #self.get_terms(text)
-        reg_number = re.compile(r'\$?[0-9]+$')
+
+        reg_number = re.compile('\$([0-9]+[.,]?[0-9]?)$')
         reg_word = re.compile(r'[a-zA-Z]$')
         while self.index < list_strings.__len__():
             token = list_strings[self.index]
@@ -80,7 +84,7 @@ class Parse:
         self.add_big_letters_terms()
         end = timer()
         #  self.main_parser_time += float(end - start)
-        #print self.terms_dict
+        print self.terms_dict
         return self.terms_dict
 
     def get_terms(self, text):
@@ -175,8 +179,8 @@ class Parse:
         m2 = reg_num_with_dollar.match(list_strings[index])
         term = ""
 
-        if index + 1 < length and list_strings[index + 1] == "percent" \
-                or list_strings[index + 1] == "percentage":
+        if index + 1 < length and (list_strings[index + 1] == "percent" \
+                or list_strings[index + 1] == "percentage"):
             term = "{}%".format(list_strings[index])
             self.index += 1
         elif index + 3 < length and list_strings[index + 2] == "U.S." and list_strings[
@@ -210,8 +214,8 @@ class Parse:
                 else:
                     term = "{} Dollars".format(list_strings[index])
             self.index += 1  # Check if Date
-        elif not re.search('[a-zA-Z]', list_strings[index]) and (self.date_dict.has_key(
-                list_strings[index + 1]) or (index - 1 >= 0 and self.date_dict.has_key(list_strings[index - 1]))):
+        elif index + 1 < length and ((self.date_dict.has_key(list_strings[index + 1]) or
+                                      (index - 1 >= 0 and self.date_dict.has_key(list_strings[index - 1])))):
             month = ""
             if self.date_dict.has_key(list_strings[index + 1]):
                 month = self.date_dict.get(list_strings[index + 1])
