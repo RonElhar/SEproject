@@ -57,30 +57,45 @@ class Parse:
         self.loc_dict = {}
         self.big_letters_dict = {}
         self.index = 0
-        list_strings = ["world", "6-7", "1000-2000", "Aviad", "Between", "6000", "and", "7000", "World", "May", "1994", "14",
+        '''
+        list_strings = ["world", "6-7", "1000-2000", "Aviad", "between", "6000", "and", "7000", "World", "May", "1994", "14",
                    "MAY", "JUNE", "4", "20.6bn", "Dollars", "32bn", "Dollars", "Aviad", "$100", "million", "40.5",
-                   "Dollars", "100", "billion", "U.S.", "dollars", "NBA", "320", "million", "U.S.", "dollars", "1",
+                   "Dollars", "100", "billion", "U.S.", "dollars", "NBA", "4-5", "million", "U.S.", "dollars", "1",
                    "trillion", "U.S.", "dollars", "22 3/4", "Dollars", "NBA", "$100", "billion"]
+        '''
+        list_strings = self.get_terms(text)
             #self.get_terms(text)
-        reg_number = re.compile(r'\$?[0-9]+')
-        reg_word = re.compile(r'[a-zA-Z]')
+        reg_number = re.compile(r'\$?[0-9]+$')
+        reg_word = re.compile(r'[a-zA-Z]$')
         while self.index < list_strings.__len__():
             token = list_strings[self.index]
-            if self.stop_words.__contains__(token) or \
-                    self.stop_words.__contains__(str.lower(token)):
+            if self.stop_words.__contains__(str.lower(token)):
                 pass
-            elif reg_word.match(token):
+            elif reg_word.match(token) and not str.__contains__(token,'between'):
                 self.big_letter_term(token)
-            elif self.range_term(self.index, list_strings):
-                pass
             elif reg_number.match(token):
                 self.number_term(self.index, list_strings)
-                print token
+            elif str.__contains__(list_strings[self.index], '-') and reg_number.match(list_strings[self.index]):
+                numbers = str.split(list_strings[self.index], '-')
+                if reg_number.match(numbers[0]) and reg_number.match(numbers[1]):
+                    term = "{}-{}".format(self.number_term(0, [numbers[0]]), self.number_term(0, [numbers[1]]))
+                else:
+                    term = list_strings[self.index]
+                self.add_to_dict(term,self.index)
+            elif self.index + 3 < list_strings.__len__() and list_strings[self.index] == "between" and reg_number.match(
+                    list_strings[self.index + 1]) and list_strings[self.index + 2] == "and" and reg_number.match(
+                list_strings[self.index + 3]):
+                term = "between {} and {}".format(self.number_term(0, list_strings[self.index + 1]), self.number_term(
+                    0, [list_strings[self.index + 3]]))
+                self.add_to_dict(term, self.index)
+                self.index += 3
+            else:
+                self.add_to_dict(token, self.index)
             self.index += 1
         self.add_big_letters_terms()
         end = timer()
         #  self.main_parser_time += float(end - start)
-        print self.terms_dict
+        #print self.terms_dict
         return self.terms_dict
 
     def get_terms(self, text):
@@ -140,7 +155,7 @@ class Parse:
                 self.terms_dict[word] = self.terms_dict[word] + 1
             else:
                 self.terms_dict[word] = 1
-
+                
     def range_term(self, index, list_strings):
         start = timer()
         term = ''
@@ -236,7 +251,7 @@ class Parse:
                 elif list_strings[index + 1] == "Billion":
                     term = "{}".format(list_strings[index], 'B')
                 elif list_strings[index + 1] == "Trillion":
-                    term = "{}".format(float(list_strings[index]) / 100, 'B')
+                    term = "{}".format(float(list_strings[index]) * 100, 'B')
             elif m is not None:
                 term = ''
                 if m.group(2) == "m" and index + 1 < len(list_strings) and list_strings[index + 1] == "Dollars":
@@ -415,3 +430,8 @@ parse = Parse()
 
 print(parse.number_term(0, ['10','August']))
 '''''
+
+#list = [1,2,3,4]
+#index =4
+#if index + 1 < len(list) and list[index+1] ==2:
+#    print "foo"
