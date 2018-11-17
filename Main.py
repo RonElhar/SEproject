@@ -15,7 +15,7 @@ class Main:
         self.indexer = Indexer("posting path")
 
     def start(self):
-        docs_dict = {}
+        doc_dict = {}
         locs_dict = {}
         #for filename in os.listdir(self.ROOT_DIR):
         #docs = self.reader.separate_docs_in_file(self.ROOT_DIR, filename)
@@ -23,9 +23,10 @@ class Main:
         d_c = 0
         for doc in docs:
             #print(doc.id)
-            docs_dict[doc.id] = self.parser.main_parser(docs[d_c].text)
+            doc_dict[doc.id] = self.parser.main_parser(docs[d_c].text)
+            self.indexer.index_terms(doc_dict, doc)
+            docs[d_c].text = ''
             d_c += 1
-        #self.indexer.index_terms(docs_dict , docs)
 
 
 start = timer()
