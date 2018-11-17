@@ -50,7 +50,7 @@ class Parse:
         '''
         list_strings = ["22 3/4", "Dollars", "world", "6-7", "1000-2000", "Aviad", "between", "6000", "and", "7000", "World", "May", "1994", "14",
                    "MAY", "JUNE", "4", "20.6", "Dollars", "32", "bn", "Dollars", "Aviad", "$100", "million", "40.5",
-                   "Dollars", "100", "billion", "U.S.", "dollars", "NBA", "32", "million", "U.S.", "dollars", "1",
+                   "Dollars", "82", "billion", "U.S.", "dollars", "NBA", "32", "million", "U.S.", "dollars", "1",
                    "trillion", "U.S.", "dollars", "NBA", "$100", "billion"]
             #self.get_terms(text)
 
