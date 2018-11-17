@@ -26,7 +26,7 @@ class Main:
             self.indexer.index_terms(doc_dict[doc_id], docs[doc_id])
             docs[doc_id].text = ''
         self.indexer.merge_posting()
-        self.indexer.read_post("", "")
+        #self.indexer.read_post("", "")
 
 
 start = timer()
