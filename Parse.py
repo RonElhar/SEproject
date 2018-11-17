@@ -1,6 +1,7 @@
 import StringIO
 import re
 from timeit import default_timer as timer
+import string
 
 
 def get_stop_words():
@@ -11,6 +12,26 @@ def get_stop_words():
         word = word.replace('\n', '')
         stop_words.add(word)
     return stop_words
+
+
+def isFloat(str):
+    try:
+        num1, num2 = str.split(".")
+        float(num2)
+        float(str)
+        return True
+    except ValueError:
+        return False
+
+
+def isFraction(str):
+    if str.find("/") == -1:
+        return False
+    num1, num2 = str.split("/")
+    if isFloat(num1) and isFloat(num2):
+        return True
+    return False
+
 
 class Parse:
 
@@ -23,359 +44,172 @@ class Parse:
                           'SEPTEMBER': '09', 'September': '09', 'SEP': '09', 'Sep': '09', 'OCTOBER': '10',
                           'October': '10', 'OCT': '10', 'Oct': '10', 'NOVEMBER': '11', 'November': '11', 'NOV': '11',
                           'Nov': '11', 'DECEMBER': '12', 'December': '12', 'DEC': '12', 'Dec': '12'}
-        self.num_dict = {'Million': 1000000, 'million': 1000000, 'm': 1000000, 'Thousand': 1000}
-        self.num_word = {'Million, Billion, Thousand, Trillion'}
+        self.num_dict = {'million': 1, 'm': 1, 'billion': 1000, 'bn': 1000, 'trillion': 1000000}
+        self.num_word_dict = {'million': 'M', 'billion': 'B', 'thousand': 'K', 'trillion': '', "bn": 'B', "m": "M"}
         self.stop_words = get_stop_words()
         self.terms_dict = {}
-        self.loc_dict = {}
-        self.big_letters_dict = {}
         self.index = 0
+        '''''
         self.get_terms_time = 0
         self.main_parser_time = 0
         self.number_terms_time = 0
         self.unite_dicts_time = 0
         self.range_term_time = 0
+        '''''
 
     def main_parser(self, text):
-        start = timer()
         self.terms_dict = {}
-        self.loc_dict = {}
-        self.big_letters_dict = {}
         self.index = 0
         '''
-        list_strings = ["world", "6-7", "1000-2000", "Aviad", "between", "6000", "and", "7000", "World", "May", "1994", "14",
-                   "MAY", "JUNE", "4", "20.6", "Dollars", "32", "bn", "Dollars", "Aviad", "$100", "million", "40.5",
-                   "Dollars", "100", "billion", "U.S.", "dollars", "NBA", "32", "million", "U.S.", "dollars", "1",
-                   "trillion", "U.S.", "dollars", "22 3/4", "Dollars", "NBA", "$100", "billion"]
+        self.list_strings = ["world", "6-7", "1000-2000", "Aviad", "Between", "6000", "and", "7000", "World", "May",
+                             "1994", "14", "MAY", "JUNE", "4", "20.6", "Dollars", "32", "bn", "Dollars", "Aviad",
+                             "$100", "million",
+                             "40.5", "Dollars", "100", "billion", "U.S.", "dollars", "NBA", "32", "million", "U.S.",
+                             "dollars", "1",
+                             "trillion", "U.S.", "dollars", "22 3/4", "Dollars", "NBA", "$100", "billion"]
         '''
-        list_strings = ["22 3/4", "Dollars", "world", "6-7", "1000-2000", "Aviad", "between", "6000", "and", "7000", "World", "May", "1994", "14",
-                   "MAY", "JUNE", "4", "20.6", "Dollars", "32", "bn", "Dollars", "Aviad", "$100", "million", "40.5",
-                   "Dollars", "82", "billion", "U.S.", "dollars", "NBA", "32", "million", "U.S.", "dollars", "1",
-                   "trillion", "U.S.", "dollars", "NBA", "$100", "billion"]
-            #self.get_terms(text)
 
-        reg_number = re.compile(r'\$?[0-9]+.?[0-9]?$')
-        reg_word = re.compile(r'[a-zA-Z]$')
-        while self.index < list_strings.__len__():
-            token = list_strings[self.index]
-            if self.stop_words.__contains__(str.lower(token)):
+        self.list_strings = self.get_terms(text)
+
+        reg_number = re.compile(r'\$?\d+\.?\d*$')  # r'\$?[0-9]+.?[0-9]?$')
+        reg_word = re.compile(r'[a-zA-Z]+')
+        while self.index < len(self.list_strings):
+            token = self.list_strings[self.index]
+            if token in self.stop_words:
                 pass
-            elif reg_word.match(token) and not str.__contains__(token,'between'):
-                self.big_letter_term(token)
+            elif reg_word.match(token) and not token == 'Between':
+                self.add_word_term(token)
             elif reg_number.match(token):
-                self.number_term(self.index, list_strings)
-            elif str.__contains__(list_strings[self.index], '-'):
-                numbers = str.split(list_strings[self.index], '-')
-                if reg_number.match(numbers[0]) and reg_number.match(numbers[1]):
-                    term = "{}-{}".format(self.number_term(0, [numbers[0]]), self.number_term(0, [numbers[1]]))
-                else:
-                    term = list_strings[self.index]
-                self.add_to_dict(term,self.index)
-            elif self.index + 3 < list_strings.__len__() and list_strings[self.index] == "between" and reg_number.match(
-                    list_strings[self.index + 1]) and list_strings[self.index + 2] == "and" and reg_number.match(
-                list_strings[self.index + 3]):
-                term = "between {} and {}".format(self.number_term(0, list_strings[self.index + 1]), self.number_term(
-                    0, [list_strings[self.index + 3]]))
-                self.add_to_dict(term, self.index)
+                self.number_term(token)
+            elif re.match(r'\$?[0-9]* ?[0-9]+/[0-9]+$', token):
+                if self.index + 1 < len(self.list_strings) and self.list_strings[self.index + 1] == "Dollars":
+                    self.add_to_dict('{} Dollars'.format(token), self.index)
+                    self.index + 1
+            elif self.index + 3 < len(self.list_strings) and token == "Between" and reg_number.match(
+                    self.list_strings[self.index + 1]) and self.list_strings[
+                self.index + 2] == "and" and reg_number.match(self.list_strings[self.index + 3]):
+                token = "between {} and {}".format(self.list_strings[self.index + 1],
+                                                   self.list_strings[self.index + 3])
+                self.add_to_dict(token, self.index)
                 self.index += 3
             else:
                 self.add_to_dict(token, self.index)
             self.index += 1
-        self.add_big_letters_terms()
-        end = timer()
-        #  self.main_parser_time += float(end - start)
-        print self.terms_dict
+        # print self.terms_dict
         return self.terms_dict
 
     def get_terms(self, text):
+
+        SEPS = (' ', '--')
+        allowed = string.ascii_letters + string.digits + "-$%/."
         start = timer()
-        terms = str.split(text, " ")
+        rsplit = re.compile("|".join(SEPS)).split
+        terms = [s.strip() for s in rsplit(text)]
+        # terms = str.split(text, " ")
         terms = filter(None, terms)
-        tCount = 0
-        for term in terms:
-            terms[tCount] = re.sub('[^A-Za-z0-9\-$%/.]+', '', term)
-            if not re.match("^\d+?\.\d+?$", terms[tCount]) and not re.match(r'^\d+/\d+$', terms[tCount]):
-                terms[tCount] = re.sub('[^A-Za-z0-9\-$%]+', '', terms[tCount])
-            if re.match(r'^\d+\d+$', terms[tCount]) and tCount + 1 < terms.__len__() and re.match(r'^\d+/\d+$',
-                                                                                                  terms[tCount + 1]):
-                terms[tCount] += ' ' + terms[tCount + 1]
-                terms[tCount + 1] = ''
-            if term.__contains__('-') and not re.search('[a-zA-Z]', term) and not re.search('[0-9]', term):
-                terms.__delitem__(tCount)
-            elif term.__contains__('-'):
-                words = str.split(term, '-')
-                if words[words.__len__() - 1] == '':
-                    terms[tCount] = terms[tCount].replace('-', '')
-            terms[tCount] = terms[tCount].replace('\n', '')
-            tCount += 1
+        for i in xrange(len(terms)):
+            terms[i] = filter(allowed.__contains__, terms[i])
+            if not isFloat(terms[i]):
+                terms[i] = terms[i].replace('.', '')
+            if i + 1 < len(terms) and isFloat(terms[i]) and isFraction(terms[i + 1]):
+                terms[i] += ' ' + terms[i + 1]
+                terms[i + 1] = ''
+            if terms[i].startswith("-"):
+                terms[i] = terms[i][1:]
+            if terms[i].endswith("-"):
+                terms[i] = terms[i][:-1]
         terms = filter(None, terms)
         end = timer()
         # self.get_terms_time += float(end - start)
         return terms
 
     def add_to_dict(self, term, index):
-        if self.terms_dict.__contains__(term):
-            self.loc_dict[term] = index
-            self.terms_dict[term] = self.terms_dict[term] + 1
-        elif term != '':
-            self.terms_dict[term] = 1
-
-    def add_big_letters_terms(self):
-        start = timer()
-        for term in self.big_letters_dict.keys():
-            lower = term.lower()
-            upper = term.upper()
-            if self.terms_dict.__contains__(lower):
-                self.terms_dict[lower] = self.terms_dict[lower] + self.big_letters_dict[term]
-            else:
-                self.terms_dict[upper] = self.big_letters_dict[term]
-        end = timer()
-        self.unite_dicts_time += float(end - start)
-
-    def big_letter_term(self, word):
-        reg_big_letters = re.compile('([A-Z]+)')
-        if reg_big_letters.match(word):
-            if self.big_letters_dict.__contains__(word):
-                self.big_letters_dict[word] = self.big_letters_dict[word] + 1
-            else:
-                self.big_letters_dict[word] = 1
+        if term in self.terms_dict:
+            self.terms_dict[term][0] += 1
+            self.terms_dict[term][1].append(index)
         else:
-            if self.terms_dict.__contains__(word):
-                self.terms_dict[word] = self.terms_dict[word] + 1
+            self.terms_dict[term] = []
+            self.terms_dict[term].append(1)
+            self.terms_dict[term].append([index])
+
+    def add_word_term(self, word):
+        lower = word.lower()
+        upper = word.upper()
+        if word[0].isupper():
+            if lower in self.terms_dict:
+                self.add_to_dict(lower, self.index)
             else:
-                self.terms_dict[word] = 1
-                
-    def range_term(self, index, list_strings):
-        start = timer()
+                self.add_to_dict(upper, self.index)
+        else:
+            if upper in self.terms_dict:
+                self.terms_dict[lower] = self.terms_dict.pop(upper)
+                self.add_to_dict(lower, self.index)
+            else:
+                self.add_to_dict(lower, self.index)
+
+    def number_term(self, num_word):
+        ##  problem with : "$100", "million",  "40.5", "Dollars",
+        def dollar_addons():
+            if self.index + 3 < terms_len:
+                return ' ' + self.list_strings[self.index + 1] + ' ' + self.list_strings[self.index + 2] + ' ' + \
+                       self.list_strings[self.index + 3]
+            if self.index + 2 < terms_len:
+                return ' ' + self.list_strings[self.index + 1] + ' ' + self.list_strings[self.index + 2]
+            if self.index + 1 < terms_len:
+                return ' ' + self.list_strings[self.index + 1]
+            return ''
+
+        orig_idx = self.index
+        terms_len = len(self.list_strings)
+        dollars_regex = re.compile("\$?(\d+\.?\d*) ?(million|billion|trillion|m|bn)? ?(U\.S\.)? ?(Dollars)?")
+        dollar_expression = dollars_regex.match(num_word + dollar_addons())
         term = ''
-        reg_number = re.compile(r'\$?[0-9]+')
-        if index + 3 < list_strings.__len__() and list_strings[index] == "Between" and reg_number.match(
-                list_strings[index + 1]) and list_strings[index + 2] == "and" and reg_number.match(
-            list_strings[index + 3]):
-            term = "Between {} and {}".format(self.number_term(0, list_strings[index + 1]), self.number_term(
-                0, [list_strings[index + 3]]))
-            self.index += 3
-        elif str.__contains__(list_strings[index], '-') and reg_number.match(list_strings[index]):
-            numbers = str.split(list_strings[index], '-')
-            if reg_number.match(numbers[0]) and reg_number.match(numbers[1]):
-                term = "{}-{}".format(self.number_term(0, [numbers[0]]), self.number_term(0, [numbers[1]]))
-            else:
-                term = list_strings[index]
-        if term is not '':
-            self.add_to_dict(term, index)
-            end = timer()
-            # self.range_term_time += end - start
-            return True
-        else:
-            end = timer()
-            # self.range_term_time += float(end - start)
-            return False
-
-    def number_term(self, index, list_strings):
-        start = timer
-        length = len(list_strings)
-        reg_letters = re.compile('[a-zA-Z]')
-        reg_num_with_dollar = re.compile('\$([0-9]+[.,]?[0-9]?)')
-        m2 = reg_num_with_dollar.match(list_strings[index])
-        term = ""
-
-        if index + 1 < length and (list_strings[index + 1] == "percent" \
-                or list_strings[index + 1] == "percentage"):
-            term = "{}%".format(list_strings[index])
+        if self.index + 1 < terms_len and (self.list_strings[self.index + 1] == "percent" \
+                                           or self.list_strings[self.index + 1] == "percentage"):
+            term = "{}%".format(num_word)
             self.index += 1
-        elif index + 3 < length and list_strings[index + 2] == "U.S." and list_strings[
-            index + 3] == "dollars":
-            if list_strings[index + 1] == "million" or list_strings[index + 1] == 'm':
-                term = "{} M Dollars".format(list_strings[index])
-            elif list_strings[index + 1] == "billion" or list_strings[index + 1] == 'bn':
-                term = "{} M Dollars".format(int(list_strings[index]) * 1000)
-            elif list_strings[index + 1] == "trillion":
-                term = "{} M Dollars".format(int(list_strings[index]) * 1000000)
-            self.index += 3
-        elif index + 1 < length and index + 2 < length and list_strings[index + 2] == "Dollars":
-            if list_strings[index + 1] == "million" or list_strings[index + 1] == 'm':
-                term = "{} M Dollars".format(list_strings[index])
-            elif list_strings[index + 1] == "billion" or list_strings[index + 1] == 'bn':
-                term = "{} M Dollars".format(int(list_strings[index]) * 1000)
-            elif list_strings[index + 1] == "trillion":
-                term = "{} M Dollars".format(int(list_strings[index]) * 1000000)
-            self.index += 2
-        elif index + 1 < length and list_strings[index + 1] == "Dollars":
-            if list_strings[index].__contains__("/"):
-                term = "{} Dollars".format(list_strings[index])
+        elif dollar_expression.group(4) or num_word[0] == '$':
+            num = float(dollar_expression.group(1))
+            if dollar_expression.group(2):
+                num *= self.num_dict[str.lower(dollar_expression.group(2))]
+                term = "{:.2f} M Dollars".format(num).replace('.00', '')
+            elif num >= 1000000:
+                num = num / 1000000.0
+                term = "{:.2f} M Dollars".format(num).replace('.00', '')
             else:
-                num = float(list_strings[index])
-                if num >= 1000000:
-                    term = "{} M Dollars".format(int(list_strings[index]) / 1000000)
-                else:
-                    term = "{} Dollars".format(list_strings[index])
-            self.index += 1  # Check if Date
-        elif index + 1 < length and ((self.date_dict.has_key(list_strings[index + 1]) or
-                                      (index - 1 >= 0 and self.date_dict.has_key(list_strings[index - 1])))):
-            month = ""
-            if self.date_dict.has_key(list_strings[index + 1]):
-                month = self.date_dict.get(list_strings[index + 1])
-                self.index += 1
-            elif index - 1 >= 0 and self.date_dict.has_key(list_strings[index - 1]):
-                month = self.date_dict.get(list_strings[index - 1])
-            if int(list_strings[index]) < 32:
-                if int(list_strings[index]) < 10:
-                    term = "{}-0{}".format(month, list_strings[index])
-                else:
-                    term = "{}-{}".format(month, list_strings[index])
+                term = "{:.2f} Dollars".format(num).replace('.00', '')
+            self.index += (1 if dollar_expression.group(4) else 0) + (1 if dollar_expression.group(3) else 0) + \
+                          (1 if dollar_expression.group(4) else 0)
+        elif self.index + 1 < terms_len and self.list_strings[self.index + 1] in self.date_dict:
+            month = self.date_dict.get(self.list_strings[self.index + 1])
+            self.index += 1
+            term = "{}-{}".format(month.zfill(2), num_word)
+        elif self.index - 1 >= 0 and self.list_strings[self.index - 1] in self.date_dict:
+            month = self.date_dict.get(self.list_strings[self.index - 1])
+            term = "{}-{}".format((month.zfill(2), num_word) if int(num_word) < 32 else (num_word), month.zfill(2))
+        elif self.index + 1 < terms_len and self.list_strings[self.index + 1].lower() in self.num_word_dict:
+            if self.list_strings[self.index + 1] == "Trillion":
+                term = "{}".format(float(num_word) * 100, 'B')
             else:
-                term = "{}-{}".format(list_strings[index], month)
-        elif index + 1 < length and self.num_word.__contains__(list_strings[index + 1]):
-            term = ''
-            if list_strings[index + 1] == "Thousand":
-                term = "{}".format(list_strings[index], 'K')
-            elif list_strings[index + 1] == "Million":
-                term = "{}".format(list_strings[index], 'M')
-            elif list_strings[index + 1] == "Billion":
-                term = "{}".format(list_strings[index], 'B')
-            elif list_strings[index + 1] == "Trillion":
-                term = "{}".format(float(list_strings[index]) * 100, 'B')
+                term = "{}".format(num_word, self.num_word_dict[self.list_strings[self.index + 1].lower()])
+
             self.index += 1
         else:
-            term = str.replace(list_strings[index], ',', '')
-            if not str.__contains__(term, '/') and str.isdigit(term):
-                amounts = ['', 'K', 'M', 'B']
-                counter = 0
-                number = float(term)
-                if number > 1000000000000:
-                    return str(number) + amounts[counter]
-                while number > 999:
-                    number = number / 1000
-                    counter += 1
-                after_point = str.split(str(number), '.')[1]
-                if after_point == '0':
-                    number = str(float.__int__(float(number)))
-                term = str(number) + amounts[counter]
-            else:
-                term = ''
-        if term == '':
-            term = list_strings[index]
-        self.add_to_dict(term, index)
-        end = timer()
-        # self.number_terms_time += float(end - start)
-        return term
-''''
-    def number_with_percent(self, index, list_strings):
-        term = ''
-        term = "{}%".format(list_strings[index])
-        self.index += 1
-        return term
+            amounts = ['', 'K', 'M', 'B']
+            counter = 0
+            number = float(num_word)
+            if number > 1000000000000:
+                return num_word + amounts[counter]
+            while number > 999:
+                number = number / 1000.0
+                counter += 1
+            term = "{:.2f}{} ".format(number, amounts[counter]).replace(".00", "")
+        self.add_to_dict(term, orig_idx)
 
-    def number_with_letter(self, m, index, list_strings):
-        term = ''
-        if m.group(2) == "m" and index + 1 < len(list_strings) and list_strings[index + 1] == "Dollars":
-            term = "{} M Dollars".format(m.group(1))
-        elif m.group(2) == "bn" and index + 1 < len(list_strings) and list_strings[index + 1] == "Dollars":
-            term = "{} M Dollars".format(int(float(m.group(1)) * 1000))
-        self.index += 1
-        return term
+# parse = Parse()
+# print(parse.number_term(0, ['10','August']))
 
-    def number_with_dollar_sign(self, index, list_strings, length, m2):
-        term = ''
-        if index + 1 < length and (list_strings[index + 1] == "million" or list_strings[index + 1] == 'm'):
-            term = "{} M Dollars".format(m2.group(1))
-            self.index += 1
-        elif index + 1 < length and (list_strings[index + 1] == "billion" or list_strings[index + 1] == 'bn'):
-            term = "{} M Dollars".format(int(float(m2.group(1)) * 1000))
-            self.index += 1
-        elif index + 1 < length and list_strings[index + 1] == "trillion":
-            term = "{} M Dollars".format(int(float(m2.group(1)) * 1000000))
-            self.index += 1
-        else:
-            if int(float(m2.group(1))) > 1000000:
-                term = "{} M Dollars".format(int(float(m2.group(1))) / 1000000)
-            else:
-                term = "{} Dollars".format(m2.group(1))
-        return term
-
-    def us_dollars_term(self, index, list_strings):
-        term = ''
-        if list_strings[index + 1] == "million" or list_strings[index + 1] == 'm':
-            term = "{} M Dollars".format(list_strings[index])
-            self.index += 3
-        elif list_strings[index + 1] == "billion" or list_strings[index + 1] == 'bn':
-            term = "{} M Dollars".format(int(list_strings[index]) * 1000)
-            self.index += 3
-        elif list_strings[index + 1] == "trillion":
-            term = "{} M Dollars".format(int(list_strings[index]) * 1000000)
-            self.index += 3
-        return term
-
-    def dollars_term(self, index, list_strings):
-        term = ''
-        if list_strings[index].__contains__("/"):
-            term = "{} Dollars".format(list_strings[index])
-            num = float(list_strings[index])
-            if num >= 1000000:
-                term = "{} M Dollars".format(int(list_strings[index]) / 1000000)
-            else:
-                term = "{} Dollars".format(list_strings[index])
-        self.index += 1
-        return term
-
-    def number_letter_dollar_term(self, index, list_strings):
-        term = ''
-        if list_strings[index + 1] == "million" or list_strings[index + 1] == 'm':
-            term = "{} M Dollars".format(list_strings[index])
-            self.index += 3
-        elif list_strings[index + 1] == "billion" or list_strings[index + 1] == 'bn':
-            term = "{} M Dollars".format(int(list_strings[index]) * 1000)
-            self.index += 3
-        elif list_strings[index + 1] == "trillion":
-            term = "{} M Dollars".format(int(list_strings[index]) * 1000000)
-            self.index += 3
-        return term
-
-    def date_term(self, index, length, list_strings):
-        term = ''
-        month = ""
-        if self.date_dict.has_key(list_strings[index + 1]):
-            month = self.date_dict.get(list_strings[index + 1])
-            self.index += 1
-        elif index - 1 >= 0 and self.date_dict.has_key(list_strings[index - 1]):
-            month = self.date_dict.get(list_strings[index - 1])
-        if int(list_strings[index]) < 32:
-            if int(list_strings[index]) < 10:
-                term = "{}-0{}".format(month, list_strings[index])
-            else:
-                term = "{}-{}".format(month, list_strings[index])
-        else:
-            term = "{}-{}".format(list_strings[index], month)
-        return term
-
-    def number_with_word(self, index, length, list_strings):
-        term = ''
-        if list_strings[index + 1] == "Thousand":
-            term = "{}".format(list_strings[index], 'K')
-        elif list_strings[index + 1] == "Million":
-            term = "{}".format(list_strings[index], 'M')
-        elif list_strings[index + 1] == "Billion":
-            term = "{}".format(list_strings[index], 'B')
-        elif list_strings[index + 1] == "Trillion":
-            term = "{}".format(float(list_strings[index]) / 100, 'B')
-        return term
-
-    def regular_number(self, index, length, list_strings):
-        term = ''
-        term = str.replace(list_strings[index], ',', '')
-        if not str.__contains__(term, '/') and str.isdigit(term):
-            term = get_converted_number(float(term))
-        else:
-            term = ''
-        return term
-
-
-parse = Parse()
-
-print(parse.number_term(0, ['10','August']))
-'''''
-
-#list = [1,2,3,4]
-#index =4
-#if index + 1 < len(list) and list[index+1] ==2:
+# list = [1,2,3,4]
+# index =4
+# if index + 1 < len(list) and list[index+1] ==2:
 #    print "foo"
