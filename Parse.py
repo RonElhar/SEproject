@@ -16,8 +16,6 @@ def get_stop_words():
 
 def isFloat(str):
     try:
-        num1, num2 = str.split(".")
-        float(num2)
         float(str)
         return True
     except ValueError:
@@ -78,7 +76,7 @@ class Parse:
         reg_word = re.compile(r'[a-zA-Z]+')
         while self.index < len(self.list_strings):
             token = self.list_strings[self.index]
-            if token in self.stop_words:
+            if token in self.stop_words or token == '' or token == None:
                 pass
             elif reg_word.match(token) and not token == 'Between':
                 self.add_word_term(token)
@@ -109,19 +107,19 @@ class Parse:
         rsplit = re.compile("|".join(SEPS)).split
         terms = [s.strip() for s in rsplit(text)]
         # terms = str.split(text, " ")
-        terms = filter(None, terms)
         for i in xrange(len(terms)):
             terms[i] = filter(allowed.__contains__, terms[i])
-            if not isFloat(terms[i]):
+
+            if isFloat(terms[i]):
+                if i + 1 < len(terms) and isFraction(terms[i + 1]):
+                    terms[i] += ' ' + terms[i + 1]
+                    terms[i + 1] = ''
+            else:
                 terms[i] = terms[i].replace('.', '')
-            if i + 1 < len(terms) and isFloat(terms[i]) and isFraction(terms[i + 1]):
-                terms[i] += ' ' + terms[i + 1]
-                terms[i + 1] = ''
             if terms[i].startswith("-"):
                 terms[i] = terms[i][1:]
             if terms[i].endswith("-"):
                 terms[i] = terms[i][:-1]
-        terms = filter(None, terms)
         end = timer()
         # self.get_terms_time += float(end - start)
         return terms
