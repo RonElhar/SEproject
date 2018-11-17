@@ -57,7 +57,10 @@ class Parse:
         self.loc_dict = {}
         self.big_letters_dict = {}
         self.index = 0
-        list_strings = self.get_terms(text)
+        list_strings = ["world", "6-7", "1000-2000", "Aviad", "Between", "6000", "and", "7000", "World", "May", "1994", "14",
+                   "MAY", "JUNE", "4", "20.6bn", "Dollars", "32bn", "Dollars", "Aviad", "$100", "million", "40.5",
+                   "Dollars", "100", "billion", "U.S.", "dollars", "NBA", "320", "million", "U.S.", "dollars", "1",
+                   "trillion", "U.S.", "dollars", "Dollars", "NBA", "$100", "billion"]
         reg_number = re.compile(r'\$?[0-9]+')
         reg_word = re.compile(r'[a-zA-Z]')
         while self.index < list_strings.__len__():
@@ -293,6 +296,7 @@ class Parse:
         end = timer()
         # self.number_terms_time += float(end - start)
         return term
+
 ''''
     def number_with_percent(self, index, list_strings):
         term = ''
@@ -402,9 +406,9 @@ class Parse:
         else:
             term = ''
         return term
-
+'''
 
 parse = Parse()
 
-print(parse.number_term(0, ['10','August']))
-'''''
+print parse.main_parser('')
+

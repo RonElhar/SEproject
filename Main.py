@@ -32,15 +32,14 @@ class Main:
       #  print "uniteDicts time: " + str(self.parser.unite_dicts_time)
       #  print "total parse time: " + str(self.parser.main_parser_time)
 
-start = timer()
-main = Main()
-main.start()
-end = timer()
-print("total time: " + str(end-start))
-''''
 parse = Parse()
 parse.main_parser(["world", "6-7", "1000-2000", "Aviad", "Between", "6000", "and", "7000", "World", "May", "1994", "14",
                    "MAY", "JUNE", "4", "20.6bn", "Dollars", "32bn", "Dollars", "Aviad", "$100", "million", "40.5",
                    "Dollars", "100", "billion", "U.S.", "dollars", "NBA", "320", "million", "U.S.", "dollars", "1",
                    "trillion", "U.S.", "dollars", "22 3/4", "Dollars", "NBA", "$100", "billion"])
-'''''
+
+#start = timer()
+#main = Main()
+#main.start()
+#end = timer()
+#print("total time: " + str(end-start))
