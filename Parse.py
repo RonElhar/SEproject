@@ -27,9 +27,12 @@ def isFloat(str):
 def isFraction(str):
     if str.find("/") == -1:
         return False
-    num1, num2 = str.split("/")
-    if isFloat(num1) and isFloat(num2):
-        return True
+    try:
+        num1, num2 = str.split("/")
+        if isFloat(num1) and isFloat(num2):
+            return True
+    except:
+        pass
     return False
 
 
@@ -60,14 +63,14 @@ class Parse:
     def main_parser(self, text):
         self.terms_dict = {}
         self.index = 0
-        '''
-        self.list_strings = ["world", "6-7", "1000-2000", "Aviad", "Between", "6000", "and", "7000", "World", "May",
-                             "1994", "14", "MAY", "JUNE", "4", "20.6", "Dollars", "32", "bn", "Dollars", "Aviad",
-                             "$100", "million",
-                             "40.5", "Dollars", "100", "billion", "U.S.", "dollars", "NBA", "32", "million", "U.S.",
-                             "dollars", "1",
-                             "trillion", "U.S.", "dollars", "22 3/4", "Dollars", "NBA", "$100", "billion"]
-        '''
+
+        # self.list_strings = ["world", "6-7", "1000-2000", "Aviad", "Between", "6000", "and", "7000", "World", "May",
+        #                      "1994", "14", "MAY", "JUNE", "4", "20.6", "Dollars", "32", "bn", "Dollars", "Aviad",
+        #                      "$100", "million",
+        #                      "40.5", "Dollars", "100", "billion", "U.S.", "dollars", "NBA", "32", "million", "U.S.",
+        #                      "dollars", "1",
+        #                      "trillion", "U.S.", "dollars", "22 3/4", "Dollars", "NBA", "$100", "billion"]
+
 
         self.list_strings = self.get_terms(text)
 
@@ -84,7 +87,7 @@ class Parse:
             elif re.match(r'\$?[0-9]* ?[0-9]+/[0-9]+$', token):
                 if self.index + 1 < len(self.list_strings) and self.list_strings[self.index + 1] == "Dollars":
                     self.add_to_dict('{} Dollars'.format(token), self.index)
-                    self.index + 1
+                    self.index += 1
             elif self.index + 3 < len(self.list_strings) and token == "Between" and reg_number.match(
                     self.list_strings[self.index + 1]) and self.list_strings[
                 self.index + 2] == "and" and reg_number.match(self.list_strings[self.index + 3]):
@@ -95,7 +98,7 @@ class Parse:
             else:
                 self.add_to_dict(token, self.index)
             self.index += 1
-        # print self.terms_dict
+        #print self.terms_dict
         return self.terms_dict
 
     def get_terms(self, text):
@@ -161,14 +164,15 @@ class Parse:
 
         orig_idx = self.index
         terms_len = len(self.list_strings)
-        dollars_regex = re.compile("\$?(\d+\.?\d*) ?(million|billion|trillion|m|bn)? ?(U\.S\.)? ?(Dollars)?")
+        dollars_regex = re.compile("^\$?(\d+\.?\d*) ?(million|billion|trillion|m|bn)? ?(U\.S\.)? ?([Dd]ollars)?")
         dollar_expression = dollars_regex.match(num_word + dollar_addons())
         term = ''
         if self.index + 1 < terms_len and (self.list_strings[self.index + 1] == "percent" \
                                            or self.list_strings[self.index + 1] == "percentage"):
             term = "{}%".format(num_word)
             self.index += 1
-        elif dollar_expression.group(4) or num_word[0] == '$':
+
+        elif dollar_expression:
             num = float(dollar_expression.group(1))
             if dollar_expression.group(2):
                 num *= self.num_dict[str.lower(dollar_expression.group(2))]
@@ -179,7 +183,7 @@ class Parse:
             else:
                 term = "{:.2f} Dollars".format(num).replace('.00', '')
             self.index += (1 if dollar_expression.group(4) else 0) + (1 if dollar_expression.group(3) else 0) + \
-                          (1 if dollar_expression.group(4) else 0)
+                          (1 if dollar_expression.group(2) else 0)
         elif self.index + 1 < terms_len and self.list_strings[self.index + 1] in self.date_dict:
             month = self.date_dict.get(self.list_strings[self.index + 1])
             self.index += 1
