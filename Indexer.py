@@ -1,5 +1,7 @@
 import ast
 import pickle
+from itertools import chain
+from collections import defaultdict
 from timeit import default_timer as timer
 
 class Indexer:
@@ -12,6 +14,7 @@ class Indexer:
         self.docs_locations_dict = {}
         self.terms_docs_dict = {}
         self.post_count = 0
+        self.post_files = []
         pass
 
     # doc-tf{doc.id}
@@ -22,19 +25,20 @@ class Indexer:
     # working indexer
     def index_terms(self, doc_terms_dict, doc):
         self.docs_count += 1
-        for term in doc_terms_dict[doc.id]:
+        for term in doc_terms_dict:
             if not self.df_dict.__contains__(term):
-                self.df_dict[term] = doc_terms_dict[doc.id][term][0]
+                self.df_dict[term] = 1
                 self.docs_locations_dict[term] = {}
                 self.docs_tf_dict[term] = {}
                 self.terms_docs_dict[term] = []
             else:
-                self.df_dict[term] += doc_terms_dict[doc.id][term][0]
+                self.df_dict[term] += 1
             self.terms_docs_dict[term].append(doc.id)
-            self.docs_tf_dict[term][doc.id] = doc_terms_dict[doc.id][term][0]  ## add tf_idf
-            self.docs_locations_dict[term][doc.id] = doc_terms_dict[doc.id][term][1]
+            self.docs_tf_dict[term][doc.id] = doc_terms_dict[term][0]  ## add tf_idf
+            self.docs_locations_dict[term][doc.id] = doc_terms_dict[term][1]
         if self.docs_count == 10:
             self.post()
+            self.post_count += 1
             self.docs_count = 0
             self.df_dict = {}
             self.docs_tf_dict = {}
@@ -44,18 +48,20 @@ class Indexer:
     def post(self):
         #start = timer()
         posting_list = []
+        file_name = 'PostingExample' + str(self.post_count)
+        self.post_files.append(file_name)
         for term in self.df_dict:
             posting_list.append(term + '|' + str(self.df_dict[term]) + '|' + str(self.docs_tf_dict[term]) + '|' + str(
                     self.docs_locations_dict[term]) + '|' + str(self.terms_docs_dict[term]))
-        with open('PostingExample' + str(self.post_count), 'wb') as f:
+        with open(file_name, 'wb') as f:
             pickle.dump(sorted(posting_list), f)
         self.docs_count += 1
     #end = timer()
     #print("total time: " + str(end - start))
 
-    def read_post(self, path, post_name):
+    def read_post(self, post_name):
         start = timer()
-        with open('PostingExample' + str(0), 'rb') as f:
+        with open(post_name, 'rb') as f:
             my_list = pickle.load(f)
         df_dict = {}
         tf_dict = {}
@@ -78,7 +84,23 @@ class Indexer:
             #print docs_dict[term]
         end = timer()
         print("total time: " + str(end - start))
+        return terms, df_dict, tf_dict, loc_dict, docs_dict
 
+    def merge_posting(self):
+        i = 1
+        tf_dict = defaultdict(list)
+        loc_dict = defaultdict(list)
+        docs_dict = defaultdict(list)
+        terms, df_dict1, tf_dict1, loc_dict1, docs_dict1 = self.read_post(self.post_files[0])
+        while i < len(self.post_files):
+            terms2, df_dict2, tf_dict2, loc_dict2, docs_dict2 = self.read_post(self.post_files[i])
+            for k, v in chain(tf_dict1.items(), tf_dict2.items()):
+                tf_dict[k].append(v)
+            for k, v in chain(loc_dict1.items(), loc_dict2.items()):
+                loc_dict[k].append(v)
+            for k, v in chain(docs_dict1.items(), docs_dict2.items()):
+                docs_dict[k].append(v)
+            print "hi"
 
 
 
