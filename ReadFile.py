@@ -15,7 +15,7 @@ class ReadFile:
         return files
 
     def separate_docs_in_file(self, path, filename):
-        docs = []  # This is the Array of the content of each doc (including tags);
+        docs = {}  # This is the Array of the content of each doc (including tags);
         doc_index = 0
         cur_file = open(path + "\\" + filename + "\\" + filename, "r")
         lines = cur_file.readlines()
@@ -42,7 +42,7 @@ class ReadFile:
                 doc_index += 1
                 continue
             if line.__contains__("</DOC>"):
-                docs.append(Document(doc_id, doc_date, doc_title, doc_city, doc_text))
+                docs[doc_id]=Document(doc_id, doc_date, doc_title, doc_city, doc_text)
                 continue
             if line.__contains__("<DOCNO>"):
                 line = line.replace("<DOCNO>", '')
