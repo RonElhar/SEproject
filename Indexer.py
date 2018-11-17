@@ -21,6 +21,7 @@ class Indexer:
     # working indexer
     def index_terms(self, doc_terms_dict, doc):
         posting_list = []
+        self.post_count += 1
         for term in doc_terms_dict[doc.id]:
             if not self.df_dict.__contains__(term):
                 self.df_dict[term] = doc_terms_dict[doc.id][term][0]
@@ -32,7 +33,6 @@ class Indexer:
             self.terms_docs_dict[term].add(doc.id)
             self.docs_tf_dict[term][doc.id] = doc_terms_dict[doc.id][term][0]  ## add tf_idf
             self.docs_locations_dict[term][doc.id] = doc_terms_dict[doc.id][term][1]
-            self.post_count += 1
         '''''
         for term in df_dict:
             terms[term] = Term(term, df_dict[term], docs, docs_tf_dict[term], docs_locations_dict[term])
@@ -44,7 +44,7 @@ class Indexer:
             read_terms[term].print_term()
         '''''
         # posting_list.append(pickle.dumps([term ,df_dict[term] ,docs_tf_dict[term],docs_locations_dict[term]]))
-        if self.post_count == 500000:
+        if self.post_count == 10:
             self.post()
             self.post_count = 0
             self.df_dict = {}
