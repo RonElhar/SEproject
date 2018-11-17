@@ -1,16 +1,17 @@
+import ast
 import pickle
-
+from timeit import default_timer as timer
 
 class Indexer:
 
     def __init__(self, posting_path):
         self.posting_path = posting_path
-        self.post_count = 0
+        self.docs_count = 0
         self.df_dict = {}
         self.docs_tf_dict = {}
         self.docs_locations_dict = {}
         self.terms_docs_dict = {}
-
+        self.post_count = 0
         pass
 
     # doc-tf{doc.id}
@@ -20,61 +21,66 @@ class Indexer:
     ### highest tf idf - 10 first docs
     # working indexer
     def index_terms(self, doc_terms_dict, doc):
-        posting_list = []
-        self.post_count += 1
+        self.docs_count += 1
         for term in doc_terms_dict[doc.id]:
             if not self.df_dict.__contains__(term):
                 self.df_dict[term] = doc_terms_dict[doc.id][term][0]
                 self.docs_locations_dict[term] = {}
                 self.docs_tf_dict[term] = {}
-                self.terms_docs_dict[term] = set()
+                self.terms_docs_dict[term] = []
             else:
                 self.df_dict[term] += doc_terms_dict[doc.id][term][0]
-            self.terms_docs_dict[term].add(doc.id)
+            self.terms_docs_dict[term].append(doc.id)
             self.docs_tf_dict[term][doc.id] = doc_terms_dict[doc.id][term][0]  ## add tf_idf
             self.docs_locations_dict[term][doc.id] = doc_terms_dict[doc.id][term][1]
-        '''''
-        for term in df_dict:
-            terms[term] = Term(term, df_dict[term], docs, docs_tf_dict[term], docs_locations_dict[term])
-        self.post(terms)
-        read_terms = {}
-        with open('PostingExample', 'rb') as f:
-            read_terms = pickle.load(f)
-        for term in sorted(read_terms):
-            read_terms[term].print_term()
-        '''''
-        # posting_list.append(pickle.dumps([term ,df_dict[term] ,docs_tf_dict[term],docs_locations_dict[term]]))
-        if self.post_count == 10:
+        if self.docs_count == 10:
             self.post()
-            self.post_count = 0
+            self.docs_count = 0
             self.df_dict = {}
             self.docs_tf_dict = {}
             self.docs_locations_dict = {}
             self.terms_docs_dict = {}
 
-    # tf_dict = to_dict('{doc1:6 , doc2:3}')
-    # loc_dict = {doc1:'[1,2,3,4,5]'
     def post(self):
+        #start = timer()
         posting_list = []
         for term in self.df_dict:
-            posting_list.append(term + ': ' + str(self.df_dict[term]) + ',' + str(self.docs_tf_dict[term]) + ',' + str(
-                self.docs_locations_dict[term]) + ',' + str(self.terms_docs_dict[term]))
-        with open('PostingExample', 'wb') as f:
-            # with open('C:\\Users\\ronel\\Desktop\\Search Engine\\SEproject\\Postings\\posting'+str(self.post_count), 'wb') as f:
-            pickle.dump(posting_list, f)
-        self.post_count += 1
+            posting_list.append(term + '|' + str(self.df_dict[term]) + '|' + str(self.docs_tf_dict[term]) + '|' + str(
+                    self.docs_locations_dict[term]) + '|' + str(self.terms_docs_dict[term]))
+        with open('PostingExample' + str(self.post_count), 'wb') as f:
+            pickle.dump(sorted(posting_list), f)
+        self.docs_count += 1
+    #end = timer()
+    #print("total time: " + str(end - start))
 
-    def read_post(self,path,post_name):
-        with open('PostingExample', 'rb') as f:
+    def read_post(self, path, post_name):
+        start = timer()
+        with open('PostingExample' + str(0), 'rb') as f:
             my_list = pickle.load(f)
+        df_dict = {}
+        tf_dict = {}
+        loc_dict = {}
+        docs_dict = {}
         c = 0
-        #print my_list[0]
+        terms = []
         for item in my_list:
-            if c<500:
-                print item
-            c+=1
-        # item = pickle.loads(my_list[item])
-        # print item[0] #+ ': ' + str(item[1][item[0]])# + ', ' + str(item[2][item[0]]) + str(item[3][item[0]])
+            item = str.split(item, '|')
+            term = item[0]
+            #tf_dict[terms[0]]
+            terms.append(term)
+            df_dict[term] = ast.literal_eval(item[1])
+            #print(df_dict[term])
+            tf_dict[term] = ast.literal_eval(item[2])
+            #print tf_dict[term]
+            loc_dict[term] = ast.literal_eval(item[3])
+            #print loc_dict[term]
+            docs_dict[term] = ast.literal_eval(item[4])
+            #print docs_dict[term]
+        end = timer()
+        print("total time: " + str(end - start))
+
+
+
 
 class DocTermInfo:
     def __init__(self, doc_id):
