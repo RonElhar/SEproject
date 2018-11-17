@@ -3,6 +3,9 @@ import re
 from timeit import default_timer as timer
 import string
 
+import nltk
+from nltk.stem.porter import *
+
 
 def get_stop_words():
     stop_words_file = open("stopwords.txt")
@@ -50,6 +53,8 @@ class Parse:
         self.stop_words = get_stop_words()
         self.terms_dict = {}
         self.index = 0
+        self.to_stem = True
+        self.stemmer = nltk.stem.SnowballStemmer('english')
         '''''
         self.get_terms_time = 0
         self.main_parser_time = 0
@@ -68,7 +73,6 @@ class Parse:
         #                      "40.5", "Dollars", "100", "billion", "U.S.", "dollars", "NBA", "32", "million", "U.S.",
         #                      "dollars", "1",
         #                      "trillion", "U.S.", "dollars", "22 3/4", "Dollars", "NBA", "$100", "billion"]
-
 
         self.list_strings = self.get_terms(text)
 
@@ -96,11 +100,14 @@ class Parse:
             else:
                 self.add_to_dict(token, self.index)
             self.index += 1
-        #print self.terms_dict
+        if self.to_stem:
+            terms = self.terms_dict.keys()
+            for term in terms:
+                self.terms_dict[self.stemmer.stem(term)] = self.terms_dict.pop(term)
+        # print self.terms_dict
         return self.terms_dict
 
     def get_terms(self, text):
-
         SEPS = (' ', '--')
         allowed = string.ascii_letters + string.digits + "-$%/."
         start = timer()
@@ -109,7 +116,6 @@ class Parse:
         # terms = str.split(text, " ")
         for i in xrange(len(terms)):
             terms[i] = filter(allowed.__contains__, terms[i])
-
             if isFloat(terms[i]):
                 if i + 1 < len(terms) and isFraction(terms[i + 1]):
                     terms[i] += ' ' + terms[i + 1]
@@ -125,6 +131,7 @@ class Parse:
         return terms
 
     def add_to_dict(self, term, index):
+
         if term in self.terms_dict:
             self.terms_dict[term][0] += 1
             self.terms_dict[term][1].append(index)
@@ -134,6 +141,8 @@ class Parse:
             self.terms_dict[term].append([index])
 
     def add_word_term(self, word):
+        if self.to_stem:
+            word = str(self.stemmer.stem(word))
         lower = word.lower()
         upper = word.upper()
         if word[0].isupper():
@@ -169,8 +178,7 @@ class Parse:
                                            or self.list_strings[self.index + 1] == "percentage"):
             term = "{}%".format(num_word)
             self.index += 1
-
-        elif dollar_expression:
+        elif dollar_expression and (str.startswith(num_word, '$') or dollar_expression.group(4)):
             num = float(dollar_expression.group(1))
             if dollar_expression.group(2):
                 num *= self.num_dict[str.lower(dollar_expression.group(2))]
@@ -185,10 +193,13 @@ class Parse:
         elif self.index + 1 < terms_len and self.list_strings[self.index + 1] in self.date_dict:
             month = self.date_dict.get(self.list_strings[self.index + 1])
             self.index += 1
-            term = "{}-{}".format(month.zfill(2), num_word)
+            num_word = num_word.replace('.','')
+            term = "{}-{}".format(month.zfill(2), num_word.zfill(2))
         elif self.index - 1 >= 0 and self.list_strings[self.index - 1] in self.date_dict:
             month = self.date_dict.get(self.list_strings[self.index - 1])
-            term = "{}-{}".format((month.zfill(2), num_word) if int(num_word) < 32 else (num_word), month.zfill(2))
+            num_word = num_word.replace('.','')
+            term = ("{}-{}".format(month.zfill(2), num_word.zfill(2))) if int(num_word) < 32 else \
+                ("{}-{}".format(num_word.zfill(2), month.zfill(2)))
         elif self.index + 1 < terms_len and self.list_strings[self.index + 1].lower() in self.num_word_dict:
             if self.list_strings[self.index + 1] == "Trillion":
                 term = "{}".format(float(num_word) * 100, 'B')

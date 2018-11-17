@@ -60,7 +60,6 @@ class Indexer:
     #print("total time: " + str(end - start))
 
     def read_post(self, post_name):
-        start = timer()
         with open(post_name, 'rb') as f:
             my_list = pickle.load(f)
         df_dict = {}
@@ -82,8 +81,6 @@ class Indexer:
             #print loc_dict[term]
             docs_dict[term] = ast.literal_eval(item[4])
             #print docs_dict[term]
-        end = timer()
-        print("total time: " + str(end - start))
         return terms, df_dict, tf_dict, loc_dict, docs_dict
 
     def merge_posting(self):
@@ -100,7 +97,6 @@ class Indexer:
                 loc_dict[k].append(v)
             for k, v in chain(docs_dict1.items(), docs_dict2.items()):
                 docs_dict[k].append(v)
-            print "hi"
 
 
 
