@@ -53,7 +53,7 @@ class Parse:
         self.stop_words = get_stop_words()
         self.terms_dict = {}
         self.index = 0
-        self.to_stem = True
+        self.to_stem = False
         self.stemmer = nltk.stem.SnowballStemmer('english')
         '''''
         self.get_terms_time = 0
