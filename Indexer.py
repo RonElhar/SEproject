@@ -51,6 +51,7 @@ class Indexer:
             posting_list.append(term + '|' + str(self.docs_tf_dict[term]) + '|' + str(
                     self.docs_locations_dict[term]) + '|' + str(self.terms_docs_dict[term]))
         with open(file_name, 'wb') as f:
+            print sorted(posting_list)
             pickle.dump(sorted(posting_list), f)
         self.docs_count += 1
     #end = timer()
