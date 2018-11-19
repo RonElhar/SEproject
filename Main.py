@@ -12,21 +12,30 @@ class Main:
         self.reader = ReadFile()
         self.ROOT_DIR = os.path.dirname(os.path.abspath(__file__)) + "\\corpus"
         self.parser = Parse()
-        self.indexer = Indexer("posting path")
+        self.indexer = Indexer("Postings\\")
 
     def start(self):
         doc_dict = {}
         locs_dict = {}
-        #for filename in os.listdir(self.ROOT_DIR):
-         #   docs = self.reader.separate_docs_in_file(self.ROOT_DIR, filename)
-        docs = self.reader.separate_docs_in_file(self.ROOT_DIR, "FB396001")
-        for doc_id in docs:
-            # print(doc.id)
-            doc_dict[doc_id] = self.parser.main_parser(docs[doc_id].text)
-            self.indexer.index_terms(doc_dict[doc_id], docs[doc_id])
-            docs[doc_id].text = ''
-        self.indexer.merge_posting()
-        #self.indexer.read_post("", "")
+        dirs_list = os.listdir(self.ROOT_DIR)
+        i = 0
+        file_docs = {}
+        docs={}
+        while i < 10:
+            docs= self.reader.separate_docs_in_file(self.ROOT_DIR, dirs_list[i])
+            file_docs[dirs_list[i]] = docs.keys()
+            i+=1
+        # for filename in :
+        #   docs = self.reader.separate_docs_in_file(self.ROOT_DIR, filename)
+        # docs = self.reader.separate_docs_in_file(self.ROOT_DIR, "FB396001")
+            for doc_id in docs:
+                # print(doc.id)
+                doc_dict = self.parser.main_parser(docs[doc_id].text)
+                self.indexer.index_terms(doc_dict, docs[doc_id])
+                docs[doc_id].text = None
+        self.indexer.read_post(0,[0,1,2])
+        # self.indexer.merge_posting()
+        # self.indexer.read_post("", "")
 
 
 start = timer()

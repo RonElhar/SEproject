@@ -114,7 +114,7 @@ class Parse:
         rsplit = re.compile("|".join(SEPS)).split
         terms = [s.strip() for s in rsplit(text)]
         # terms = str.split(text, " ")
-        for i in xrange(len(terms)):
+        for i in range(0, len(terms)):
             terms[i] = filter(allowed.__contains__, terms[i])
             if isFloat(terms[i]):
                 if i + 1 < len(terms) and isFraction(terms[i + 1]):
@@ -171,10 +171,10 @@ class Parse:
 
         orig_idx = self.index
         terms_len = len(self.list_strings)
-        dollars_regex = re.compile("^\$?(\d+\.?\d*) ?(million|billion|trillion|m|bn)? ?(U\.S\.)? ?([Dd]ollars)?")
+        dollars_regex = re.compile("^\$?(\d+\.?\d*) ?(million|billion|trillion|m|bn)? ?(US)? ?([Dd]ollars)?")
         dollar_expression = dollars_regex.match(num_word + dollar_addons())
         term = ''
-        if self.index + 1 < terms_len and (self.list_strings[self.index + 1] == "percent" \
+        if self.index + 1 < terms_len and (self.list_strings[self.index + 1] == "percent"
                                            or self.list_strings[self.index + 1] == "percentage"):
             term = "{}%".format(num_word)
             self.index += 1
@@ -193,11 +193,11 @@ class Parse:
         elif self.index + 1 < terms_len and self.list_strings[self.index + 1] in self.date_dict:
             month = self.date_dict.get(self.list_strings[self.index + 1])
             self.index += 1
-            num_word = num_word.replace('.','')
+            num_word = num_word.replace('.', '')
             term = "{}-{}".format(month.zfill(2), num_word.zfill(2))
         elif self.index - 1 >= 0 and self.list_strings[self.index - 1] in self.date_dict:
             month = self.date_dict.get(self.list_strings[self.index - 1])
-            num_word = num_word.replace('.','')
+            num_word = num_word.replace('.', '')
             term = ("{}-{}".format(month.zfill(2), num_word.zfill(2))) if int(num_word) < 32 else \
                 ("{}-{}".format(num_word.zfill(2), month.zfill(2)))
         elif self.index + 1 < terms_len and self.list_strings[self.index + 1].lower() in self.num_word_dict:
@@ -216,7 +216,7 @@ class Parse:
             while number > 999:
                 number = number / 1000.0
                 counter += 1
-            term = "{:.2f}{} ".format(number, amounts[counter]).replace(".00", "")
+            term = "{:.2f}{}".format(number, amounts[counter]).replace(".00", "")
         self.add_to_dict(term, orig_idx)
 
 # parse = Parse()
