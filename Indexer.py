@@ -110,72 +110,72 @@ class Indexer:
         return terms, tf_dict, loc_dict, docs_dict
 
 
-def merge_posting(self):
-    i = 0
-    length = len(self.post_files)
-    terms = []
-    tf_dicts = []
-    loc_dicts = []
-    docs_dicts = []
-    read_blocks = []
-    min_ind = -1
-    tf_dict = {}
-    loc_dict = {}
-    docs_dict = {}
-    terms_keys = []
-    checked_terms = []
-
-    num_of_blocks_to_read = 0
-    for i in range(0, length):
-        num_of_blocks_to_read += self.post_files_blocks[i]
-    for i in range(0, length):  ######### check range func limits
-        terms[i], tf_dicts[i], loc_dicts[i], docs_dicts[i] = self.read_post(self.post_files[i], 0)
-        read_blocks[i] += 1
-    min_term = terms[0][terms[0].__len__()]
-    while i < num_of_blocks_to_read:
-        curr_length = len(terms)
-        for i in range(0, curr_length):
-            terms_keys += terms[i]
-        terms_keys = sorted(list(set(terms_keys)))
-        for i in range(0, curr_length):
-            if min_term > terms[i][terms[i].__len__()]:
-                min_term = terms[i][terms[i].__len__()]
-                min_ind = i
-        for term in terms_keys:
-            if term <= min_term:
-                checked_terms.append(term)
-        for key in checked_terms:
-            tf_merge_values = {}
-            loc_merge_values = {}
-            docs_merge_values = {}
-            for i in range(0, curr_length):
-                if terms[i].__contains__(key):
-                    tf_merge_values.update(tf_dicts[i][key])
-                    loc_merge_values.update(loc_dicts[i][key])
-                    docs_merge_values.update(docs_dicts[i][key])
-            tf_dict[key] = tf_merge_values
-            loc_dict[key] = loc_merge_values
-            docs_dict[key] = docs_merge_values
-        self.post_final(checked_terms, tf_dict, loc_dict, docs_dict)
-        terms_keys = []
-        checked_terms = []
+    def merge_posting(self):
+        i = 0
+        length = self.post_files_blocks.__len__()
+        terms = []
+        tf_dicts = []
+        loc_dicts = []
+        docs_dicts = []
+        read_blocks = []
+        min_ind = -1
         tf_dict = {}
         loc_dict = {}
         docs_dict = {}
-        i += 1
-        if self.post_files_blocks[min_ind] > read_blocks[min_ind]:
-            terms[min_ind], tf_dicts[min_ind], loc_dicts[min_ind], docs_dicts[min_ind] = self.read_post(
-                self.post_files[min_ind])
-            min_term = terms[0][terms[0].__len__()]
-        else:
-            if terms.__len__() > 1:
-                terms.__delitem__(min_ind)
-                tf_dicts.__delitem__(min_ind)
-                loc_dicts.__delitem__(min_ind)
-                docs_dicts.__delitem__(min_ind)
-                read_blocks.__delitem__(min_ind)
+        terms_keys = []
+        checked_terms = []
+
+        num_of_blocks_to_read = 0
+        for i in range(0, length):
+            num_of_blocks_to_read += self.post_files_blocks[i].__len__()
+        for i in range(0, length):  ######### check range func limits
+            terms[i], tf_dicts[i], loc_dicts[i], docs_dicts[i] = self.read_post(i, 0)
+            read_blocks[i] += 1
+        min_term = terms[0][terms[0].__len__()]
+        while i < num_of_blocks_to_read:
+            curr_length = len(terms)
+            for i in range(0, curr_length):
+                terms_keys += terms[i]
+            terms_keys = sorted(list(set(terms_keys)))
+            for i in range(0, curr_length):
+                if min_term > terms[i][terms[i].__len__()]:
+                    min_term = terms[i][terms[i].__len__()]
+                    min_ind = i
+            for term in terms_keys:
+                if term <= min_term:
+                    checked_terms.append(term)
+            for key in checked_terms:
+                tf_merge_values = {}
+                loc_merge_values = {}
+                docs_merge_values = {}
+                for i in range(0, curr_length):
+                    if terms[i].__contains__(key):
+                        tf_merge_values.update(tf_dicts[i][key])
+                        loc_merge_values.update(loc_dicts[i][key])
+                        docs_merge_values.update(docs_dicts[i][key])
+                tf_dict[key] = tf_merge_values
+                loc_dict[key] = loc_merge_values
+                docs_dict[key] = docs_merge_values
+            self.post_final(checked_terms, tf_dict, loc_dict, docs_dict)
+            terms_keys = []
+            checked_terms = []
+            tf_dict = {}
+            loc_dict = {}
+            docs_dict = {}
+            i += 1
+            if self.post_files_blocks[min_ind] > read_blocks[min_ind]:
+                terms[min_ind], tf_dicts[min_ind], loc_dicts[min_ind], docs_dicts[min_ind] = self.read_post(
+                    self.post_files[min_ind])
+                min_term = terms[0][terms[0].__len__()]
             else:
-                break
+                if terms.__len__() > 1:
+                    terms.__delitem__(min_ind)
+                    tf_dicts.__delitem__(min_ind)
+                    loc_dicts.__delitem__(min_ind)
+                    docs_dicts.__delitem__(min_ind)
+                    read_blocks.__delitem__(min_ind)
+                else:
+                    break
 
     def post_final(self, terms, tf_dict, loc_dict, docs_dict):
         posting_list = []
