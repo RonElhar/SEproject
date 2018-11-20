@@ -1,5 +1,3 @@
-import StringIO
-import re
 from timeit import default_timer as timer
 import string
 
@@ -17,24 +15,50 @@ def get_stop_words():
     return stop_words
 
 
-def isFloat(str):
-    try:
-        float(str)
-        return True
-    except ValueError:
-        return False
+# def isFloat(token):
+#     try:
+#         float(token)
+#         return True
+#     except ValueError:
+#         return False
 
 
-def isFraction(str):
-    if str.find("/") == -1:
+def isFloat(token):
+    i = 0
+    decimal_point = False
+    digit_exists = False
+    while i < len(token):
+        if not str.isdigit(token[i]) and not token[i] == '.':
+            return False
+        elif token[i] == '.':
+            if decimal_point:
+                return False
+            decimal_point = True
+        else:
+            digit_exists = True
+        i += 1
+    if not digit_exists:
+        return False
+    return True
+
+
+def isFraction(token):
+    if token.find("/") == -1:
         return False
     try:
-        num1, num2 = str.split("/")
+        num1, num2 = token.split("/")
         if isFloat(num1) and isFloat(num2):
             return True
     except:
         pass
     return False
+
+
+def isWord(token):
+    for c in token:
+        if not str.isalpha(c):
+            return False
+    return True
 
 
 class Parse:
@@ -77,19 +101,29 @@ class Parse:
         self.list_strings = self.get_terms(text)
 
         reg_number = re.compile(r'\$?\d+\.?\d*$')  # r'\$?[0-9]+.?[0-9]?$')
-        reg_word = re.compile(r'[a-zA-Z]+')
+        # reg_word = re.compile(r'[a-zA-Z]+')
         while self.index < len(self.list_strings):
             token = self.list_strings[self.index]
             if token in self.stop_words or token == '' or token == None:
                 pass
-            elif reg_word.match(token) and not token == 'Between':
+            elif isWord(token) and not token == 'Between':
                 self.add_word_term(token)
             elif reg_number.match(token):
                 self.number_term(token)
-            elif re.match(r'\$?[0-9]* ?[0-9]+/[0-9]+$', token):
-                if self.index + 1 < len(self.list_strings) and self.list_strings[self.index + 1] == "Dollars":
-                    self.add_to_dict('{} Dollars'.format(token), self.index)
-                    self.index += 1
+            elif str.__contains__(token, '/'):
+                if re.match(r'\$?[0-9]* ?[0-9]+/[0-9]+$', token):
+                    if self.index + 1 < len(self.list_strings) and (
+                            self.list_strings[self.index + 1] == "Dollars" or token.startswith('$')):
+                        self.add_to_dict('{} Dollars'.format(token), self.index)
+                        self.index += 1
+                    else:
+                        self.add_to_dict(token, self.index)
+                else:
+                    str.replace(token, '/','')
+                    if isWord(token):
+                        self.add_word_term(token)
+                    else:
+                        self.add_to_dict(token, self.index)
             elif self.index + 3 < len(self.list_strings) and token == "Between" and reg_number.match(
                     self.list_strings[self.index + 1]) and self.list_strings[
                 self.index + 2] == "and" and reg_number.match(self.list_strings[self.index + 3]):

@@ -1,3 +1,5 @@
+from Tkinter import tkinter
+
 from Tkinter import *
 import tkFileDialog
 

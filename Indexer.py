@@ -22,6 +22,8 @@ class Indexer:
         self.compressed_indexes = {}
         self.compressed_blocks = []
         self.files_count = 0
+        self.i = 0
+        self.terms_count
         # [[]]
         pass
 
@@ -34,12 +36,13 @@ class Indexer:
             self.docs_locations_dict[term][doc.id] = doc_terms_dict[term][1]
         self.docs_count += 1
         # if sys.getsizeof(self.docs_locations_dict)>1024 ** 4:
-        if self.docs_count == 1000:
+        if self.files_count == 114:
+            self.i += 1
             self.aggregate_indexes()
+            self.files_count = 0
             self.docs_count = 0
             self.docs_tf_dict = {}
             self.docs_locations_dict = {}
-            self.terms_docs_dict = {}
 
     def aggregate_indexes(self):
         terms = sorted(self.docs_tf_dict.keys())
@@ -49,14 +52,15 @@ class Indexer:
             compressed_index = cPickle.dumps(index) + '@'
             cur_size = sys.getsizeof(compressed_index)
             block_size = sys.getsizeof(compressed_block)
-            if block_size + cur_size < (8192):
+            if block_size + cur_size < 8192:
                 compressed_block += compressed_index
             else:
-                size = sys.getsizeof(compressed_block)
                 self.compressed_blocks.append(compressed_block)
                 self.block_count += 1
                 compressed_block = compressed_index
-        self.post()
+        if self.files_count * self.i > 454:
+        # self.files_count =0
+            self.post()
 
     def post(self):
         # start = timer()
@@ -67,7 +71,7 @@ class Indexer:
             for block in self.compressed_blocks:
                 size = sys.getsizeof(block)
                 f.write(block)
-                self.post_files_blocks[self.post_count].append(f.tell()) #####
+                self.post_files_blocks[self.post_count].append(f.tell())  #####
         f.close()
         self.compressed_blocks = []
         self.block_count = 0
@@ -94,14 +98,14 @@ class Indexer:
 
         for block in data_blocks:
             indexes = str.split(block, '@')
-            for i in range(0, len(indexes)-1):
+            for i in range(0, len(indexes) - 1):
                 index = cPickle.loads(indexes[i])
                 index = str.split(index, '|')
                 term = index[0]
                 tf_dict[term] = ast.literal_eval(index[1])
                 loc_dict[term] = ast.literal_eval(index[2])
         for term in tf_dict.keys():
-            print term + ':' + str(tf_dict[term]) + ' @@@ '+str(loc_dict[term])
+            print term + ':' + str(tf_dict[term]) + ' @@@ ' + str(loc_dict[term])
 
         # end = timer()
         # print("total time: " + str(end - start))
