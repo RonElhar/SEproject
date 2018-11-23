@@ -5,10 +5,11 @@ from ReadFile import ReadFile
 from Parse import Parse
 from ReadFile import Document
 from timeit import default_timer as timer
-from Indexer2 import Indexer
+from Indexer import Indexer
 
 
 class Main:
+
     def __init__(self):
         self.reader = ReadFile()
         self.ROOT_DIR = os.path.dirname(os.path.abspath(__file__)) + "\\corpus"
@@ -25,9 +26,8 @@ class Main:
         num_of_docs = 0
         terms = 0
         #while i < len(dirs_list):
-        while i < 10:
+        while i < 100:
             docs = self.reader.separate_docs_in_file(self.ROOT_DIR, dirs_list[i])
-            # num_of_docs += 1
             # file_docs[dirs_list[i]] = docs.keys()
             i += 1
             self.indexer.files_count += 1
@@ -38,6 +38,8 @@ class Main:
             for doc_id in docs:
                 # print(doc.id)
                 doc_dict = self.parser.main_parser(docs[doc_id].text)
+
+                #num_of_docs+=1
                 # terms+=len(doc_dict)
                 #self.indexer.index_terms(doc_dict, docs[doc_id])
                 docs[doc_id].text = None
@@ -45,7 +47,7 @@ class Main:
         # self.indexer.merge_posting()
         # self.indexer.read_post("", "")
         # print terms
-        # print num_of_docs
+        #print num_of_docs
 
 
 start = timer()
@@ -53,6 +55,8 @@ main = Main()
 main.start()
 end = timer()
 print("total time: " + str(end - start))
+
+
 '''''
 parse = Parse()
 parse.main_parser(" ")
