@@ -1,6 +1,7 @@
 import ast
 import sys
 import zlib
+import math
 from timeit import default_timer as timer
 
 del_size = sys.getsizeof('\n')
@@ -9,6 +10,7 @@ del_size = sys.getsizeof('\n')
 class Indexer:
 
     def __init__(self, posting_path):
+        self.docs_indexer = {}
         self.posting_path = posting_path
         self.docs_count = 0
         self.docs_tf_dict = {}
@@ -22,20 +24,21 @@ class Indexer:
         self.files_count = 0
         self.i = 0
         self.compressed_block = ''
+        self.num_of_corpus_docs = 472535
         # [[]]
         pass
 
-    def index_terms(self, doc_terms_dict, doc):
+    def index_terms(self, doc_terms_dict, doc_id):
         for term in doc_terms_dict:
             if not self.docs_tf_dict.__contains__(term):
                 self.docs_locations_dict[term] = {}
                 self.docs_tf_dict[term] = {}
-            self.docs_tf_dict[term][doc.id] = doc_terms_dict[term][0]  ## add tf_idf
-            self.docs_locations_dict[term][doc.id] = doc_terms_dict[term][1]
+            self.docs_tf_dict[term][doc_id] = doc_terms_dict[term][0]  ## add tf_idf
+            self.docs_locations_dict[term][doc_id] = doc_terms_dict[term][1]
         self.docs_count += 1
         # if sys.getsizeof(self.docs_locations_dict)>1024 ** 4:
         #  if (self.i < 8 and self.files_count == 180) or (self.i == 8 and self.files_count == 195):
-        if self.docs_count > 29532:
+        if self.docs_count > 10:
             self.i += 1
             terms = sorted(self.docs_tf_dict.keys())
             self.aggregate_indexes(terms, self.docs_tf_dict, self.docs_locations_dict)
@@ -53,7 +56,7 @@ class Indexer:
             cur_size = sys.getsizeof(index)
             tmp_block = zlib.compress(self.compressed_block, 4)
             block_size = sys.getsizeof(tmp_block)
-            if block_size + cur_size < (8192):
+            if block_size + cur_size < 1000:# 8192
                 self.compressed_block += index
                 # compressed_block.append(index)
                 total_size += cur_size
@@ -62,9 +65,9 @@ class Indexer:
                 self.block_count += 1
                 # compressed_block = compressed_index
                 compressed_block = index
-        if self.docs_count * self.i > 118131:
-            self.post()
-            self.i = 0
+        # if self.docs_count * self.i > 118131:
+        self.post()
+        # self.i = 0
 
     # self.i = 0
 
@@ -82,10 +85,6 @@ class Indexer:
         self.compressed_blocks = []
         self.block_count = 0
         self.post_count += 1
-
-        ''''
-
-    '''''
 
     def read_post(self, post_num, block_list):
         # start = timer()
@@ -155,6 +154,7 @@ class Indexer:
         loc_dicts = []
         read_blocks = []
         tf_dict = {}
+        tf_idf_dict = {}
         loc_dict = {}
         terms_keys = []
         checked_terms = []
@@ -187,12 +187,25 @@ class Indexer:
             for key in checked_terms:
                 tf_merge_values = {}
                 loc_merge_values = {}
+                tf_idf_values = {}
                 for i3 in range(0, curr_length):
                     if terms[i3].__contains__(key):
                         tf_merge_values.update(tf_dicts[i3][key])
                         loc_merge_values.update(loc_dicts[i3][key])
                 tf_dict[key] = tf_merge_values
                 loc_dict[key] = loc_merge_values
+                for key in tf_dict:
+                    for dict in tf_dict[key]:
+                        for k in dict:
+                            tf_idf = ((dict[k] / self.docs_indexer[k].length) *
+                                                 (math.log10(self.num_of_corpus_docs / float(tf_dict[key].__len__()))))
+                            tf_idf_values[k] = tf_idf
+                            if tf_idf > 0.7:
+                                self.docs_indexer[k].num_of_unique_words += 1
+                            if dict[k] > self.docs_indexer[k].max_tf:
+                                self.docs_indexer[k].max_tf = dict[k]
+                    tf_idf_dict[key] = tf_idf_values
+                    tf_idf_values = {}
             self.aggregate_indexes(checked_terms, tf_dict, loc_dict)
             terms_keys = []
             checked_terms = []

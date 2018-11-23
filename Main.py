@@ -5,7 +5,7 @@ from ReadFile import ReadFile
 from Parse import Parse
 from ReadFile import Document
 from timeit import default_timer as timer
-from Indexer2 import Indexer
+from Indexer import Indexer
 
 
 class Main:
@@ -25,26 +25,26 @@ class Main:
         num_of_docs = 0
         terms = 0
         #while i < len(dirs_list):
-        while i < 10:
-            docs = self.reader.separate_docs_in_file(self.ROOT_DIR, dirs_list[i])
-            # num_of_docs += 1
+        #while i < 10:
+        self.indexer.docs_indexer = self.reader.separate_docs_in_file(self.ROOT_DIR, "FB396001")
+            # num_of_docs += self.indexer.docs_indexer.__len__()
             # file_docs[dirs_list[i]] = docs.keys()
-            i += 1
-            self.indexer.files_count += 1
+            #i += 1
+            #self.indexer.files_count += 1
 
         # for filename in :
             #   docs = self.reader.separate_docs_in_file(self.ROOT_DIR, filename)
             # docs = self.reader.separate_docs_in_file(self.ROOT_DIR, "FB396001")
-            for doc_id in docs:
-                # print(doc.id)
-                doc_dict = self.parser.main_parser(docs[doc_id].text)
-                # terms+=len(doc_dict)
-                #self.indexer.index_terms(doc_dict, docs[doc_id])
-                docs[doc_id].text = None
+        for doc_id in self.indexer.docs_indexer:
+            num_of_docs += 1
+            # print(doc.id)
+            doc_dict = self.parser.main_parser(self.indexer.docs_indexer[doc_id].text)
+            self.indexer.docs_indexer[doc_id].text = None
+            self.indexer.docs_indexer[doc_id].length = doc_dict.__len__()
+            self.indexer.index_terms(doc_dict, doc_id)
+
         #self.indexer.read_post(0, [0, 1, 2])
         # self.indexer.merge_posting()
-        # self.indexer.read_post("", "")
-        # print terms
         # print num_of_docs
 
 
