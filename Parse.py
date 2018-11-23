@@ -47,8 +47,10 @@ def isFraction(token):
     if token.find("/") == -1:
         return False
 
-    num1, num2 = token.split("/")
-    if isFloat(num1) and isFloat(num2):
+    nums = token.split("/")
+    if not len(nums) == 2:
+        return False
+    if isFloat(nums[0]) and isFloat(nums[1]):
         return True
 
     return False
@@ -60,18 +62,29 @@ def isWord(token):
             return False
     return True
 
-def isNum(token):
-    i=0
+
+def isNumTerm(token):
+    i = 0
     decimal_bool = False
-    while i <len(token):
-        if not str.isdigit(token[i]) and not(i==0 and token[i] == '$'):
-            if token[i] == '.' and decimal_bool :
+    digit_exists = False
+    while i < len(token):
+        if not str.isdigit(token[i]):
+            if i == 0 and token[i] == '$':
+                i += 1
+                continue
+            if token[i] == '.' and decimal_bool:
                 return False
             elif token[i] == '.':
                 decimal_bool = True
             else:
                 return False
+        else:
+            digit_exists = True
+        i += 1
+    if not digit_exists:
+        return False
     return True
+
 
 class Parse:
 
@@ -109,6 +122,7 @@ class Parse:
         #                      "40.5", "Dollars", "100", "billion", "U.S.", "dollars", "NBA", "32", "million", "U.S.",
         #                      "dollars", "1",
         #                      "trillion", "U.S.", "dollars", "22 3/4", "Dollars", "NBA", "$100", "billion"]
+        #
 
         self.list_strings = self.get_terms(text)
 
@@ -205,20 +219,19 @@ class Parse:
                 self.add_to_dict(lower, self.index)
 
     def number_term(self, num_word):
-        ##  problem with : "$100", "million",  "40.5", "Dollars",
         def dollar_addons():
             if self.index + 3 < terms_len:
-                return  ' {} {} {}'.format(self.list_strings[self.index + 1], self.list_strings[self.index + 2] ,
-                       self.list_strings[self.index + 3])
+                return ' {} {} {}'.format(self.list_strings[self.index + 1], self.list_strings[self.index + 2],
+                                          self.list_strings[self.index + 3])
             if self.index + 2 < terms_len:
-                return ' {} {}'.format( self.list_strings[self.index + 1] ,self.list_strings[self.index + 2])
+                return ' {} {}'.format(self.list_strings[self.index + 1], self.list_strings[self.index + 2])
             if self.index + 1 < terms_len:
                 return ' {}'.format(self.list_strings[self.index + 1])
             return ''
 
         orig_idx = self.index
         terms_len = len(self.list_strings)
-        dollars_regex = re.compile("^\$?(\d+\.?\d*) ?(million|billion|trillion|m|bn)? ?(US)? ?([Dd]ollars)?")
+        dollars_regex = re.compile("^\$?(\d+\.?\d*) ?(million|billion|trillion|m|bn)? ?(U\.S\.)? ?([Dd]ollars)?")
         dollar_expression = dollars_regex.match(num_word + dollar_addons())
         term = ''
         if self.index + 1 < terms_len and (self.list_strings[self.index + 1] == "percent"
