@@ -34,12 +34,11 @@ class Indexer:
             self.docs_locations_dict[term][doc.id] = doc_terms_dict[term][1]
         self.docs_count += 1
         # if sys.getsizeof(self.docs_locations_dict)>1024 ** 4:
-        if self.docs_count == 1000:
+        if self.docs_count == 500:
             self.aggregate_indexes()
             self.docs_count = 0
             self.docs_tf_dict = {}
             self.docs_locations_dict = {}
-            self.terms_docs_dict = {}
 
     def aggregate_indexes(self):
         terms = sorted(self.docs_tf_dict.keys())
@@ -73,6 +72,35 @@ class Indexer:
         self.block_count = 0
         self.post_count += 1
 
+    def read_post_consecutive(self, post_num, start_block, num_of_blocks):
+        tf_dict = {}
+        loc_dict = {}
+        terms = []
+        data_blocks = []
+        with open(self.posting_path + 'Posting' + str(post_num), 'rb') as f:
+            read_from = self.post_files_blocks[post_num][start_block]
+            if start_block + 1 < len(self.post_files_blocks[post_num]):
+                read_to = self.post_files_blocks[post_num][start_block + num_of_blocks]
+                f.seek(read_from, 0)
+                data_blocks.append(f.read(read_to))
+            else:
+                f.seek(read_from, 0)
+                data_blocks.append(f.read())
+        f.close()
+
+        for block in data_blocks:
+            indexes = str.split(block, '@')
+            for i in range(0, len(indexes) - 1):
+                index = cPickle.loads(indexes[i])
+                index = str.split(index, '|')
+                term = index[0]
+                terms.append(term)
+                tf_dict[term] = ast.literal_eval(index[1])
+                loc_dict[term] = ast.literal_eval(index[2])
+        for term in tf_dict.keys():
+            print term + ':' + str(tf_dict[term]) + ' @@@ ' + str(loc_dict[term])
+        return terms, tf_dict, loc_dict
+
     def read_post(self, post_num, block_list):
         # start = timer()
         tf_dict = {}
@@ -98,8 +126,10 @@ class Indexer:
                 index = cPickle.loads(indexes[i])
                 index = str.split(index, '|')
                 term = index[0]
+                terms.append(term)
                 tf_dict[term] = ast.literal_eval(index[1])
                 loc_dict[term] = ast.literal_eval(index[2])
+        terms = sorted(terms)
         for term in tf_dict.keys():
             print term + ':' + str(tf_dict[term]) + ' @@@ '+str(loc_dict[term])
 
@@ -110,78 +140,77 @@ class Indexer:
     def read_post1(self, post_num, block_list):
         pass
 
+    def post_final(self, terms, tf_dict, loc_dict):
+        posting_list = []
+        file_name = 'FinalExample'
+        for term in terms:
+            posting_list.append(term + '|' + str(tf_dict[term]) + '|' + str(loc_dict[term]))
+        with open(file_name, 'wb') as f:
+            cPickle.dump(sorted(posting_list), f)
+
     def merge_posting(self):
-        i = 0
-        length = len(self.post_files)
+        length = self.post_files_blocks.__len__()
         terms = []
         tf_dicts = []
         loc_dicts = []
-        docs_dicts = []
         read_blocks = []
-        min_ind = -1
         tf_dict = {}
         loc_dict = {}
-        docs_dict = {}
         terms_keys = []
         checked_terms = []
-
-        num_of_blocks_to_read = 0
+        num_of_blocks_to_read = 100
+        total_num_of_blocks = 0
+        for j in range(0, length):
+            total_num_of_blocks += self.post_files_blocks[j].__len__()
         for i in range(0, length):
-            num_of_blocks_to_read += self.post_files_blocks[i]
-        for i in range(0, length):  ######### check range func limits
-            terms[i], tf_dicts[i], loc_dicts[i], docs_dicts[i] = self.read_post(self.post_files[i], 0)
-            read_blocks[i] += 1
-        min_term = terms[0][terms[0].__len__()]
-        while i < num_of_blocks_to_read:
+            term, tf_dict, loc_dict = self.read_post_consecutive(i, 0, num_of_blocks_to_read)
+            terms.append(term)
+            tf_dicts.append(tf_dict)
+            loc_dicts.append(loc_dict)
+            read_blocks.append(num_of_blocks_to_read)
+        min_term = terms[0][terms[0].__len__() - 1]
+        min_ind = 0
+        block_ind = 0
+        while block_ind < total_num_of_blocks:
             curr_length = len(terms)
-            for i in range(0, curr_length):
-                terms_keys += terms[i]
+            for i1 in range(0, curr_length):
+                terms_keys += terms[i1]
             terms_keys = sorted(list(set(terms_keys)))
-            for i in range(0, curr_length):
-                if min_term > terms[i][terms[i].__len__()]:
-                    min_term = terms[i][terms[i].__len__()]
-                    min_ind = i
+            for i2 in range(0, curr_length):
+                terms_list_len = terms[i2].__len__() - 1
+                if min_term > terms[i2][terms_list_len]:
+                    min_term = terms[i2][terms_list_len]
+                    min_ind = i2
             for term in terms_keys:
                 if term <= min_term:
                     checked_terms.append(term)
             for key in checked_terms:
                 tf_merge_values = {}
                 loc_merge_values = {}
-                docs_merge_values = {}
-                for i in range(0, curr_length):
-                    if terms[i].__contains__(key):
-                        tf_merge_values.update(tf_dicts[i][key])
-                        loc_merge_values.update(loc_dicts[i][key])
-                        docs_merge_values.update(docs_dicts[i][key])
+                for i3 in range(0, curr_length):
+                    if terms[i3].__contains__(key):
+                        tf_merge_values.update(tf_dicts[i3][key])
+                        loc_merge_values.update(loc_dicts[i3][key])
                 tf_dict[key] = tf_merge_values
                 loc_dict[key] = loc_merge_values
-                docs_dict[key] = docs_merge_values
-            self.post_final(checked_terms, tf_dict, loc_dict, docs_dict)
+            self.post_final(checked_terms, tf_dict, loc_dict)
             terms_keys = []
             checked_terms = []
             tf_dict = {}
             loc_dict = {}
-            docs_dict = {}
-            i += 1
-            if self.post_files_blocks[min_ind] > read_blocks[min_ind]:
-                terms[min_ind], tf_dicts[min_ind], loc_dicts[min_ind], docs_dicts[min_ind] = self.read_post(
-                    self.post_files[min_ind])
-                min_term = terms[0][terms[0].__len__()]
+            block_ind += 1
+            if self.post_files_blocks[min_ind].__len__() > read_blocks[min_ind]:
+                terms[min_ind], tf_dicts[min_ind], loc_dicts[min_ind] = self.read_post_consecutive(
+                    min_ind, read_blocks[min_ind], num_of_blocks_to_read)
+                read_blocks[min_ind] += num_of_blocks_to_read
+                min_term = terms[min_ind][terms[min_ind].__len__() - 1]
             else:
                 if terms.__len__() > 1:
                     terms.__delitem__(min_ind)
                     tf_dicts.__delitem__(min_ind)
                     loc_dicts.__delitem__(min_ind)
-                    docs_dicts.__delitem__(min_ind)
                     read_blocks.__delitem__(min_ind)
                 else:
                     break
 
-        def post_final(self, terms, tf_dict, loc_dict, docs_dict):
-            posting_list = []
-            file_name = 'FinalExample'
-            for term in terms:
-                posting_list.append(term + '|' + str(tf_dict[term]) + '|' + str(loc_dict[term]) + '|' + str(
-                    docs_dict[term]))
-            with open(file_name, 'wb') as f:
-                cPickle.dump(sorted(posting_list), f)
+
