@@ -59,7 +59,7 @@ class Indexer:
                 self.block_count += 1
                 compressed_block = compressed_index
         if self.files_count * self.i > 454:
-        # self.files_count =0
+            # self.files_count =0
             self.post()
 
     def post(self):
@@ -76,6 +76,7 @@ class Indexer:
         self.compressed_blocks = []
         self.block_count = 0
         self.post_count += 1
+
 
     def read_post(self, post_num, block_list):
         # start = timer()
@@ -110,6 +111,7 @@ class Indexer:
         # end = timer()
         # print("total time: " + str(end - start))
         return terms, tf_dict, loc_dict
+
 
     def read_post1(self, post_num, block_list):
         pass

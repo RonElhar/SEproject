@@ -45,12 +45,11 @@ def isFloat(token):
 def isFraction(token):
     if token.find("/") == -1:
         return False
-    try:
-        num1, num2 = token.split("/")
-        if isFloat(num1) and isFloat(num2):
-            return True
-    except:
-        pass
+
+    num1, num2 = token.split("/")
+    if isFloat(num1) and isFloat(num2):
+        return True
+
     return False
 
 
@@ -60,6 +59,18 @@ def isWord(token):
             return False
     return True
 
+def isNum(token):
+    i=0
+    decimal_bool = False
+    while i <len(token):
+        if not str.isdigit(token[i]) and not(i==0 and token[i] == '$'):
+            if token[i] == '.' and decimal_bool :
+                return False
+            elif token[i] == '.':
+                decimal_bool = True
+            else:
+                return False
+    return True
 
 class Parse:
 
@@ -119,11 +130,12 @@ class Parse:
                     else:
                         self.add_to_dict(token, self.index)
                 else:
-                    str.replace(token, '/','')
-                    if isWord(token):
-                        self.add_word_term(token)
-                    else:
-                        self.add_to_dict(token, self.index)
+                    token = token.replace('/', '')
+                    if not token is '':
+                        if isWord(token):
+                            self.add_word_term(token)
+                        else:
+                            self.add_to_dict(token, self.index)
             elif self.index + 3 < len(self.list_strings) and token == "Between" and reg_number.match(
                     self.list_strings[self.index + 1]) and self.list_strings[
                 self.index + 2] == "and" and reg_number.match(self.list_strings[self.index + 3]):
@@ -143,7 +155,7 @@ class Parse:
 
     def get_terms(self, text):
         SEPS = (' ', '--')
-        allowed = string.ascii_letters + string.digits + "-$%/."
+        allowed = "{}{}-$%/.".format(string.ascii_letters, string.digits)
         start = timer()
         rsplit = re.compile("|".join(SEPS)).split
         terms = [s.strip() for s in rsplit(text)]
@@ -152,7 +164,7 @@ class Parse:
             terms[i] = filter(allowed.__contains__, terms[i])
             if isFloat(terms[i]):
                 if i + 1 < len(terms) and isFraction(terms[i + 1]):
-                    terms[i] += ' ' + terms[i + 1]
+                    terms[i] = "{} {}".format(terms[i], terms[i + 1])
                     terms[i + 1] = ''
             else:
                 terms[i] = terms[i].replace('.', '')
@@ -195,12 +207,12 @@ class Parse:
         ##  problem with : "$100", "million",  "40.5", "Dollars",
         def dollar_addons():
             if self.index + 3 < terms_len:
-                return ' ' + self.list_strings[self.index + 1] + ' ' + self.list_strings[self.index + 2] + ' ' + \
-                       self.list_strings[self.index + 3]
+                return  ' {} {} {}'.format(self.list_strings[self.index + 1], self.list_strings[self.index + 2] ,
+                       self.list_strings[self.index + 3])
             if self.index + 2 < terms_len:
-                return ' ' + self.list_strings[self.index + 1] + ' ' + self.list_strings[self.index + 2]
+                return ' {} {}'.format( self.list_strings[self.index + 1] ,self.list_strings[self.index + 2])
             if self.index + 1 < terms_len:
-                return ' ' + self.list_strings[self.index + 1]
+                return ' {}'.format(self.list_strings[self.index + 1])
             return ''
 
         orig_idx = self.index

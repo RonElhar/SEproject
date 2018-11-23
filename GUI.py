@@ -3,8 +3,6 @@ from Tkinter import tkinter
 from Tkinter import *
 import tkFileDialog
 
-from Main import Main
-
 
 def make_entry(parent, caption, row, column, width=None, **options):
     Label(parent, text=caption).grid(row=row, column=column, sticky='W')
@@ -95,5 +93,5 @@ class IndexView:
         self.index_window.mainloop()
 
 
-view = IndexView(Main)
-view.index_view()
+#view = IndexView("")
+#view.index_view()
