@@ -13,7 +13,6 @@ class Indexer:
         self.terms_docs_dict = {}
         self.post_count = 0
         pass
-
     # doc-tf{doc.id}
     ##[term] : df,{doc:{tf-idf},{doc-tf},{locations in doc},[docs.id]}
     # {term: {doc:[tf-idf,[locations],isGood]} djfk34kr81y231o4j1873xcx0904326732
