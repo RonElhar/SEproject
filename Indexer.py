@@ -1,8 +1,6 @@
 import ast
 import sys
 import zlib
-from itertools import chain
-from collections import defaultdict
 from timeit import default_timer as timer
 
 del_size = sys.getsizeof('\n')
@@ -23,6 +21,7 @@ class Indexer:
         self.compressed_blocks = []
         self.files_count = 0
         self.i = 0
+        self.compressed_block = ''
         # [[]]
         pass
 
@@ -38,25 +37,24 @@ class Indexer:
         #  if (self.i < 8 and self.files_count == 180) or (self.i == 8 and self.files_count == 195):
         if self.docs_count > 29532:
             self.i += 1
-            self.aggregate_indexes()
+            terms = sorted(self.docs_tf_dict.keys())
+            self.aggregate_indexes(terms, self.docs_tf_dict, self.docs_locations_dict)
             print ('posted - ' + str(self.i))
             self.docs_count = 0
             self.docs_tf_dict = {}
             self.docs_locations_dict = {}
 
-    def aggregate_indexes(self):
-        terms = sorted(self.docs_tf_dict.keys())
+    def aggregate_indexes(self, terms, docs_tf_dict, docs_locations_dict):
         total_size = 0
-        compressed_block = ''
         for term in terms:
-            index = '{}|{}|{}@'.format(term, str(self.docs_tf_dict[term]), str(self.docs_locations_dict[term]))
+            index = '{}|{}|{}@'.format(term, str(docs_tf_dict[term]), str(docs_locations_dict[term]))
             cur_size = sys.getsizeof(index)
             # compressed_index = cPickle.dumps(index) + '@'
             cur_size = sys.getsizeof(index)
-            tmp_block = zlib.compress(compressed_block, 4)
+            tmp_block = zlib.compress(self.compressed_block, 4)
             block_size = sys.getsizeof(tmp_block)
             if block_size + cur_size < (8192):
-                compressed_block += index
+                self.compressed_block += index
                 # compressed_block.append(index)
                 total_size += cur_size
             else:
@@ -107,6 +105,19 @@ class Indexer:
                     f.seek(read_from, 0)
                     data_blocks.append(f.read())
         f.close()
+        for block in data_blocks:
+            decompressed = zlib.compress(block)
+            indexes = str.split(decompressed, '@')
+            for i in range(0, len(indexes)):
+                index = indexes[i]
+                index = str.split(index, '|')
+                term = index[0]
+                terms.append(term)
+                tf_dict[term] = ast.literal_eval(index[1])
+                loc_dict[term] = ast.literal_eval(index[2])
+        # for term in tf_dict.keys():
+        #     print (term + ':' + str(tf_dict[term]) + '     ' + str(loc_dict[term]))
+        return terms, tf_dict, loc_dict
 
     def read_post_consecutive(self, post_num, start_block, num_of_blocks):
         tf_dict = {}
@@ -115,7 +126,7 @@ class Indexer:
         data_blocks = []
         with open(self.posting_path + 'Posting' + str(post_num), 'rb') as f:
             read_from = self.post_files_blocks[post_num][start_block]
-            if start_block + 1 < len(self.post_files_blocks[post_num]):
+            if start_block + num_of_blocks < len(self.post_files_blocks[post_num]):
                 read_to = self.post_files_blocks[post_num][start_block + num_of_blocks]
                 f.seek(read_from, 0)
                 data_blocks.append(f.read(read_to))
@@ -127,7 +138,7 @@ class Indexer:
         for block in data_blocks:
             indexes = str.split(block, '@')
             for i in range(0, len(indexes) - 1):
-                index = cPickle.loads(indexes[i])
+                index = zlib.decompress(indexes[i])
                 index = str.split(index, '|')
                 term = index[0]
                 terms.append(term)
@@ -136,25 +147,6 @@ class Indexer:
         for term in tf_dict.keys():
             print term + ':' + str(tf_dict[term]) + ' @@@ ' + str(loc_dict[term])
         return terms, tf_dict, loc_dict
-
-    for block in data_blocks:
-        decompressed = zlib.decompress(block)
-        indexes = str.split(decompressed, '@')
-        for i in range(0, len(indexes) - 1):
-            index = indexes[i]
-            index = str.split(index, '|')
-            term = index[0]
-            tf_dict[term] = ast.literal_eval(index[1])
-            loc_dict[term] = ast.literal_eval(index[2])
-    for term in tf_dict.keys():
-        print (term + ':' + str(tf_dict[term]) + '     ' + str(loc_dict[term]))
-
-    # end = timer()
-    # print("total time: " + str(end - start))
-    return terms, tf_dict, loc_dict
-
-    def read_post1(self, post_num, block_list):
-        pass
 
     def merge_posting(self):
         length = self.post_files_blocks.__len__()
@@ -201,7 +193,7 @@ class Indexer:
                         loc_merge_values.update(loc_dicts[i3][key])
                 tf_dict[key] = tf_merge_values
                 loc_dict[key] = loc_merge_values
-            self.post_final(checked_terms, tf_dict, loc_dict)
+            self.aggregate_indexes(checked_terms, tf_dict, loc_dict)
             terms_keys = []
             checked_terms = []
             tf_dict = {}
@@ -220,12 +212,3 @@ class Indexer:
                     read_blocks.__delitem__(min_ind)
                 else:
                     break
-
-        # def post_final(self, terms, tf_dict, loc_dict, docs_dict):
-        #     posting_list = []
-        #     file_name = 'FinalExample'
-        #     for term in terms:
-        #         posting_list.append(term + '|' + str(tf_dict[term]) + '|' + str(loc_dict[term]) + '|' + str(
-        #             docs_dict[term]))
-        #     with open(file_name, 'wb') as f:
-        #         cPickle.dump(sorted(posting_list), f)
