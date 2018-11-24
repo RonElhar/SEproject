@@ -36,8 +36,8 @@ class Main:
         docs = {}
         num_of_docs = 0
         terms = 0
-        # while i < len(dirs_list):
-        while i < 10:
+        while i < len(dirs_list):
+        #while i < 10:
             docs = self.reader.separate_docs_in_file(self.corpus_path, dirs_list[i])
             # file_docs[dirs_list[i]] = docs.keys()
             i += 1
@@ -48,11 +48,11 @@ class Main:
             # docs = self.reader.separate_docs_in_file(self.ROOT_DIR, "FB396001")
             for doc_id in docs:
                 # print(doc.id)
-                #doc_dict = self.parser.main_parser(docs[doc_id].text)
+                doc_dict = self.parser.main_parser(docs[doc_id].text)
 
                 # num_of_docs+=1
                 # terms+=len(doc_dict)
-               # self.indexer.index_terms(doc_dict, docs[doc_id])
+                self.indexer.index_terms(doc_dict, docs[doc_id])
                 docs[doc_id].text = None
         # self.indexer.read_post(0, [0, 1, 2])
         # self.indexer.merge_posting()
@@ -90,8 +90,8 @@ class Main:
 
 start = timer()
 main = Main()
-view = IndexView(main)
-view.start_index_view()
+#view = IndexView(main)
+#view.start_index_view()
 main.start()
 end = timer()
 print("total time: " + str(end - start))

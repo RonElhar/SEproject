@@ -38,7 +38,7 @@ class Indexer:
         self.docs_count += 1
         # if sys.getsizeof(self.docs_locations_dict)>1024 ** 4:
         #  if (self.i < 8 and self.files_count == 180) or (self.i == 8 and self.files_count == 195):
-        if self.docs_count > 10:
+        if self.docs_count > 29531:
             self.i += 1
             terms = sorted(self.docs_tf_dict.keys())
             self.aggregate_indexes(terms, self.docs_tf_dict, self.docs_locations_dict)
@@ -63,11 +63,11 @@ class Indexer:
             else:
                 self.compressed_blocks.append(tmp_block)
                 self.block_count += 1
-                # compressed_block = compressed_index
-                compressed_block = index
-        # if self.docs_count * self.i > 118131:
-        self.post()
-        # self.i = 0
+                self.compressed_block = index
+        if self.docs_count * self.i > 118130:
+            self.compressed_blocks.append(self.compressed_block)
+            self.post()
+            self.i = 0
 
     # self.i = 0
 
