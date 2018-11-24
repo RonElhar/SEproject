@@ -84,13 +84,13 @@ class Main:
         return self.reader.languages
 
 
-#start = timer()
-#main = Main()
-#view = IndexView(main)
-#view.start_index_view()
-# main.start()
-# end = timer()
-# print("total time: " + str(end - start))
+start = timer()
+main = Main()
+# view = IndexView(main)
+# view.start_index_view()
+main.start()
+end = timer()
+print("total time: " + str(end - start))
 
 '''''
 parse = Parse()

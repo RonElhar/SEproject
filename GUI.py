@@ -33,6 +33,11 @@ class IndexView:
         self.corpus_entry.insert(0, dir_path)
         self.controller.set_corpus_path(dir_path)
 
+    def browse_posting_dir(self):
+        dir_path = tkFileDialog.askdirectory()
+        self.posting_entry.insert(0, dir_path)
+        self.controller.set_posting_path(dir_path)
+
     def entered_posting(self):
         dir_path = self.posting_entry.get()
         self.controller.set_posting_path(dir_path)

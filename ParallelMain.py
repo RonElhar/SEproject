@@ -8,7 +8,7 @@ from timeit import default_timer as timer
 from Indexer import Indexer
 from multiprocessing import Pool
 
-
+''''
 def parse_docs(document):
     parser = Parse()
     document_dict = parser.main_parser(document.text)
@@ -33,3 +33,4 @@ if __name__ == "__main__":
 # view = IndexView(main)
 # view.start_index_view()
 # main.start()
+'''''
