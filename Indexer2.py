@@ -5,6 +5,11 @@ from timeit import default_timer as timer
 
 del_size = sys.getsizeof('\n')
 
+''''
+Changed if in index_terms (42)
+fixed to self.compressed_block init (67)
+fixed append last block which wasn't added (70)
+'''''
 
 class Indexer:
 

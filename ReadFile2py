@@ -1,6 +1,10 @@
 import os
 import re
 
+'''
+fixed <Date> tags
+'''
+
 
 class ReadFile:
 
@@ -80,7 +84,7 @@ class ReadFile:
                     language = temp[0]
                     self.languages.add(language)
                     lines[i + 1] = ' '
-                if lines[i + 4].__contains__('<F P=106>'):
+                if lines[i + 4].__contains__('<F P=106>'):  # contains Media info
                     lines[i + 4] = lines[i + 4].replace('<F P=106>', '')
                     lines[i + 4] = lines[i + 4].replace('</F>', '')
         cur_file.close()

@@ -22,42 +22,65 @@ class IndexView:
         # self.index_window.config(bg="LightBlue")
         self.corpus_entry = make_entry(self.index_window, "Corpus Path:", 1, 0, 60)
         self.posting_entry = make_entry(self.index_window, "Posting Path:", 2, 0, 60)
+        self.language_list = None
+
+    def get_stemming_bool(self):
+        return self.stemming_bool
 
     def browse_corpus_dir(self):
-        dir_name = tkFileDialog.askdirectory()
-        self.corpus_entry.insert(0, dir_name)
+        dir_path = tkFileDialog.askdirectory()
+        self.corpus_entry.insert(0, dir_path)
+        self.controller.set_corpus_path(dir_path)
 
-    def browse_posting_dir(self):
-        dir_name = tkFileDialog.askdirectory()
-        self.posting_entry.insert(0, dir_name)
+    def entered_posting(self):
+        dir_path = self.posting_entry.get()
+        self.controller.set_posting_path(dir_path)
+
+    def language_chosen(self):
+        pass
 
     def reset(self):
-        # self.controller.reset()
+        self.controller.reset()
+        self.language_list.insert(END, '')
         pass
 
     def start(self):
-        # self.controller.start(self.corpus_entry.get(), self.posting_entry.get(),self.stemming_bool)
-        pass
+        dir_path = tkFileDialog.askdirectory()
+        self.posting_entry.insert(0, dir_path)
+        self.controller.set_posting_path(dir_path)
+        dir_path = self.corpus_entry.get()
+        self.controller.set_corpus_path(dir_path)
+        self.controller.start()
+
+        lang_list = self.controller.get_languages()
+        for lang in sorted(lang_list):
+            self.language_list.insert(END, lang)
 
     def load(self):
-        # self.controller.load(self.posting_entry.get())
-        pass
+        self.controller.load()
+        lang_list = self.controller.get_languages()
+        for lang in sorted(lang_list):
+            self.language_list.insert(END, lang)
 
     def show(self):
         dict_window = Tk()
-        i = 30
-        # dict = sorted(self.controller.get_dict())
-        dict = {'Ron': 1, 'gal': 3, 'lian': 4, }
-        scrollbar = Scrollbar(master=dict_window)
-        text_display = Text(master=dict_window)
-        scrollbar.pack(side=RIGHT, fill=Y)
-        text_display.pack(side=LEFT, fill=Y)
-        scrollbar.config(command=text_display.yview())
-        text_display.config(yscrollcommand=scrollbar.set)
+        dict_window.geometry("200x500")
+        # dict = self.controller.get_terms_dict()
 
+        listNodes = Listbox(dict_window, font=("Helvetica", 12))
+        listNodes.pack(side="left", fill="y")
+
+        scrollbar = Scrollbar(dict_window, orient="vertical")
+        scrollbar.config(command=listNodes.yview)
+        scrollbar.pack(side="right", fill="y")
+
+        listNodes.config(yscrollcommand=scrollbar.set)
+
+        dict = {'Ron': 1, 'gal': 3, 'lian': 4}
+        i = 50
         while i > 0:
             for key in dict:
-                text_display.insert(END, key + ' - ' + str(dict.get(key)) + '\n')
+                listNodes.insert(END, key + ' - ' + str(dict.get(key)) + '\n')
                 i -= 1
         pass
 
@@ -66,32 +89,46 @@ class IndexView:
             self.stemming_bool = False
         else:
             self.stemming_bool = True
-        print(self.stemming_bool)
+        self.controller.set_stemming_bool(self.stemming_bool)
 
-    def index_view(self):
+    def start_index_view(self):
         welcome_instruction = Label(master=self.index_window,
                                     text='Hello! In order to proceed, please insert Corpus and Posting paths:')
         welcome_instruction.grid(row=0, column=1)
+
         browse_corpus = Button(master=self.index_window, text='Browse', width=6, command=self.browse_corpus_dir)
         browse_corpus.grid(row=1, column=2, sticky='W')
         browse_posting = Button(master=self.index_window, text='Browse', width=6, command=self.browse_posting_dir)
         browse_posting.grid(row=2, column=2, sticky='W')
+
+
         stemming_check = Checkbutton(master=self.index_window, text="Stemming", command=self.stem_control)
         stemming_check.grid(row=3, column=1, sticky='W')
+
         start_button = Button(master=self.index_window, text="Start Indexing", command=self.start)
         start_button.grid(row=3, column=1)
-        language_list = Listbox(master=self.index_window)
-        language_list.insert(END, "English")
+
+        lang_frame = Frame(self.index_window)
+        lang_frame.grid(row=5, column=1, sticky='W')
+
         Label(master=self.index_window, text="Languages:").grid(row=4, column=1, sticky='W')
-        language_list.grid(row=5, column=1, sticky='W')
+        self.language_list = Listbox(master=lang_frame, width=20, height=10, command=self.language_chosen())
+
+        scrollbar = Scrollbar(lang_frame, orient="vertical")
+        scrollbar.pack(side=RIGHT, fill=Y)
+
+        self.language_list.config(yscrollcommand=scrollbar.set)
+        self.language_list.pack(expand=True, fill=Y)
+        scrollbar.config(command=self.language_list.yview)
+
         load_dict_button = Button(master=self.index_window, text="Load Dictionary", command=self.load)
         load_dict_button.grid(row=4, column=1, sticky='E')
         show_dict_button = Button(master=self.index_window, text="Show Dictionary", command=self.show)
         show_dict_button.grid(row=4, column=2)
         reset_button = Button(master=self.index_window, text='Reset', width=6, command=self.reset)
         reset_button.grid(row=4, column=3)
+
         self.index_window.mainloop()
 
-
-#view = IndexView("")
-#view.index_view()
+# view = IndexView("")
+# view.index_view()
