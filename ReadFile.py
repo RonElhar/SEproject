@@ -95,6 +95,8 @@ class Document:
         self.origin_city = city
         self.length = 0
         self.text = text
+        self.max_tf = 0
+        self.num_of_unique_words = 0
 
     def set_length(self, length):
         self.length = length
