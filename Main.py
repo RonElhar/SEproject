@@ -51,7 +51,7 @@ class Main:
                 docs[doc_id].text = None
         #self.indexer.read_post(0, [0, 1, 2])
         # self.indexer.merge_posting()
-        self.indexer.index_cities(self.reader.cities)
+        #self.indexer.index_cities(self.reader.cities)
         # self.indexer.read_post("", "")
         # print terms
         # print num_of_docs
@@ -84,13 +84,13 @@ class Main:
         return self.reader.languages
 
 
-start = timer()
-main = Main()
+#start = timer()
+#main = Main()
 #view = IndexView(main)
 #view.start_index_view()
-main.start()
-end = timer()
-print("total time: " + str(end - start))
+# main.start()
+# end = timer()
+# print("total time: " + str(end - start))
 
 '''''
 parse = Parse()

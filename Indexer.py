@@ -24,7 +24,7 @@ class Indexer:
         self.compressed_indexes = {}
         self.compressed_blocks = []
         self.files_count = 0
-        self.i = 0
+        self.i = 1
         self.block = ''
         self.num_of_corpus_docs = 472535
         self.terms_dict = {}
@@ -43,10 +43,28 @@ class Indexer:
         # if sys.getsizeof(self.docs_locations_dict)>1024 ** 4:
         #  if (self.i < 8 and self.files_count == 180) or (self.i == 8 and self.files_count == 195):
         if self.docs_count > 29531:  # 29531
-            self.i += 1
             terms = sorted(self.docs_tf_dict.keys())
             self.aggregate_indexes(terms, self.docs_tf_dict, self.docs_locations_dict)
-            print ('posted - ' + str(self.i))
+            self.i += 1
+            self.docs_count = 0
+            self.docs_tf_dict = {}
+            self.docs_locations_dict = {}
+#not working yet....
+    def parallel_index_terms(self, doc_terms_dict,docs):
+        for doc_id in docs:
+            for term in doc_terms_dict:
+                if not self.docs_tf_dict.__contains__(term):
+                    self.docs_locations_dict[term] = {}
+                    self.docs_tf_dict[term] = {}
+                self.docs_tf_dict[term][doc_id] = doc_terms_dict[term][0]  ## add tf_idf
+                self.docs_locations_dict[term][doc_id] = doc_terms_dict[term][1]
+            self.docs_count += 1
+        # if sys.getsizeof(self.docs_locations_dict)>1024 ** 4:
+        #  if (self.i < 8 and self.files_count == 180) or (self.i == 8 and self.files_count == 195):
+        if self.docs_count > 29531:  # 29531
+            terms = sorted(self.docs_tf_dict.keys())
+            self.aggregate_indexes(terms, self.docs_tf_dict, self.docs_locations_dict)
+            self.i += 1
             self.docs_count = 0
             self.docs_tf_dict = {}
             self.docs_locations_dict = {}
@@ -74,8 +92,8 @@ class Indexer:
                     self.block_count += 1
                     self.block = index
                     self.block_size = cur_size
-
-        if self.docs_count * self.i > 118130:
+        print ('aggregate - ' + str(self.i))
+        if self.docs_count * self.i > 118129:
             self.compressed_blocks.append(zlib.compress(self.block, 4))
             self.block = ''
             self.block_size = 0
@@ -93,6 +111,7 @@ class Indexer:
                 f.write(block)
                 self.post_files_blocks[self.post_count].append(f.tell())  #####
         f.close()
+        print("post - " + str(self.post_count))
         self.compressed_blocks = []
         self.block_count = 0
         self.post_count += 1
