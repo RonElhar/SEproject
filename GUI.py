@@ -14,6 +14,7 @@ def make_entry(parent, caption, row, column, width=None, **options):
 
 
 class IndexView:
+
     def __init__(self, controller):
         self.controller = controller
         self.stemming_bool = False
@@ -100,7 +101,6 @@ class IndexView:
         browse_corpus.grid(row=1, column=2, sticky='W')
         browse_posting = Button(master=self.index_window, text='Browse', width=6, command=self.browse_posting_dir)
         browse_posting.grid(row=2, column=2, sticky='W')
-
 
         stemming_check = Checkbutton(master=self.index_window, text="Stemming", command=self.stem_control)
         stemming_check.grid(row=3, column=1, sticky='W')
