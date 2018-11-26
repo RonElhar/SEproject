@@ -56,6 +56,8 @@ class IndexView:
         # self.controller.set_posting_path(dir_path)
         dir_path = self.corpus_entry.get()
         self.controller.set_corpus_path(dir_path)
+        dir_path = self.posting_entry.get()
+        self.controller.set_corpus_path(dir_path)
         self.controller.start()
         lang_list = self.controller.get_languages()
         for lang in sorted(lang_list):
