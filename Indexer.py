@@ -33,6 +33,7 @@ class Indexer:
             self.docs_tf_dict[term][doc.id] = doc_terms_dict[term][0]  ## add tf_idf
             self.docs_locations_dict[term][doc.id] = doc_terms_dict[term][1]
         self.docs_count += 1
+        #print str(self.docs_count) +' : ' + str(self.i)
         # if sys.getsizeof(self.docs_locations_dict)>1024 ** 4:
         #  if (self.i < 8 and self.files_count == 180) or (self.i == 8 and self.files_count == 195):
         if self.docs_count > 29532:
@@ -51,7 +52,7 @@ class Indexer:
             cur_size = sys.getsizeof(index)
             # compressed_index = cPickle.dumps(index) + '@'
             cur_size = sys.getsizeof(index)
-            tmp_block = zlib.compress(self.compressed_block, 4)
+            tmp_block = zlib.compress(self.compressed_block, 5)
             block_size = sys.getsizeof(tmp_block)
             if block_size + cur_size < (8192):
                 self.compressed_block += index
@@ -61,7 +62,7 @@ class Indexer:
                 self.compressed_blocks.append(tmp_block)
                 self.block_count += 1
                 # compressed_block = compressed_index
-                compressed_block = index
+                self.compressed_block = index
         if self.docs_count * self.i > 118131:
             self.post()
             self.i = 0
@@ -136,10 +137,12 @@ class Indexer:
         f.close()
 
         for block in data_blocks:
-            indexes = str.split(block, '@')
+            indexes = zlib.decompress(block)
+            indexes = str.split(indexes, '@')
             for i in range(0, len(indexes) - 1):
-                index = zlib.decompress(indexes[i])
-                index = str.split(index, '|')
+                index = str.split(indexes[i], '|')
+
+
                 term = index[0]
                 terms.append(term)
                 tf_dict[term] = ast.literal_eval(index[1])
