@@ -143,7 +143,7 @@ class Parse:
                 if re.match(r'\$?[0-9]* ?[0-9]+/[0-9]+$', token):
                     if self.index + 1 < len(self.list_strings) and (
                             self.list_strings[self.index + 1] == "Dollars" or token.startswith('$')):
-                        self.add_to_dict('{} Dollars'.format(token), self.index)
+                        self.add_to_dict('{} Dollars'.format(token.replace('$', '')), self.index)
                         self.index += 1
                     else:
                         self.add_to_dict(token, self.index)
