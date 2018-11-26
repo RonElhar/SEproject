@@ -43,7 +43,7 @@ class Indexer:
         self.docs_count += 1
         # if sys.getsizeof(self.docs_locations_dict)>1024 ** 4:
         #  if (self.i < 8 and self.files_count == 180) or (self.i == 8 and self.files_count == 195):
-        if self.docs_count > 29531:  # 29531
+        if self.docs_count > 10:  # 29531
             terms = sorted(self.docs_tf_dict.keys())
             self.aggregate_indexes(terms, self.docs_tf_dict, self.docs_locations_dict)
             self.i += 1
@@ -63,7 +63,7 @@ class Indexer:
             self.docs_count += 1
         # if sys.getsizeof(self.docs_locations_dict)>1024 ** 4:
         #  if (self.i < 8 and self.files_count == 180) or (self.i == 8 and self.files_count == 195):
-        if self.docs_count > 29531:  # 29531
+        if self.docs_count > 10:  # 29531
             terms = sorted(self.docs_tf_dict.keys())
             self.aggregate_indexes(terms, self.docs_tf_dict, self.docs_locations_dict)
             self.i += 1
@@ -79,14 +79,14 @@ class Indexer:
             cur_size = sys.getsizeof(index)
             # compressed_block = zlib.compress(self.block, 4)
             # block_size = sys.getsizeof(compressed_block)
-            if self.block_size + cur_size < 8192:  # 8192
+            if self.block_size + cur_size < 1000:  # 8192
                 self.block = "{}{}".format(self.block, index)
                 # compressed_block.append(index)
                 self.block_size += cur_size
             else:
                 compressed_block = zlib.compress(self.block, 4)
                 self.block_size = sys.getsizeof(compressed_block)
-                if self.block_size + cur_size < 8192:
+                if self.block_size + cur_size < 1000: # 8192
                     self.block = "{}{}".format(self.block, index)
                     self.block_size += cur_size
                 else:
@@ -95,12 +95,12 @@ class Indexer:
                     self.block = index
                     self.block_size = cur_size
         print ('aggregate - ' + str(self.i))
-        if self.docs_count * self.i > 118129:
-            self.compressed_blocks.append(zlib.compress(self.block, 4))
-            self.block = ''
-            self.block_size = 0
-            self.post()
-            self.i = 0
+        #if self.docs_count * self.i > : #118129
+        self.compressed_blocks.append(zlib.compress(self.block, 4))
+        self.block = ''
+        self.block_size = 0
+        self.post()
+        self.i = 0
 
     def post(self):
         # start = timer()
@@ -228,15 +228,15 @@ class Indexer:
                 tf_dict[key] = tf_merge_values
                 loc_dict[key] = loc_merge_values
                 for key in tf_dict:
-                    for dict in tf_dict[key]:
-                        for k in dict:
-                            tf_idf = ((dict[k] / self.docs_indexer[k].length) *
-                                      (math.log10(self.num_of_corpus_docs / float(tf_dict[key].__len__()))))
-                            tf_idf_values[k] = tf_idf
-                            if tf_idf > 0.7:
-                                self.docs_indexer[k].num_of_unique_words += 1
-                            if dict[k] > self.docs_indexer[k].max_tf:
-                                self.docs_indexer[k].max_tf = dict[k]
+                    tf_values = tf_dict[key]
+                    for doc in tf_values:
+                        tf_idf = ((float(tf_values[doc]) / self.docs_indexer[doc].length) *
+                                  (math.log10(self.num_of_corpus_docs / float(tf_dict[key].__len__()))))
+                        tf_idf_values[doc] = tf_idf
+                        if tf_idf > 0.7:
+                            self.docs_indexer[doc].num_of_unique_words += 1
+                        if tf_values[doc] > self.docs_indexer[doc].max_tf:
+                            self.docs_indexer[doc].max_tf = tf_values[doc]
                     tf_idf_dict[key] = tf_idf_values
                     tf_idf_values = {}
             self.aggregate_indexes(sorted(checked_terms), tf_dict, loc_dict)
@@ -264,7 +264,9 @@ class Indexer:
         # total_size = 0
         compressed_block = None
         for term in terms:
-            df = len(tf_dict[term])
+            freq = 0
+            for doc in tf_dict[term]:
+                freq += tf_dict[term][doc]
             index = '{}|{}|{}@'.format(term, str(tf_dict[term]), str(loc_dict[term]))
             cur_size = sys.getsizeof(index)
             compressed_block = zlib.compress(self.block, 4)
@@ -272,7 +274,7 @@ class Indexer:
 
             if self.block_size + cur_size < 8192:  # 8192
                 self.block = "{}{}".format(self.block, index)
-                self.terms_dict[term] = {'block': self.block_count, 'index': self.pos_in_block, "df": df}
+                self.terms_dict[term] = {'block': self.block_count, 'index': self.pos_in_block, "freq": freq}
                 self.pos_in_block += 1
                 self.block_size += cur_size
             else:
@@ -280,7 +282,7 @@ class Indexer:
                 self.block_size = sys.getsizeof(compressed_block)
                 if self.block_size + cur_size < 8192:
                     self.block = "{}{}".format(self.block, index)
-                    self.terms_dict[term] = {'block': self.block_count, 'index': self.pos_in_block, "df": df}
+                    self.terms_dict[term] = {'block': self.block_count, 'index': self.pos_in_block, "freq": freq}
                     self.pos_in_block += 1
                     self.block_size += cur_size
                 else:

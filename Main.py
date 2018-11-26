@@ -37,22 +37,24 @@ class Main:
         docs = {}
         num_of_docs = 0
         terms = 0
-        while i < len(dirs_list):
+        #while i < len(dirs_list):
         # while i < 10:
-            docs = self.reader.separate_docs_in_file(self.corpus_path, dirs_list[i])
-            # file_docs[dirs_list[i]] = docs.keys()
-            i += 1
-            #self.indexer.files_count += 1
-            for doc_id in docs:
-                # print(doc.id)
-                doc_dict = self.parser.main_parser(docs[doc_id].text)
-                # num_of_docs+=1
-                # terms+=len(doc_dict)
-                self.indexer.index_terms(doc_dict, doc_id)
-                docs[doc_id].text = None
-                self.indexer.docs_indexer[doc_id] = docs[doc_id]
+        docs = self.reader.separate_docs_in_file(self.corpus_path, dirs_list[0])
+        # file_docs[dirs_list[i]] = docs.keys()
+        #i += 1
+        #self.indexer.files_count += 1
+        for doc_id in docs:
+            # print(doc.id)
+            doc_dict = self.parser.main_parser(docs[doc_id].text)
+            docs[doc_id].length = len(doc_dict)
+            # num_of_docs+=1
+            # terms+=len(doc_dict)
+            self.indexer.index_terms(doc_dict, doc_id)
+            docs[doc_id].text = None
+            self.indexer.docs_indexer[doc_id] = docs[doc_id]
+
         #self.indexer.read_post(0, [0, 1, 2])
-        # self.indexer.merge_posting()
+        self.indexer.merge_posting()
         #self.indexer.index_cities(self.reader.cities)
         # self.indexer.read_post("", "")
         # print terms
