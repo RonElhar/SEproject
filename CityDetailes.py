@@ -10,9 +10,10 @@ def get_city_details(city):
     city_details["Country"] = str(data[u'geobytescountry'])
     city_details["Currency"] = str(data[u'geobytescurrency'])
     city_details["Population"] = str("%.2f" % (float(data[u'geobytespopulation'])/1000000)) + 'M' #in the task its 'M' first...
-    print(data)
-    print city_details
-
+    city_details["Capital"] = str(data[u'geobytescapital'])
+   # print(data)
+    #print city_details
+    return city_details
 
 def get_capital_details(city):
     url = "https://restcountries.eu/rest/v2/capital/" + city
@@ -28,4 +29,4 @@ def get_city_population(city):
     print data
 
 
-get_city_details("Ashdod")
+#get_city_details("Ashdod")

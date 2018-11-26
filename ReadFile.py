@@ -63,9 +63,12 @@ class ReadFile:
                 temp = temp[0].split(' ')
                 doc_city = temp[0]
                 self.cities.add(doc_city)
-            if line.__contains__('<DATE1>'):
-                line = line.replace('<DATE1>', '')
-                line = line.replace('</DATE1>', '')
+            if line.__contains__('<DATE>') or line.__contains__('<DATE1>'):
+                no1 = False
+                if line.__contains__('<DATE>'):
+                    no1 = True
+                line = line.replace('<DATE>', '') if no1 else line.replace('<DATE1>', '')
+                line = line.replace('</DATE>', '') if no1 else line.replace('</DATE1>', '')
                 doc_date = line.replace('\n', '')
                 continue
             if line.__contains__("<TEXT>"):
@@ -92,6 +95,8 @@ class Document:
         self.origin_city = city
         self.length = 0
         self.text = text
+        self.max_tf = 0
+        self.num_of_unique_words = 0
 
     def set_length(self, length):
         self.length = length

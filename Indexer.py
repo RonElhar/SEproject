@@ -1,14 +1,18 @@
 import ast
 import sys
 import zlib
+import math
+import CityDetailes
 from timeit import default_timer as timer
 
 del_size = sys.getsizeof('\n')
 
 
 class Indexer:
+    city_details_vals = {0: "City", 1: "Country", 2: "Currency", 3: "Population"}
 
     def __init__(self, posting_path):
+        self.docs_indexer = {}
         self.posting_path = posting_path
         self.docs_count = 0
         self.docs_tf_dict = {}
@@ -20,54 +24,81 @@ class Indexer:
         self.compressed_indexes = {}
         self.compressed_blocks = []
         self.files_count = 0
-        self.i = 0
-        self.compressed_block = ''
-        # [[]]
-        pass
+        self.i = 1
+        self.block = ''
+        self.num_of_corpus_docs = 472535
+        self.terms_dict = {}
+        self.pos_in_block = 0
+        self.block_size = 0
+        self.cities_index = ''
 
-    def index_terms(self, doc_terms_dict, doc):
+    def index_terms(self, doc_terms_dict, doc_id):
         for term in doc_terms_dict:
             if not self.docs_tf_dict.__contains__(term):
                 self.docs_locations_dict[term] = {}
                 self.docs_tf_dict[term] = {}
-            self.docs_tf_dict[term][doc.id] = doc_terms_dict[term][0]  ## add tf_idf
-            self.docs_locations_dict[term][doc.id] = doc_terms_dict[term][1]
+            self.docs_tf_dict[term][doc_id] = doc_terms_dict[term][0]  ## add tf_idf
+            self.docs_locations_dict[term][doc_id] = doc_terms_dict[term][1]
         self.docs_count += 1
-        #print str(self.docs_count) +' : ' + str(self.i)
         # if sys.getsizeof(self.docs_locations_dict)>1024 ** 4:
         #  if (self.i < 8 and self.files_count == 180) or (self.i == 8 and self.files_count == 195):
-        if self.docs_count > 29532:
-            self.i += 1
+        if self.docs_count > 29531:  # 29531
             terms = sorted(self.docs_tf_dict.keys())
             self.aggregate_indexes(terms, self.docs_tf_dict, self.docs_locations_dict)
-            print ('posted - ' + str(self.i))
+            self.i += 1
+            self.docs_count = 0
+            self.docs_tf_dict = {}
+            self.docs_locations_dict = {}
+#not working yet....
+    def parallel_index_terms(self, doc_terms_dict,docs):
+        for doc_id in docs:
+            for term in doc_terms_dict:
+                if not self.docs_tf_dict.__contains__(term):
+                    self.docs_locations_dict[term] = {}
+                    self.docs_tf_dict[term] = {}
+                self.docs_tf_dict[term][doc_id] = doc_terms_dict[term][0]  ## add tf_idf
+                self.docs_locations_dict[term][doc_id] = doc_terms_dict[term][1]
+            self.docs_count += 1
+        # if sys.getsizeof(self.docs_locations_dict)>1024 ** 4:
+        #  if (self.i < 8 and self.files_count == 180) or (self.i == 8 and self.files_count == 195):
+        if self.docs_count > 29531:  # 29531
+            terms = sorted(self.docs_tf_dict.keys())
+            self.aggregate_indexes(terms, self.docs_tf_dict, self.docs_locations_dict)
+            self.i += 1
             self.docs_count = 0
             self.docs_tf_dict = {}
             self.docs_locations_dict = {}
 
     def aggregate_indexes(self, terms, docs_tf_dict, docs_locations_dict):
         total_size = 0
+        compressed_block = None
         for term in terms:
             index = '{}|{}|{}@'.format(term, str(docs_tf_dict[term]), str(docs_locations_dict[term]))
             cur_size = sys.getsizeof(index)
-            # compressed_index = cPickle.dumps(index) + '@'
-            cur_size = sys.getsizeof(index)
-            tmp_block = zlib.compress(self.compressed_block, 5)
-            block_size = sys.getsizeof(tmp_block)
-            if block_size + cur_size < (8192):
-                self.compressed_block += index
+            # compressed_block = zlib.compress(self.block, 4)
+            # block_size = sys.getsizeof(compressed_block)
+            if self.block_size + cur_size < 8192:  # 8192
+                self.block = "{}{}".format(self.block, index)
                 # compressed_block.append(index)
-                total_size += cur_size
+                self.block_size += cur_size
             else:
-                self.compressed_blocks.append(tmp_block)
-                self.block_count += 1
-                # compressed_block = compressed_index
-                self.compressed_block = index
-        if self.docs_count * self.i > 118131:
+                compressed_block = zlib.compress(self.block, 4)
+                self.block_size = sys.getsizeof(compressed_block)
+                if self.block_size + cur_size < 8192:
+                    self.block = "{}{}".format(self.block, index)
+                    self.block_size += cur_size
+                else:
+                    self.compressed_blocks.append(compressed_block)
+                    self.block_count += 1
+                    self.block = index
+                    self.block_size = cur_size
+        print ('aggregate - ' + str(self.i))
+        if self.docs_count * self.i > 118129:
+            self.compressed_blocks.append(zlib.compress(self.block, 4))
+            self.block = ''
+            self.block_size = 0
             self.post()
             self.i = 0
-
-    # self.i = 0
 
     def post(self):
         # start = timer()
@@ -80,13 +111,10 @@ class Indexer:
                 f.write(block)
                 self.post_files_blocks[self.post_count].append(f.tell())  #####
         f.close()
+        print("post - " + str(self.post_count))
         self.compressed_blocks = []
         self.block_count = 0
         self.post_count += 1
-
-        ''''
-
-    '''''
 
     def read_post(self, post_num, block_list):
         # start = timer()
@@ -107,17 +135,17 @@ class Indexer:
                     data_blocks.append(f.read())
         f.close()
         for block in data_blocks:
-            decompressed = zlib.compress(block)
+            decompressed = zlib.decompress(block)
             indexes = str.split(decompressed, '@')
-            for i in range(0, len(indexes)):
+            for i in range(0, len(indexes) - 1):
                 index = indexes[i]
                 index = str.split(index, '|')
                 term = index[0]
                 terms.append(term)
                 tf_dict[term] = ast.literal_eval(index[1])
                 loc_dict[term] = ast.literal_eval(index[2])
-        # for term in tf_dict.keys():
-        #     print (term + ':' + str(tf_dict[term]) + '     ' + str(loc_dict[term]))
+        for term in tf_dict.keys():
+            print (term + ':' + str(tf_dict[term]) + '     ' + str(loc_dict[term]))
         return terms, tf_dict, loc_dict
 
     def read_post_consecutive(self, post_num, start_block, num_of_blocks):
@@ -137,18 +165,17 @@ class Indexer:
         f.close()
 
         for block in data_blocks:
-            indexes = zlib.decompress(block)
-            indexes = str.split(indexes, '@')
+            decompressed = zlib.decompress(block)
+            indexes = str.split(decompressed, '@')
             for i in range(0, len(indexes) - 1):
-                index = str.split(indexes[i], '|')
-
-
+                index = indexes[i]
+                index = str.split(index, '|')
                 term = index[0]
                 terms.append(term)
                 tf_dict[term] = ast.literal_eval(index[1])
                 loc_dict[term] = ast.literal_eval(index[2])
         for term in tf_dict.keys():
-            print term + ':' + str(tf_dict[term]) + ' @@@ ' + str(loc_dict[term])
+            print (term + ':' + str(tf_dict[term]) + '     ' + str(loc_dict[term]))
         return terms, tf_dict, loc_dict
 
     def merge_posting(self):
@@ -158,6 +185,7 @@ class Indexer:
         loc_dicts = []
         read_blocks = []
         tf_dict = {}
+        tf_idf_dict = {}
         loc_dict = {}
         terms_keys = []
         checked_terms = []
@@ -190,12 +218,25 @@ class Indexer:
             for key in checked_terms:
                 tf_merge_values = {}
                 loc_merge_values = {}
+                tf_idf_values = {}
                 for i3 in range(0, curr_length):
                     if terms[i3].__contains__(key):
                         tf_merge_values.update(tf_dicts[i3][key])
                         loc_merge_values.update(loc_dicts[i3][key])
                 tf_dict[key] = tf_merge_values
                 loc_dict[key] = loc_merge_values
+                for key in tf_dict:
+                    for dict in tf_dict[key]:
+                        for k in dict:
+                            tf_idf = ((dict[k] / self.docs_indexer[k].length) *
+                                      (math.log10(self.num_of_corpus_docs / float(tf_dict[key].__len__()))))
+                            tf_idf_values[k] = tf_idf
+                            if tf_idf > 0.7:
+                                self.docs_indexer[k].num_of_unique_words += 1
+                            if dict[k] > self.docs_indexer[k].max_tf:
+                                self.docs_indexer[k].max_tf = dict[k]
+                    tf_idf_dict[key] = tf_idf_values
+                    tf_idf_values = {}
             self.aggregate_indexes(checked_terms, tf_dict, loc_dict)
             terms_keys = []
             checked_terms = []
@@ -215,3 +256,59 @@ class Indexer:
                     read_blocks.__delitem__(min_ind)
                 else:
                     break
+
+    def final_posting(self, terms, tf_dict, loc_dict):
+        # total_size = 0
+        compressed_block = None
+        for term in terms:
+            index = '{}|{}|{}@'.format(term, str(tf_dict[term]), str(loc_dict[term]))
+            cur_size = sys.getsizeof(index)
+            compressed_block = zlib.compress(self.block, 4)
+            block_size = sys.getsizeof(compressed_block)
+
+            if self.block_size + cur_size < 8192:  # 8192
+                self.block = "{}{}".format(self.block, index)
+                self.terms_dict[term] = [self.block_count, self.pos_in_block]
+                self.pos_in_block += 1
+                self.block_size += cur_size
+            else:
+                compressed_block = zlib.compress(self.block, 4)
+                self.block_size = sys.getsizeof(compressed_block)
+                if self.block_size + cur_size < 8192:
+                    self.block = "{}{}".format(self.block, index)
+                    self.terms_dict[term] = [self.block_count, self.pos_in_block]
+                    self.pos_in_block += 1
+                    self.block_size += cur_size
+                else:
+                    self.compressed_blocks.append(compressed_block)
+                    self.block_count += 1
+                    self.block = index
+                    self.block_size = cur_size
+                    self.terms_dict[term] = [self.block_count, 0]
+                    self.pos_in_block = 1
+
+        # if with some size that we'll decide - we want to aggregate many terms before posing
+        #   posting
+        self.compressed_blocks.append(zlib.compress(self.block, 4))
+        self.block = ''
+        self.block_size = 0
+        file_name = 'Posting' + str(self.post_count)
+        self.post_files_blocks.append([])
+        self.post_files_blocks[self.post_count].append(0)
+        with open(self.posting_path + file_name, 'wb') as f:
+            for block in self.compressed_blocks:
+                f.write(block)
+                self.post_files_blocks[self.post_count].append(f.tell())
+        f.close()
+        self.compressed_blocks = []
+        self.block_count = 0
+        self.post_count += 1
+        self.pos_in_block = 0
+        pass
+
+    def index_cities(self, cities):
+        city_detailes = None
+        for city in cities:
+            city_detailes = CityDetailes.get_city_details(city)
+            # location_dict_for cities ( use final terms dict
+        pass

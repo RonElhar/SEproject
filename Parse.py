@@ -1,9 +1,9 @@
-import re
 from timeit import default_timer as timer
 import string
-
 import nltk
+import Stemmer
 from nltk.stem.porter import *
+import re
 
 
 def get_stop_words():
@@ -103,6 +103,7 @@ class Parse:
         self.terms_dict = {}
         self.index = 0
         self.to_stem = False
+        self.pystemmer = Stemmer.Stemmer('english')
         self.stemmer = nltk.stem.SnowballStemmer('english')
         '''''
         self.get_terms_time = 0
@@ -112,17 +113,19 @@ class Parse:
         self.range_term_time = 0
         '''''
 
+    def set_stemming_bool(self, to_stem):
+        self.to_stem = to_stem
+
     def main_parser(self, text):
         self.terms_dict = {}
         self.index = 0
 
         # self.list_strings = ["world", "6-7", "1000-2000", "Aviad", "Between", "6000", "and", "7000", "World", "May",
-        #                      "1994", "14", "MAY", "JUNE", "4", "20.6", "Dollars", "32", "bn", "Dollars", "Aviad",
-        #                      "$100", "million",
-        #                      "40.5", "Dollars", "100", "billion", "U.S.", "dollars", "NBA", "32", "million", "U.S.",
-        #                      "dollars", "1",
-        #                      "trillion", "U.S.", "dollars", "22 3/4", "Dollars", "NBA", "$100", "billion"]
-        #
+        # "1994", "14", "MAY", "JUNE", "4", "20.6", "Dollars", "32", "bn", "Dollars", "Aviad",
+        # "$100", "million",
+        # "40.5", "Dollars", "100", "billion", "U.S.", "dollars", "NBA", "32", "million", "U.S.",
+        # "dollars", "1",
+        # "trillion", "U.S.", "dollars", "22 3/4", "Dollars", "NBA", "$100", "billion"]
 
         self.list_strings = self.get_terms(text)
 
@@ -140,7 +143,7 @@ class Parse:
                 if re.match(r'\$?[0-9]* ?[0-9]+/[0-9]+$', token):
                     if self.index + 1 < len(self.list_strings) and (
                             self.list_strings[self.index + 1] == "Dollars" or token.startswith('$')):
-                        self.add_to_dict('{} Dollars'.format(token), self.index)
+                        self.add_to_dict('{} Dollars'.format(token.replace('$', '')), self.index)
                         self.index += 1
                     else:
                         self.add_to_dict(token, self.index)
@@ -161,11 +164,12 @@ class Parse:
             else:
                 self.add_to_dict(token, self.index)
             self.index += 1
-        if self.to_stem:
-            terms = self.terms_dict.keys()
-            for term in terms:
-                self.terms_dict[self.stemmer.stem(term)] = self.terms_dict.pop(term)
+        # if self.to_stem:
+        #     terms = self.terms_dict.keys()
+        #     for term in terms:
+        #         self.terms_dict[self.pystemmer.stem(term)] = self.terms_dict.pop(term)
         # print self.terms_dict
+        self.list_strings = ''
         return self.terms_dict
 
     def get_terms(self, text):
@@ -203,7 +207,7 @@ class Parse:
 
     def add_word_term(self, word):
         if self.to_stem:
-            word = str(self.stemmer.stem(word))
+            word = str(self.pystemmer.stemWord(word))
         lower = word.lower()
         upper = word.upper()
         if word[0].isupper():
