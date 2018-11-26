@@ -237,7 +237,7 @@ class Indexer:
                                 self.docs_indexer[k].max_tf = dict[k]
                     tf_idf_dict[key] = tf_idf_values
                     tf_idf_values = {}
-            self.aggregate_indexes(checked_terms, tf_dict, loc_dict)
+            self.aggregate_indexes(sorted(checked_terms), tf_dict, loc_dict)
             terms_keys = []
             checked_terms = []
             tf_dict = {}
