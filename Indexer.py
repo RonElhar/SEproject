@@ -3,6 +3,7 @@ import sys
 import zlib
 import math
 import CityDetailes
+import cPickle
 from timeit import default_timer as timer
 
 del_size = sys.getsizeof('\n')
@@ -30,7 +31,7 @@ class Indexer:
         self.terms_dict = {}
         self.pos_in_block = 0
         self.block_size = 0
-        self.cities_index = ''
+        self.cities_dict = {}
 
     def index_terms(self, doc_terms_dict, doc_id):
         for term in doc_terms_dict:
@@ -49,8 +50,9 @@ class Indexer:
             self.docs_count = 0
             self.docs_tf_dict = {}
             self.docs_locations_dict = {}
-#not working yet....
-    def parallel_index_terms(self, doc_terms_dict,docs):
+
+    # not working yet....
+    def parallel_index_terms(self, doc_terms_dict, docs):
         for doc_id in docs:
             for term in doc_terms_dict:
                 if not self.docs_tf_dict.__contains__(term):
@@ -257,10 +259,12 @@ class Indexer:
                 else:
                     break
 
+    # Final post file 'post_num' for read is ""
     def final_posting(self, terms, tf_dict, loc_dict):
         # total_size = 0
         compressed_block = None
         for term in terms:
+            df = len(tf_dict[term])
             index = '{}|{}|{}@'.format(term, str(tf_dict[term]), str(loc_dict[term]))
             cur_size = sys.getsizeof(index)
             compressed_block = zlib.compress(self.block, 4)
@@ -268,7 +272,7 @@ class Indexer:
 
             if self.block_size + cur_size < 8192:  # 8192
                 self.block = "{}{}".format(self.block, index)
-                self.terms_dict[term] = [self.block_count, self.pos_in_block]
+                self.terms_dict[term] = {'block': self.block_count, 'index': self.pos_in_block, "df": df}
                 self.pos_in_block += 1
                 self.block_size += cur_size
             else:
@@ -276,7 +280,7 @@ class Indexer:
                 self.block_size = sys.getsizeof(compressed_block)
                 if self.block_size + cur_size < 8192:
                     self.block = "{}{}".format(self.block, index)
-                    self.terms_dict[term] = [self.block_count, self.pos_in_block]
+                    self.terms_dict[term] = {'block': self.block_count, 'index': self.pos_in_block, "df": df}
                     self.pos_in_block += 1
                     self.block_size += cur_size
                 else:
@@ -292,7 +296,7 @@ class Indexer:
         self.compressed_blocks.append(zlib.compress(self.block, 4))
         self.block = ''
         self.block_size = 0
-        file_name = 'Posting' + str(self.post_count)
+        file_name = 'Post'
         self.post_files_blocks.append([])
         self.post_files_blocks[self.post_count].append(0)
         with open(self.posting_path + file_name, 'wb') as f:
@@ -307,8 +311,43 @@ class Indexer:
         pass
 
     def index_cities(self, cities):
-        city_detailes = None
-        for city in cities:
-            city_detailes = CityDetailes.get_city_details(city)
-            # location_dict_for cities ( use final terms dict
-        pass
+        city_tf = {}
+        city_locations = {}
+        city_details = {}
+        with open("cities", 'wb') as f:
+            for city in cities:
+                city_details = CityDetailes.get_city_details(city)
+                city_index = CityIndex(city, city_details, cities[city], self.terms_dict.get(city))
+                startbyte = f.tell()
+                cPickle.dump(city_index, f)
+                endbyte = f.tell()
+                self.cities_dict[city] = [startbyte, endbyte]
+        f.close()
+
+    def post_pointers(self):
+        with open("Post Blocks", 'wb') as f:
+            cPickle.dump(self.post_files_blocks, f)
+        f.close()
+        with open("Terms Pointers Dictionary", 'wb') as f:
+            cPickle.dump(self.terms_dict, f)
+        f.close()
+        with open("Cities Pointers Dictionary", 'wb') as f:
+            cPickle.dump(self.cities_dict, f)
+
+    def load(self):
+        with open("Post Blocks", 'rb') as f:
+            self.post_files_blocks = cPickle.load(f)
+        f.close()
+        with open("Terms Pointers Dictionary", 'rb') as f:
+            self.terms_dict = cPickle.load(f)
+        f.close()
+        with open("Cities Pointers Dictionary", 'rb') as f:
+            self.cities_dict = cPickle.load(f)
+
+
+class CityIndex:
+    def __init__(self, city_name, city_details, doc_tags, terms_pointer):
+        self.city_name = city_name
+        self.city_details = city_details
+        self.doc_tags = doc_tags
+        self.terms_pointer = terms_pointer
