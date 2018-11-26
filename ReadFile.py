@@ -5,7 +5,7 @@ import re
 class ReadFile:
 
     def __init__(self):
-        self.cities = set()
+        self.cities = {}
         self.languages = set()
         pass
 
@@ -62,7 +62,8 @@ class ReadFile:
                 temp = temp[1].split('<')
                 temp = temp[0].split(' ')
                 doc_city = temp[0]
-                self.cities.add(doc_city)
+                self.cities[doc_city] = []
+                self.cities[doc_city].append(doc_id)
             if line.__contains__('<DATE>') or line.__contains__('<DATE1>'):
                 no1 = False
                 if line.__contains__('<DATE>'):
