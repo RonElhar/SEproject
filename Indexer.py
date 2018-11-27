@@ -156,17 +156,20 @@ class Indexer:
         terms = []
         data_blocks = []
         with open(self.posting_path + 'Posting' + str(post_num), 'rb') as f:
-            read_from = self.post_files_blocks[post_num][start_block]
-            if start_block + num_of_blocks < len(self.post_files_blocks[post_num]):
-                read_to = self.post_files_blocks[post_num][start_block + num_of_blocks]
-                f.seek(read_from, 0)
-                data_blocks.append(f.read(read_to))
-            else:
-                f.seek(read_from, 0)
-                data_blocks.append(f.read())
-        f.close()
+            i = 0
+            while (i < num_of_blocks):
+                read_from = self.post_files_blocks[post_num][start_block + i]
+                if start_block + i +1 < len(self.post_files_blocks[post_num]):
+                    read_to = self.post_files_blocks[post_num][start_block + i + 1]
+                    f.seek(read_from, 0)
+                    data_blocks.append(f.read(read_to))
+                else:
+                    f.seek(read_from, 0)
+                    data_blocks.append(f.read())
+                i += 1
 
-        for block in data_blocks:
+        for i in range(0,len(data_blocks)-1):
+            block = data_blocks[i]
             decompressed = zlib.decompress(block)
             indexes = str.split(decompressed, '@')
             for i in range(0, len(indexes) - 1):
@@ -176,9 +179,22 @@ class Indexer:
                 terms.append(term)
                 tf_dict[term] = ast.literal_eval(index[1])
                 loc_dict[term] = ast.literal_eval(index[2])
-        for term in tf_dict.keys():
-            print (term + ':' + str(tf_dict[term]) + '     ' + str(loc_dict[term]))
+        # for term in tf_dict.keys():
+        # print (term + ':' + str(tf_dict[term]) + '     ' + str(loc_dict[term]))
         return terms, tf_dict, loc_dict
+
+    def non_compressed_post(self):
+        posting_dictionaries = []
+        for i in range(0, len(self.post_files_blocks)):
+            posting_dictionaries.append(self.read_post_consecutive(i, 0, len(self.post_files_blocks[i])))
+        i = 0
+        for dict in posting_dictionaries:
+            with open("TestPost" + str(i), 'wb') as f:
+                for term in dict[0]:
+                    index = '{}|{}|{}\n'.format(term, str(dict[1][term]), str(dict[2][term]))
+                    f.write(index)
+            f.close()
+            i += 1
 
     def merge_posting(self):
         length = self.post_files_blocks.__len__()
