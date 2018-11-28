@@ -43,7 +43,9 @@ class Indexer:
         self.docs_count += 1
         # if sys.getsizeof(self.docs_locations_dict)>1024 ** 4:
         #  if (self.i < 8 and self.files_count == 180) or (self.i == 8 and self.files_count == 195):
-        if self.docs_count > 10:  # 29531
+        # print str(sys.getsizeof(self.docs_locations_dict))
+        if len(self.docs_locations_dict) > 300000:  # 29531
+            print str(len(self.docs_locations_dict)) + " - " + str(len(self.docs_tf_dict))
             terms = sorted(self.docs_tf_dict.keys())
             self.aggregate_indexes(terms, self.docs_tf_dict, self.docs_locations_dict)
             self.i += 1
@@ -65,7 +67,7 @@ class Indexer:
         #  if (self.i < 8 and self.files_count == 180) or (self.i == 8 and self.files_count == 195):
         if self.docs_count > 10:  # 29531
             terms = sorted(self.docs_tf_dict.keys())
-            self.aggregate_indexes(terms, self.docs_tf_dict, self.docs_locations_dict)
+            self.final_posting(terms, self.docs_tf_dict, self.docs_locations_dict)
             self.i += 1
             self.docs_count = 0
             self.docs_tf_dict = {}
@@ -86,7 +88,7 @@ class Indexer:
             else:
                 compressed_block = zlib.compress(self.block, 4)
                 self.block_size = sys.getsizeof(compressed_block)
-                if self.block_size + cur_size < 1000: # 8192
+                if self.block_size + cur_size < 1000:  # 8192
                     self.block = "{}{}".format(self.block, index)
                     self.block_size += cur_size
                 else:
@@ -95,12 +97,12 @@ class Indexer:
                     self.block = index
                     self.block_size = cur_size
         print ('aggregate - ' + str(self.i))
-        #if self.docs_count * self.i > : #118129
-        self.compressed_blocks.append(zlib.compress(self.block, 4))
-        self.block = ''
-        self.block_size = 0
-        self.post()
-        self.i = 0
+        if self.i > 1: #118129
+            self.compressed_blocks.append(zlib.compress(self.block, 4))
+            self.block = ''
+            self.block_size = 0
+            self.post()
+            self.i = 0
 
     def post(self):
         # start = timer()
@@ -159,7 +161,7 @@ class Indexer:
             i = 0
             while (i < num_of_blocks):
                 read_from = self.post_files_blocks[post_num][start_block + i]
-                if start_block + i +1 < len(self.post_files_blocks[post_num]):
+                if start_block + i + 1 < len(self.post_files_blocks[post_num]):
                     read_to = self.post_files_blocks[post_num][start_block + i + 1]
                     f.seek(read_from, 0)
                     data_blocks.append(f.read(read_to))
@@ -168,7 +170,7 @@ class Indexer:
                     data_blocks.append(f.read())
                 i += 1
 
-        for i in range(0,len(data_blocks)-1):
+        for i in range(0, len(data_blocks) - 1):
             block = data_blocks[i]
             decompressed = zlib.decompress(block)
             indexes = str.split(decompressed, '@')
@@ -314,7 +316,7 @@ class Indexer:
         self.compressed_blocks.append(zlib.compress(self.block, 4))
         self.block = ''
         self.block_size = 0
-        file_name = 'Post'
+        file_name = 'Posting' + str(self.post_count)
         self.post_files_blocks.append([])
         self.post_files_blocks[self.post_count].append(0)
         with open(self.posting_path + file_name, 'wb') as f:

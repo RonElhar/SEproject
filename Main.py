@@ -6,7 +6,7 @@ from Parse import Parse
 from ReadFile import Document
 from timeit import default_timer as timer
 from Indexer import Indexer
-
+from multiprocessing import Process,Lock
 
 class Main:
 
@@ -37,8 +37,8 @@ class Main:
         docs = {}
         num_of_docs = 0
         terms = 0
-        #while i < len(dirs_list):
-        while i < 1:
+        while i < len(dirs_list):
+        # while i < 1:
             docs = self.reader.separate_docs_in_file(self.corpus_path, dirs_list[i])
             # file_docs[dirs_list[i]] = docs.keys()
             i += 1
@@ -49,10 +49,10 @@ class Main:
                 docs[doc_id].length = len(doc_terms_dict)
                 # num_of_docs+=1
                 # terms+=len(doc_dict)
-                self.indexer.index_terms(doc_terms_dict, doc_id)
+                # self.indexer.index_terms(doc_terms_dict, doc_id)
                 docs[doc_id].text = None
-                self.indexer.docs_indexer[doc_id] = docs[doc_id]
-        self.indexer.non_compressed_post()
+                # self.indexer.docs_indexer[doc_id] = docs[doc_id]
+        #self.indexer.non_compressed_post()
         #self.indexer.read_post(0, [0, 1, 2])
         # self.indexer.merge_posting()
         #self.indexer.index_cities(self.reader.cities)
