@@ -37,6 +37,7 @@ class Main:
         docs = {}
         num_of_docs = 0
         terms = 0
+        self.parser.set_stemming_bool(False)
         #while i < len(dirs_list):
         #while i < 1:
         docs = self.reader.separate_docs_in_file(self.corpus_path, dirs_list[0])
@@ -55,7 +56,7 @@ class Main:
             docs[doc_id].text = None
         #self.indexer.read_post(0, [0, 1, 2])
         self.indexer.merge_posting()
-        #self.indexer.non_compressed_post()
+        self.indexer.non_compressed_post()
         #self.indexer.index_cities(self.reader.cities)
         # self.indexer.read_post("", "")
         # print terms
