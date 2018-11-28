@@ -44,18 +44,18 @@ class Main:
         i += 1
         #self.indexer.files_count += 1
         for doc_id in docs:
-            # print(doc.id)
+            self.parser.parsed_doc = docs[doc_id]
             doc_terms_dict = self.parser.main_parser(docs[doc_id].text)
-            docs[doc_id].length = len(doc_terms_dict)
+            # print docs[doc_id].length
+            # print docs[doc_id].num_of_unique_words
+            # print docs[doc_id].max_tf
             # num_of_docs+=1
             # terms+=len(doc_dict)
             self.indexer.index_terms(doc_terms_dict, doc_id)
             docs[doc_id].text = None
-            self.indexer.docs_indexer[doc_id] = docs[doc_id]
-
         #self.indexer.read_post(0, [0, 1, 2])
         self.indexer.merge_posting()
-        self.indexer.non_compressed_post()
+        #self.indexer.non_compressed_post()
         #self.indexer.index_cities(self.reader.cities)
         # self.indexer.read_post("", "")
         # print terms

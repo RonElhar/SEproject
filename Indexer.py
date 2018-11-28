@@ -8,12 +8,10 @@ from timeit import default_timer as timer
 
 del_size = sys.getsizeof('\n')
 
-
 class Indexer:
     city_details_vals = {0: "City", 1: "Country", 2: "Currency", 3: "Population"}
 
     def __init__(self, posting_path):
-        self.docs_indexer = {}
         self.posting_path = posting_path
         self.docs_count = 0
         self.docs_tf_dict = {}
@@ -209,7 +207,6 @@ class Indexer:
         all_terms_from_postings = []
         all_terms_to_merge = []
         checked_tf_dict = {}
-        checked_tf_idf_dict = {}
         checked_loc_dict = {}
         num_of_blocks_to_read = 50
         total_num_of_blocks = 0
@@ -236,8 +233,7 @@ class Indexer:
                 last_min_term = terms[i][0]
                 min_term = terms[i][terms_list_len]
                 min_ind = i
-        block_ind = length * num_of_blocks_to_read
-        while block_ind < total_num_of_blocks:
+        while True:
             for i1 in range(0, length):
                 all_terms_from_postings += terms[i1]
             if all_terms_from_postings.__len__() is 0:
@@ -255,7 +251,6 @@ class Indexer:
             for key in all_terms_to_merge:
                 tf_merge_values = {}
                 loc_merge_values = {}
-                tf_idf_values = {}
                 for i3 in range(0, length):
                     if terms[i3].__len__() > 0:
                         if terms[i3].__contains__(key):
@@ -264,17 +259,17 @@ class Indexer:
                 checked_tf_dict[key] = tf_merge_values
                 checked_loc_dict[key] = loc_merge_values
                 '''
-                for key in tf_dict:
-                    tf_values = tf_dict[key]
+                for key in checked_tf_dict:
+                    tf_values = checked_tf_dict[key]
                     for doc in tf_values:
                         tf_idf = ((float(tf_values[doc]) / self.docs_indexer[doc].length) *
-                                  (math.log10(self.num_of_corpus_docs / float(tf_dict[key].__len__()))))
+                                  (math.log10(self.num_of_corpus_docs / float(checked_tf_dict[key].__len__()))))
                         tf_idf_values[doc] = tf_idf
                         if tf_idf > 0.7:
                             self.docs_indexer[doc].num_of_unique_words += 1
                         if tf_values[doc] > self.docs_indexer[doc].max_tf:
                             self.docs_indexer[doc].max_tf = tf_values[doc]
-                    tf_idf_dict[key] = tf_idf_values
+                    checked_tf_idf_dict[key] = tf_idf_values
                     tf_idf_values = {}
                     '''
             self.final_posting(sorted(all_terms_to_merge), checked_tf_dict, checked_loc_dict)
@@ -282,7 +277,6 @@ class Indexer:
             all_terms_to_merge = []
             checked_tf_dict = {}
             checked_loc_dict = {}
-            block_ind += 1
             if self.post_files_blocks[min_ind].__len__() > read_blocks[min_ind]:
                 if num_of_blocks_to_read > self.post_files_blocks[min_ind].__len__() - read_blocks[min_ind]:
                     num_of_blocks_to_read = self.post_files_blocks[min_ind].__len__() - read_blocks[min_ind]
@@ -291,16 +285,14 @@ class Indexer:
                 read_blocks[min_ind] += num_of_blocks_to_read
                 last_min_term = min_term
                 min_term = terms[min_ind][terms[min_ind].__len__() - 1]
-                #block_ind += num_of_blocks_to_read
-                print "posting file: " + str(min_ind) + " num of blocks that was read: " + str(num_of_blocks_to_read)
+                #print "posting file: " + str(min_ind) + " num of blocks that was read: " + str(num_of_blocks_to_read)
                 num_of_blocks_to_read = 50
             else:
                 terms[min_ind] = []
                 tf_dicts[min_ind] = {}
                 loc_dicts[min_ind] = {}
-                # read_blocks.__delitem__(min_ind)
                 last_min_term = min_term
-                min_term = "zzzzzzzzz"
+                min_term = "zzzzzzz"
         self.post_count += 1
 
     # Final post file 'post_num' for read is ""
