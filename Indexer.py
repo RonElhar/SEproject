@@ -49,8 +49,8 @@ class Indexer:
             self.docs_count = 0
             self.docs_tf_dict = {}
             self.docs_locations_dict = {}
-#not working yet....
-    def parallel_index_terms(self, doc_terms_dict,docs):
+    # not working yet....
+    def parallel_index_terms(self, doc_terms_dict, docs):
         for doc_id in docs:
             for term in doc_terms_dict:
                 if not self.docs_tf_dict.__contains__(term):
@@ -310,5 +310,8 @@ class Indexer:
         city_detailes = None
         for city in cities:
             city_detailes = CityDetailes.get_city_details(city)
-            # location_dict_for cities ( use final terms dict
+            if self.terms_dict.__contains__(city):
+                self.cities_index[city] = self.terms_dict[city]
+            else:
+                pass  ### cities that are in tags of docs
         pass
