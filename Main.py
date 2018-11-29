@@ -66,10 +66,9 @@ class Main:
             i += 1
 
         # self.indexer.read_post(0, [0, 1, 2])
-        self.indexer.finished_parse = True
         mend = timer()
         print("total Index time: " + str(mend - mstart))
-        self.indexer.merge_posting()
+        # self.indexer.merge_posting()
         # self.indexer.non_compressed_post()
         # self.indexer.index_cities(self.reader.cities)
         # self.indexer.read_post("", "")

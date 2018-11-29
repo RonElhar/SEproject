@@ -48,7 +48,7 @@ class Indexer:
         #  if (self.i < 8 and self.files_count == 180) or (self.i == 8 and self.files_count == 195):
         # if (self.docs_count > 29532 and self.post_count < 3) or (
         #         self.docs_count > 29532 and self.post_count == 3 and self.i < 4) or self.finished_parse:  # 29531
-        if len(self.docs_tf_dict) > 200000 or self.finished_parse:
+        if len(self.docs_tf_dict) > 10000 or self.finished_parse:
             terms = sorted(self.docs_tf_dict.keys())
             self.aggregate_indexes(terms, self.docs_tf_dict, self.docs_locations_dict)
             self.i += 1
@@ -216,7 +216,7 @@ class Indexer:
         all_terms_to_merge = []
         checked_tf_dict = {}
         checked_loc_dict = {}
-        num_of_blocks_to_read = 100
+        num_of_blocks_to_read = 5
         total_num_of_blocks = 0
         min_blocks = self.post_files_blocks[0].__len__()
         for x in range(1, length):
@@ -294,7 +294,7 @@ class Indexer:
                 last_min_term = min_term
                 min_term = terms[min_ind][terms[min_ind].__len__() - 1]
                 # print "posting file: " + str(min_ind) + " num of blocks that was read: " + str(num_of_blocks_to_read)
-                num_of_blocks_to_read = 50
+                num_of_blocks_to_read = 5
             else:
                 terms[min_ind] = []
                 tf_dicts[min_ind] = {}
