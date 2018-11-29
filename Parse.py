@@ -104,8 +104,7 @@ class Parse:
         self.parsed_doc = object
         self.index = 0
         self.to_stem = False
-#       self.pystemmer = Stemmer.Stemmer('english')
-        self.stemmer = nltk.stem.SnowballStemmer('english')
+        self.pystemmer = Stemmer.Stemmer('english')
         '''''
         self.get_terms_time = 0
         self.main_parser_time = 0
@@ -132,7 +131,7 @@ class Parse:
         document_length = 0
         while self.index < len(self.list_strings):
             token = self.list_strings[self.index]
-            if token in self.stop_words or token == '' or token == None:
+            if token in self.stop_words or token == '' or token == None or token.lower() in self.stop_words:
                 document_length -= 1
             elif isWord(token) and not token == 'Between':
                 self.add_word_term(token)
@@ -246,6 +245,13 @@ class Parse:
                                            or self.list_strings[self.index + 1] == "percentage"):
             term = "{}%".format(num_word)
             self.index += 1
+        elif self.index + 1 < terms_len and self.list_strings[self.index + 1] == "kgs":
+            term = "{} kilograms".format(num_word)
+            self.index += 1
+        elif self.index + 1 < terms_len and self.list_strings[self.index + 1] == "GMT" and self.list_strings[
+            self.index] and len(self.list_strings[self.index]) is 4:
+            term = "{}{}:{}{}".format(self.list_strings[self.index][0], self.list_strings[self.index][1],
+                                      self.list_strings[self.index][2], self.list_strings[self.index][3])
         elif dollar_expression and (str.startswith(num_word, '$') or dollar_expression.group(4)):
             num = float(dollar_expression.group(1))
             if dollar_expression.group(2):
@@ -273,7 +279,6 @@ class Parse:
                 term = "{}".format(float(num_word) * 100, 'B')
             else:
                 term = "{}".format(num_word, self.num_word_dict[self.list_strings[self.index + 1].lower()])
-
             self.index += 1
         else:
             amounts = ['', 'K', 'M', 'B']
