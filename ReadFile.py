@@ -43,7 +43,7 @@ class ReadFile:
                 doc_index += 1
                 continue
             if line.__contains__("</DOC>"):
-                docs[doc_id] = Document(doc_id, doc_date, doc_title, doc_city, doc_text)
+                docs[doc_id] = Document(filename, doc_id, doc_date, doc_title, doc_city, doc_text)
                 continue
             if line.__contains__("<DOCNO>"):
                 line = line.replace("<DOCNO>", '')
@@ -89,15 +89,16 @@ class ReadFile:
 
 
 class Document:
-    def __init__(self, doc_id, date, title, city, text):
+    def __init__(self, name, doc_id, date, title, city, text):
+        self.file_name = name
         self.id = doc_id
         self.date = date
         self.title = title
         self.origin_city = city
         self.length = 0
-        self.text = text
         self.max_tf = 0
         self.num_of_unique_words = 0
+        self.text = text
 
     def set_length(self, length):
         self.length = length

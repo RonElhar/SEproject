@@ -1,7 +1,7 @@
 from timeit import default_timer as timer
 import string
 import nltk
-# import Stemmer
+import Stemmer
 from nltk.stem.porter import *
 import re
 
@@ -101,10 +101,10 @@ class Parse:
         self.num_word_dict = {'million': 'M', 'billion': 'B', 'thousand': 'K', 'trillion': '', "bn": 'B', "m": "M"}
         self.stop_words = get_stop_words()
         self.terms_dict = {}
+        self.parsed_doc = object
         self.index = 0
         self.to_stem = False
-#        self.pystemmer = Stemmer.Stemmer('english')
-        self.stemmer = nltk.stem.SnowballStemmer('english')
+        self.pystemmer = Stemmer.Stemmer('english')
         '''''
         self.get_terms_time = 0
         self.main_parser_time = 0
@@ -119,22 +119,20 @@ class Parse:
     def main_parser(self, text):
         self.terms_dict = {}
         self.index = 0
-
         # self.list_strings = ["world", "6-7", "1000-2000", "Aviad", "Between", "6000", "and", "7000", "World", "May",
         # "1994", "14", "MAY", "JUNE", "4", "20.6", "Dollars", "32", "bn", "Dollars", "Aviad",
         # "$100", "million",
         # "40.5", "Dollars", "100", "billion", "U.S.", "dollars", "NBA", "32", "million", "U.S.",
         # "dollars", "1",
         # "trillion", "U.S.", "dollars", "22 3/4", "Dollars", "NBA", "$100", "billion"]
-
         self.list_strings = self.get_terms(text)
-
         reg_number = re.compile(r'\$?\d+\.?\d*$')  # r'\$?[0-9]+.?[0-9]?$')
         # reg_word = re.compile(r'[a-zA-Z]+')
+        document_length = 0
         while self.index < len(self.list_strings):
             token = self.list_strings[self.index]
-            if token in self.stop_words or token == '' or token == None:
-                pass
+            if token in self.stop_words or token == '' or token == None or token.lower() in self.stop_words:
+                document_length -= 1
             elif isWord(token) and not token == 'Between':
                 self.add_word_term(token)
             elif reg_number.match(token):
@@ -164,12 +162,15 @@ class Parse:
             else:
                 self.add_to_dict(token, self.index)
             self.index += 1
+            document_length += 1
         # if self.to_stem:
         #     terms = self.terms_dict.keys()
         #     for term in terms:
         #         self.terms_dict[self.pystemmer.stem(term)] = self.terms_dict.pop(term)
         # print self.terms_dict
         self.list_strings = ''
+        self.parsed_doc.length = document_length
+        self.parsed_doc.num_of_unique_words = len(self.terms_dict)
         return self.terms_dict
 
     def get_terms(self, text):
@@ -204,6 +205,8 @@ class Parse:
             self.terms_dict[term] = []
             self.terms_dict[term].append(1)
             self.terms_dict[term].append([index])
+        if self.terms_dict[term][0] > self.parsed_doc.max_tf:
+            self.parsed_doc.max_tf = self.terms_dict[term][0]
 
     def add_word_term(self, word):
         if self.to_stem:
@@ -242,6 +245,13 @@ class Parse:
                                            or self.list_strings[self.index + 1] == "percentage"):
             term = "{}%".format(num_word)
             self.index += 1
+        elif self.index + 1 < terms_len and self.list_strings[self.index + 1] == "kgs":
+            term = "{} kilograms".format(num_word)
+            self.index += 1
+        elif self.index + 1 < terms_len and self.list_strings[self.index + 1] == "GMT" and self.list_strings[
+            self.index] and len(self.list_strings[self.index]) is 4:
+            term = "{}{}:{}{}".format(self.list_strings[self.index][0], self.list_strings[self.index][1],
+                                      self.list_strings[self.index][2], self.list_strings[self.index][3])
         elif dollar_expression and (str.startswith(num_word, '$') or dollar_expression.group(4)):
             num = float(dollar_expression.group(1))
             if dollar_expression.group(2):
@@ -269,7 +279,6 @@ class Parse:
                 term = "{}".format(float(num_word) * 100, 'B')
             else:
                 term = "{}".format(num_word, self.num_word_dict[self.list_strings[self.index + 1].lower()])
-
             self.index += 1
         else:
             amounts = ['', 'K', 'M', 'B']
