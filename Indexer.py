@@ -304,6 +304,7 @@ class Indexer:
         self.post_count += 1
 
     # Final post file 'post_num' for read is ""
+
     def final_posting(self, terms, tf_dict, loc_dict):
         # total_size = 0
         compressed_block = None
