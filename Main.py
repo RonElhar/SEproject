@@ -50,26 +50,26 @@ class Main:
             # file_docs[dirs_list[i]] = docs.keys()
             j = 0
             # self.indexer.files_count += 1
-            for doc_id in docs:
-                self.parser.parsed_doc = docs[doc_id]
-                doc_terms_dict = self.parser.main_parser(docs[doc_id].text)
+            # for doc_id in docs:
+            #     self.parser.parsed_doc = docs[doc_id]
+            #     doc_terms_dict = self.parser.main_parser(docs[doc_id].text)
                 # print docs[doc_id].length
                 # print docs[doc_id].num_of_unique_words
                 # print docs[doc_id].max_tf
                 # num_of_docs+=1
                 # terms+=len(doc_dict)
-                if i == len(dirs_list) - 1 and j == len(docs) - 1:
-                    self.indexer.finished_parse = True
-                self.indexer.index_terms(doc_terms_dict, doc_id)
-                j += 1
-                docs[doc_id].text = None
+                # if i == len(dirs_list) - 1 and j == len(docs) - 1:
+                #     self.indexer.finished_parse = True
+                # self.indexer.index_terms(doc_terms_dict, doc_id)
+                # j += 1
+                # docs[doc_id].text = None
             i += 1
-
+        print(len(self.reader.cities))
         # self.indexer.read_post(0, [0, 1, 2])
-        self.indexer.finished_parse = True
-        mend = timer()
-        print("total Index time: " + str(mend - mstart))
-        self.indexer.merge_posting()
+        # self.indexer.finished_parse = True
+        # mend = timer()
+        # print("total Index time: " + str(mend - mstart))
+        # self.indexer.merge_posting()
         # self.indexer.non_compressed_post()
         # self.indexer.index_cities(self.reader.cities)
         # self.indexer.read_post("", "")
