@@ -1,7 +1,7 @@
 from timeit import default_timer as timer
 import string
 import nltk
-# import Stemmer
+import Stemmer
 from nltk.stem.porter import *
 import re
 
@@ -104,7 +104,7 @@ class Parse:
         self.parsed_doc = object
         self.index = 0
         self.to_stem = False
-#        self.pystemmer = Stemmer.Stemmer('english')
+#       self.pystemmer = Stemmer.Stemmer('english')
         self.stemmer = nltk.stem.SnowballStemmer('english')
         '''''
         self.get_terms_time = 0
