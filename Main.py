@@ -28,7 +28,8 @@ class Main:
 
     def start(self):
         self.set_corpus_path(os.path.dirname(os.path.abspath(__file__)) + "\\corpus")
-        doc_dict = {}
+        print "start"
+        doc_terms_dict = {}
         locs_dict = {}
         dirs_list = os.listdir(self.corpus_path)
         i = 0
@@ -36,34 +37,32 @@ class Main:
         docs = {}
         num_of_docs = 0
         terms = 0
-        while i < len(dirs_list):
-        # while i < 10:
-            docs = self.reader.separate_docs_in_file(self.corpus_path, dirs_list[i])
-            # file_docs[dirs_list[i]] = docs.keys()
-            i += 1
-            #self.indexer.files_count += 1
-            for doc_id in docs:
-                # print(doc.id)
-                doc_dict = self.parser.main_parser(docs[doc_id].text)
-                # num_of_docs+=1
-                # terms+=len(doc_dict)
-                self.indexer.index_terms(doc_dict, doc_id)
-                docs[doc_id].text = None
+        #while i < len(dirs_list):
+        #while i < 1:
+        docs = self.reader.separate_docs_in_file(self.corpus_path, dirs_list[0])
+        # file_docs[dirs_list[i]] = docs.keys()
+        i += 1
+        #self.indexer.files_count += 1
+        for doc_id in docs:
+            self.parser.parsed_doc = docs[doc_id]
+            doc_terms_dict = self.parser.main_parser(docs[doc_id].text)
+            # print docs[doc_id].length
+            # print docs[doc_id].num_of_unique_words
+            # print docs[doc_id].max_tf
+            # num_of_docs+=1
+            # terms+=len(doc_dict)
+            self.indexer.index_terms(doc_terms_dict, doc_id)
+            docs[doc_id].text = None
         #self.indexer.read_post(0, [0, 1, 2])
-        # self.indexer.merge_posting()
+        self.indexer.merge_posting()
+        #self.indexer.non_compressed_post()
         #self.indexer.index_cities(self.reader.cities)
         # self.indexer.read_post("", "")
         # print terms
         # print num_of_docs
 
     def load(self):
-        for the_file in os.listdir(self.posting_path):
-            file_path = os.path.join(self.posting_path, the_file)
-            try:
-                pass
-            # load Postings files
-            except Exception as e:
-                print(e)
+        self.indexer.load()
         pass
 
     def reset(self):
@@ -74,9 +73,12 @@ class Main:
                     os.unlink(file_path)
             except Exception as e:
                 print(e)
+        self.indexer = Indexer()
+        self.reader = ReadFile()
+        self.parser = Parse()
 
     def get_terms_dict(self):
-        # return  terms-dfs
+        #return  terms-dfs
         pass
 
     def get_languages(self):
@@ -86,8 +88,8 @@ class Main:
 
 start = timer()
 main = Main()
-# view = IndexView(main)
-# view.start_index_view()
+#view = IndexView(main)
+#view.start_index_view()
 main.start()
 end = timer()
 print("total time: " + str(end - start))

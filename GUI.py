@@ -51,13 +51,14 @@ class IndexView:
         pass
 
     def start(self):
-        dir_path = tkFileDialog.askdirectory()
-        self.posting_entry.insert(0, dir_path)
-        self.controller.set_posting_path(dir_path)
+        # dir_path = tkFileDialog.askdirectory()
+        # self.posting_entry.insert(0, dir_path)
+        # self.controller.set_posting_path(dir_path)
         dir_path = self.corpus_entry.get()
         self.controller.set_corpus_path(dir_path)
+        dir_path = self.posting_entry.get()
+        self.controller.set_corpus_path(dir_path)
         self.controller.start()
-
         lang_list = self.controller.get_languages()
         for lang in sorted(lang_list):
             self.language_list.insert(END, lang)
@@ -71,7 +72,7 @@ class IndexView:
     def show(self):
         dict_window = Tk()
         dict_window.geometry("200x500")
-        # dict = self.controller.get_terms_dict()
+        terms_dict = self.controller.get_terms_dict()
 
         listNodes = Listbox(dict_window, font=("Helvetica", 12))
         listNodes.pack(side="left", fill="y")
@@ -82,13 +83,9 @@ class IndexView:
 
         listNodes.config(yscrollcommand=scrollbar.set)
 
-        dict = {'Ron': 1, 'gal': 3, 'lian': 4}
-        i = 50
-        while i > 0:
-            for key in dict:
-                listNodes.insert(END, key + ' - ' + str(dict.get(key)) + '\n')
-                i -= 1
-        pass
+        # dict = {'Ron': 1, 'gal': 3, 'lian': 4}
+        for term in terms_dict:
+            listNodes.insert(END, "{} - {}\n".format(term, str(terms_dict[term]["df"])))
 
     def stem_control(self):
         if self.stemming_bool:
