@@ -32,7 +32,7 @@ class Main:
             self.parser.to_stem = True
             self.indexer.to_stem = True
         mstart = timer()
-        self.set_corpus_path(os.path.dirname(os.path.abspath(__file__)) + "\\corpus")
+        #self.set_corpus_path(os.path.dirname(os.path.abspath(__file__)) + "\\corpus")
         #self.indexer.posting_path = self.posting_path
         print "start"
         doc_terms_dict = {}
@@ -67,7 +67,7 @@ class Main:
 
         # self.indexer.read_post(0, [0, 1, 2])
         mend = timer()
-        print("total Index time: " + str(mend - mstart))
+        print(len(self.indexer.terms_dict))
         # self.indexer.merge_posting()
         # self.indexer.non_compressed_post()
         # self.indexer.index_cities(self.reader.cities)
@@ -102,10 +102,10 @@ class Main:
 
 start = timer()
 main = Main()
-# view = IndexView(main)
-# view.start_index_view()
-# main.to_stem = view.get_stemming_bool()
-main.start()
+view = IndexView(main)
+view.start_index_view()
+main.to_stem = view.get_stemming_bool()
+# main.start()
 end = timer()
 print("total time: " + str(end - start))
 
