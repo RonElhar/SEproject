@@ -39,6 +39,7 @@ class Indexer:
     def index_terms(self, doc_terms_dict, doc_id):
         for term in doc_terms_dict:
             if not self.docs_tf_dict.__contains__(term):
+                self.terms_dict[term] = None
                 self.docs_locations_dict[term] = {}
                 self.docs_tf_dict[term] = {}
             self.docs_tf_dict[term][doc_id] = doc_terms_dict[term][0]  ## add tf_idf
@@ -48,27 +49,7 @@ class Indexer:
         #  if (self.i < 8 and self.files_count == 180) or (self.i == 8 and self.files_count == 195):
         # if (self.docs_count > 29532 and self.post_count < 3) or (
         #         self.docs_count > 29532 and self.post_count == 3 and self.i < 4) or self.finished_parse:  # 29531
-        if len(self.docs_tf_dict) > 10000 or self.finished_parse:
-            terms = sorted(self.docs_tf_dict.keys())
-            self.aggregate_indexes(terms, self.docs_tf_dict, self.docs_locations_dict)
-            self.i += 1
-            self.docs_count = 0
-            self.docs_tf_dict = {}
-            self.docs_locations_dict = {}
-
-    # not working yet....
-    def parallel_index_terms(self, doc_terms_dict, docs):
-        for doc_id in docs:
-            for term in doc_terms_dict:
-                if not self.docs_tf_dict.__contains__(term):
-                    self.docs_locations_dict[term] = {}
-                    self.docs_tf_dict[term] = {}
-                self.docs_tf_dict[term][doc_id] = doc_terms_dict[term][0]  ## add tf_idf
-                self.docs_locations_dict[term][doc_id] = doc_terms_dict[term][1]
-            self.docs_count += 1
-        # if sys.getsizeof(self.docs_locations_dict)>1024 ** 4:
-        #  if (self.i < 8 and self.files_count == 180) or (self.i == 8 and self.files_count == 195):
-        if self.docs_count > 10:  # 29531
+        if len(self.docs_tf_dict) > 100000 or self.finished_parse:
             terms = sorted(self.docs_tf_dict.keys())
             self.aggregate_indexes(terms, self.docs_tf_dict, self.docs_locations_dict)
             self.i += 1
@@ -100,7 +81,7 @@ class Indexer:
                     self.block = index
                     self.block_size = cur_size
         print ('aggregate - ' + str(self.i))
-        #if self.docs_count * self.i > 118129 or self.finished_parse:  # 118129
+        # if self.docs_count * self.i > 118129 or self.finished_parse:  # 118129
         self.compressed_blocks.append(zlib.compress(self.block, 4))
         self.block = ''
         self.block_size = 0
@@ -346,7 +327,7 @@ class Indexer:
             self.compressed_blocks.append(zlib.compress(self.block, 4))
             self.block = ''
             # self.block_size = 0
-            file_name =  'Posting' + str(self.post_count) if not self.to_stem else 'PostingS' + str(self.post_count)
+            file_name = 'Posting' + str(self.post_count) if not self.to_stem else 'PostingS' + str(self.post_count)
 
             with open(self.posting_path + file_name, 'ab+') as f:
                 for block in self.compressed_blocks:
@@ -389,9 +370,12 @@ class Indexer:
         with open("Post Blocks", 'wb') as f:
             cPickle.dump(self.post_files_blocks, f)
         f.close()
-        with open("Terms Pointers Dictionary", 'wb') as f:
-            cPickle.dump(self.terms_dict, f)
-        f.close()
+        if self.to_stem:
+            with open("sTerms Pointers Dictionary", 'wb') as f:
+                cPickle.dump(self.terms_dict, f)
+        else:
+            with open("Terms Pointers Dictionary", 'wb') as f:
+                cPickle.dump(self.terms_dict, f)
         with open("Cities Pointers Dictionary", 'wb') as f:
             cPickle.dump(self.cities_dict, f)
         with open("Documents Pointers Dictionary", 'wb') as f:
@@ -401,8 +385,12 @@ class Indexer:
         with open("Post Blocks", 'rb') as f:
             self.post_files_blocks = cPickle.load(f)
         f.close()
-        with open("Terms Pointers Dictionary", 'rb') as f:
-            self.terms_dict = cPickle.load(f)
+        if self.to_stem:
+            with open("sTerms Pointers Dictionary", 'rb') as f:
+                self.terms_dict = cPickle.load(f)
+        else:
+            with open("Terms Pointers Dictionary", 'rb') as f:
+                self.terms_dict = cPickle.load(f)
         f.close()
         with open("Cities Pointers Dictionary", 'rb') as f:
             self.cities_dict = cPickle.load(f)

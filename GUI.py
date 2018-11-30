@@ -1,7 +1,9 @@
+import os
 from Tkinter import tkinter
 
 from Tkinter import *
 import tkFileDialog
+import tkMessageBox
 
 
 def make_entry(parent, caption, row, column, width=None, **options):
@@ -52,13 +54,22 @@ class IndexView:
 
     def start(self):
         dir_path = self.corpus_entry.get()
+        if not os.path.isdir(dir_path):
+            self.invalid_path("Corpus")
+            return
         self.controller.set_corpus_path(dir_path)
+        if not os.path.isdir(dir_path):
+            self.invalid_path("Posting")
+            return
         dir_path = self.posting_entry.get()
         self.controller.set_posting_path(dir_path)
         self.controller.start()
         lang_list = self.controller.get_languages()
         for lang in sorted(lang_list):
             self.language_list.insert(END, lang)
+
+    def invalid_path(self, path_type):
+        tkMessageBox.showinfo("Error ", "Invalid {} path".format(path_type))
 
     def load(self):
         self.controller.load()
