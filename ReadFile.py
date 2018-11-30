@@ -61,9 +61,13 @@ class ReadFile:
                 temp = line.split('>')
                 temp = temp[1].split('<')
                 temp = temp[0].split(' ')
-                doc_city = temp[0]
-                self.cities[doc_city] = []
-                self.cities[doc_city].append(doc_id)
+                for s in temp:
+                    if not s == ' ' and not s == '':
+                        doc_city = temp[2]
+                if not doc_city in self.cities:
+                    self.cities[doc_city] = [doc_id]
+                else:
+                    self.cities[doc_city].append(doc_id)
             if line.__contains__('<DATE>') or line.__contains__('<DATE1>'):
                 no1 = False
                 if line.__contains__('<DATE>'):
