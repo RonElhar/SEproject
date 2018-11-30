@@ -44,15 +44,15 @@ class Main:
         docs = {}
         num_of_docs = 0
         terms = 0
-        while i < len(dirs_list):
-            # while i < 1:
+        # while i < len(dirs_list):
+        while i < 10:
             docs = self.reader.separate_docs_in_file(self.corpus_path, dirs_list[i])
             # file_docs[dirs_list[i]] = docs.keys()
             j = 0
             # self.indexer.files_count += 1
-            # for doc_id in docs:
-            #     self.parser.parsed_doc = docs[doc_id]
-            #     doc_terms_dict = self.parser.main_parser(docs[doc_id].text)
+            for doc_id in docs:
+                self.parser.parsed_doc = docs[doc_id]
+                doc_terms_dict = self.parser.main_parser(docs[doc_id].text)
                 # print docs[doc_id].length
                 # print docs[doc_id].num_of_unique_words
                 # print docs[doc_id].max_tf
@@ -60,17 +60,21 @@ class Main:
                 # terms+=len(doc_dict)
                 # if i == len(dirs_list) - 1 and j == len(docs) - 1:
                 #     self.indexer.finished_parse = True
-                # self.indexer.index_terms(doc_terms_dict, doc_id)
+                self.indexer.index_terms(doc_terms_dict, doc_id)
                 # j += 1
                 # docs[doc_id].text = None
             i += 1
-        print(len(self.reader.cities))
+        # self.indexer.read_post_consecutive(0,0,1000)
+        # print(len(self.reader.cities))
         # self.indexer.read_post(0, [0, 1, 2])
         # self.indexer.finished_parse = True
         # mend = timer()
         # print("total Index time: " + str(mend - mstart))
-        # self.indexer.merge_posting()
-        # self.indexer.non_compressed_post()
+        self.indexer.merge_posting()
+        self.indexer.docs_locations_dict = None
+        self.indexer.docs_tf_dict = None
+        self.indexer.terms_dict = None
+        self.indexer.non_compressed_post()
         # self.indexer.index_cities(self.reader.cities)
         # self.indexer.read_post("", "")
         # print terms
