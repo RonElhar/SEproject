@@ -6,13 +6,14 @@ from Parse import Parse
 from ReadFile import Document
 from timeit import default_timer as timer
 from Indexer import Indexer
+import ParallelMain
 
 
 class Main:
 
     def __init__(self):
         self.reader = ReadFile()
-        self.indexer = Indexer("Postings\\")
+        self.indexer = Indexer("\\Postings")
         self.parser = Parse()
         self.corpus_path = ''
         self.posting_path = ''
@@ -32,9 +33,11 @@ class Main:
             self.parser.to_stem = True
             self.indexer.to_stem = True
         mstart = timer()
-        #self.set_corpus_path(os.path.dirname(os.path.abspath(__file__)) + "\\corpus")
-        #self.indexer.posting_path = self.posting_path
+        # self.set_corpus_path(os.path.dirname(os.path.abspath(__file__)) + "\\corpus")
+        # self.indexer.posting_path = self.posting_path
         print "start"
+        ParallelMain.start(self.corpus_path, self.posting_path, self.to_stem)
+        ''''
         doc_terms_dict = {}
         locs_dict = {}
         dirs_list = os.listdir(self.corpus_path)
@@ -74,6 +77,7 @@ class Main:
         # self.indexer.read_post("", "")
         # print terms
         # print num_of_docs
+        '''
 
     def load(self):
         self.indexer.load()
@@ -92,22 +96,17 @@ class Main:
         self.parser = Parse()
 
     def get_terms_dict(self):
-        # return  terms-dfs
-        pass
+        return self.indexer.terms_dict
 
     def get_languages(self):
         # should return string with languages separated with '\n'
         return self.reader.languages
 
 
-start = timer()
-main = Main()
-view = IndexView(main)
-view.start_index_view()
-main.to_stem = view.get_stemming_bool()
-# main.start()
-end = timer()
-print("total time: " + str(end - start))
+if __name__ == "__main__":
+    controller = Main()
+    view = IndexView(controller)
+    view.start_index_view()
 
 '''''
 parse = Parse()

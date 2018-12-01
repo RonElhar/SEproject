@@ -26,6 +26,7 @@ class IndexView:
         self.corpus_entry = make_entry(self.index_window, "Corpus Path:", 1, 0, 60)
         self.posting_entry = make_entry(self.index_window, "Posting Path:", 2, 0, 60)
         self.language_list = None
+        self.start_index_view()
 
     def get_stemming_bool(self):
         return self.stemming_bool
@@ -53,6 +54,7 @@ class IndexView:
         pass
 
     def start(self):
+
         dir_path = self.corpus_entry.get()
         if not os.path.isdir(dir_path):
             self.invalid_path("Corpus")
@@ -63,10 +65,14 @@ class IndexView:
             return
         dir_path = self.posting_entry.get()
         self.controller.set_posting_path(dir_path)
+
         self.controller.start()
+
+        ''''
         lang_list = self.controller.get_languages()
         for lang in sorted(lang_list):
             self.language_list.insert(END, lang)
+        '''''
 
     def invalid_path(self, path_type):
         tkMessageBox.showinfo("Error ", "Invalid {} path".format(path_type))
@@ -140,5 +146,5 @@ class IndexView:
 
         self.index_window.mainloop()
 
-# view = IndexView("")
-# view.index_view()
+    if __name__ == "__main__":
+        start_index_view()

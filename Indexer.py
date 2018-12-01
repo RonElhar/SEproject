@@ -6,6 +6,8 @@ import CityDetailes
 import cPickle
 from timeit import default_timer as timer
 
+import Parse
+
 del_size = sys.getsizeof('\n')
 
 
@@ -49,7 +51,7 @@ class Indexer:
         #  if (self.i < 8 and self.files_count == 180) or (self.i == 8 and self.files_count == 195):
         # if (self.docs_count > 29532 and self.post_count < 3) or (
         #         self.docs_count > 29532 and self.post_count == 3 and self.i < 4) or self.finished_parse:  # 29531
-        if len(self.docs_tf_dict) > 100000 or self.finished_parse:
+        if len(self.docs_tf_dict) > 200000 or self.finished_parse:
             terms = sorted(self.docs_tf_dict.keys())
             self.aggregate_indexes(terms, self.docs_tf_dict, self.docs_locations_dict)
             self.i += 1
@@ -80,7 +82,7 @@ class Indexer:
                     self.block_count += 1
                     self.block = index
                     self.block_size = cur_size
-        print ('aggregate - ' + str(self.i))
+        # print ('aggregate - ' + str(self.i))
         # if self.docs_count * self.i > 118129 or self.finished_parse:  # 118129
         self.compressed_blocks.append(zlib.compress(self.block, 4))
         self.block = ''
@@ -90,7 +92,7 @@ class Indexer:
 
     def post(self):
         # start = timer()
-        file_name = 'Posting' + str(self.post_count) if not self.to_stem else 'PostingS'
+        file_name = '\\Posting' + str(self.post_count) if not self.to_stem else 'PostingS'
         self.post_files_blocks.append([])
         self.post_files_blocks[self.post_count].append(0)
         with open(self.posting_path + file_name, 'wb') as f:
@@ -172,23 +174,52 @@ class Indexer:
         # print (term + ':' + str(tf_dict[term]) + '     ' + str(loc_dict[term]))
         return terms, tf_dict, loc_dict
 
+    def non_compressed_post_less_memory_use(self):
+        for i in range(0, len(self.post_files_blocks) - 1):
+            self.non_compressed_final_post(i, len(self.post_files_blocks[i]) - 1)
+
     def non_compressed_post(self):
         posting_dictionaries = []
-        for i in range(0, len(self.post_files_blocks)):
-            posting_dictionaries.append(self.read_post_consecutive(i, 0, len(self.post_files_blocks[i])))
-        i = 0
-        for dict in posting_dictionaries:
-            with open("TestPost" + str(i), 'wb') as f:
+        for i in range(0, len(self.post_files_blocks) - 1):
+            dict = ''
+            dict = self.read_post_consecutive(i, 0, len(self.post_files_blocks[i]) - 1)
+            with open(self.posting_path + "TestPost" + str(i), 'wb') as f:
                 for term in dict[0]:
                     index = '{}|{}|{}\n'.format(term, str(dict[1][term]), str(dict[2][term]))
                     f.write(index)
             f.close()
-            i += 1
+        final_index = len(self.post_files_blocks) - 1
+        self.non_compressed_final_post(final_index, len(self.post_files_blocks[i]) - 1)
+
+    def non_compressed_final_post(self, post_num, num_of_blocks):
+        file_name = '\\Posting' if not self.to_stem else 'PostingS'
+        with open(self.posting_path + file_name + str(post_num), 'rb') as f:
+            with open(self.posting_path + "TestPost" + str(post_num), 'wb') as f2:
+                i = 0
+                while i < num_of_blocks:
+                    if not i + 1 < len(self.post_files_blocks[post_num]):
+                        break
+                    read_from = self.post_files_blocks[post_num][i]
+                    read_to = self.post_files_blocks[post_num][i + 1]
+                    f.seek(read_from, 0)
+                    block = f.read(read_to)
+                    decompressed = zlib.decompress(block)
+                    indexes = str.split(decompressed, '@')
+                    for j in range(0, len(indexes) - 1):
+                        index = indexes[j]
+                        index = str.split(index, '|')
+                        term = index[0]
+                        index = '{}|{}|{}\n'.format(term, ast.literal_eval(index[1]), ast.literal_eval(index[2]))
+                        f2.write(index)
+                    i += 1
 
     def merge_posting(self):
         length = self.post_files_blocks.__len__()
         self.post_files_blocks.append([])
         self.post_files_blocks[self.post_count].append(0)
+        big_term = []
+        big_tf_dict = {}
+        big_loc_dict = {}
         terms = []
         tf_dicts = []
         loc_dicts = []
@@ -226,6 +257,7 @@ class Indexer:
             for i1 in range(0, length):
                 all_terms_from_postings += terms[i1]
             if all_terms_from_postings.__len__() is 0:
+                self.final_posting([], {}, {}, True)
                 break
             all_terms_from_postings = sorted(list(set(all_terms_from_postings)))
             for i2 in range(0, length):
@@ -245,8 +277,22 @@ class Indexer:
                         if terms[i3].__contains__(key):
                             tf_merge_values.update(tf_dicts[i3][key])
                             loc_merge_values.update(loc_dicts[i3][key])
-                checked_tf_dict[key] = tf_merge_values
-                checked_loc_dict[key] = loc_merge_values
+                if big_term.__contains__(key):
+                    tf_merge_values.update(big_tf_dict[key])
+                    loc_merge_values.update(big_loc_dict[key])
+                if Parse.isWord(key) and key.isupper():
+                    new_key = key.lower()
+                    if self.terms_dict.__contains__(new_key):
+                        big_term.append(new_key)
+                        big_tf_dict[new_key] = tf_merge_values
+                        big_loc_dict[new_key] = loc_merge_values
+                    else:
+                        checked_tf_dict[key] = tf_merge_values
+                        checked_loc_dict[key] = loc_merge_values
+                else:
+                    checked_tf_dict[key] = tf_merge_values
+                    checked_loc_dict[key] = loc_merge_values
+
                 '''
                 for key in checked_tf_dict:
                     tf_values = checked_tf_dict[key]
@@ -261,14 +307,17 @@ class Indexer:
                     checked_tf_idf_dict[key] = tf_idf_values
                     tf_idf_values = {}
                     '''
-            self.final_posting(sorted(all_terms_to_merge), checked_tf_dict, checked_loc_dict)
+            for term in big_term:
+                if all_terms_to_merge.__contains__(term.upper()) and not checked_tf_dict.__contains__(term):
+                    all_terms_to_merge.remove(term.upper())
+            self.final_posting(sorted(all_terms_to_merge), checked_tf_dict, checked_loc_dict, False)
             all_terms_from_postings = []
             all_terms_to_merge = []
             checked_tf_dict = {}
             checked_loc_dict = {}
-            if self.post_files_blocks[min_ind].__len__() > read_blocks[min_ind]:
-                if num_of_blocks_to_read > self.post_files_blocks[min_ind].__len__() - read_blocks[min_ind]:
-                    num_of_blocks_to_read = self.post_files_blocks[min_ind].__len__() - read_blocks[min_ind]
+            if self.post_files_blocks[min_ind].__len__() - 1 > read_blocks[min_ind]:
+                if num_of_blocks_to_read > self.post_files_blocks[min_ind].__len__() - 1 - read_blocks[min_ind]:
+                    num_of_blocks_to_read = self.post_files_blocks[min_ind].__len__() - 1 - read_blocks[min_ind]
                 terms[min_ind], tf_dicts[min_ind], loc_dicts[min_ind] = self.read_post_consecutive(
                     min_ind, read_blocks[min_ind], num_of_blocks_to_read)
                 read_blocks[min_ind] += num_of_blocks_to_read
@@ -282,11 +331,13 @@ class Indexer:
                 loc_dicts[min_ind] = {}
                 last_min_term = min_term
                 min_term = "zzzzzzz"
+                # num_of_blocks_to_read = 5
         self.post_count += 1
 
-    # Final post file 'post_num' for read is ""
+        # Final post file 'post_num' for read is ""
 
-    def final_posting(self, terms, tf_dict, loc_dict):
+    # Final post file 'post_num' for read is ""
+    def final_posting(self, terms, tf_dict, loc_dict, finished):
         # total_size = 0
         compressed_block = None
         self.final_count += len(terms)
@@ -307,7 +358,7 @@ class Indexer:
             else:
                 compressed_block = zlib.compress(self.block, 4)
                 self.block_size = sys.getsizeof(compressed_block)
-                if self.block_size + cur_size < 8192:
+                if self.block_size + cur_size < 8192:  # 8192
                     self.block = "{}{}".format(self.block, index)
                     self.terms_dict[term] = {'block': self.block_count, 'index': self.pos_in_block, "freq": freq}
                     self.pos_in_block += 1
@@ -322,13 +373,12 @@ class Indexer:
 
         # if with some size that we'll decide - we want to aggregate many terms before posing
         #   posting
-        if self.final_count > 200000:
+        if self.final_count > 100000 or finished:
             self.final_count = 0
             self.compressed_blocks.append(zlib.compress(self.block, 4))
             self.block = ''
             # self.block_size = 0
             file_name = 'Posting' + str(self.post_count) if not self.to_stem else 'PostingS' + str(self.post_count)
-
             with open(self.posting_path + file_name, 'ab+') as f:
                 for block in self.compressed_blocks:
                     f.write(block)
@@ -363,22 +413,19 @@ class Indexer:
                 self.docs_dict[doc] = [startbyte, endbyte]
         f.close()
 
-    # def post_docs(self, ):
-    #     pass
-
     def post_pointers(self):
-        with open("Post Blocks", 'wb') as f:
+        with open(self.posting_path + "Post Blocks", 'wb') as f:
             cPickle.dump(self.post_files_blocks, f)
         f.close()
         if self.to_stem:
-            with open("sTerms Pointers Dictionary", 'wb') as f:
+            with open(self.posting_path + "sTerms Pointers Dictionary", 'wb') as f:
                 cPickle.dump(self.terms_dict, f)
         else:
-            with open("Terms Pointers Dictionary", 'wb') as f:
+            with open(self.posting_path + "Terms Pointers Dictionary", 'wb') as f:
                 cPickle.dump(self.terms_dict, f)
-        with open("Cities Pointers Dictionary", 'wb') as f:
+        with open(self.posting_path + "Cities Pointers Dictionary", 'wb') as f:
             cPickle.dump(self.cities_dict, f)
-        with open("Documents Pointers Dictionary", 'wb') as f:
+        with open(self.posting_path + "Documents Pointers Dictionary", 'wb') as f:
             cPickle.dump(self.docs_dict, f)
 
     def load(self):
