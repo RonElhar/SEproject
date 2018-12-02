@@ -12,9 +12,6 @@ import ParallelMain
 class Main:
 
     def __init__(self):
-        self.reader = ReadFile()
-        self.indexer = Indexer("\\Postings")
-        self.parser = Parse()
         self.corpus_path = ''
         self.posting_path = ''
         self.to_stem = False
@@ -29,58 +26,58 @@ class Main:
         self.parser.set_stemming_bool(to_stem)
 
     def start(self):
-        # if self.to_stem:
-        #     self.parser.to_stem = True
-        #     self.indexer.to_stem = True
-        # mstart = timer()
-        # self.set_corpus_path(os.path.dirname(os.path.abspath(__file__)) + "\\corpus")
-        # self.indexer.posting_path = self.posting_path
-        print "start"
-        dict = ParallelMain.start(self.corpus_path, self.posting_path, self.to_stem)
-        for dir in dict:
-            print str(dict[dir])
-        pass
-        ''''
-        doc_terms_dict = {}
-        locs_dict = {}
-        dirs_list = os.listdir(self.corpus_path)
-        i = 0
-        j = 0
-        file_docs = {}
-        docs = {}
-        num_of_docs = 0
-        terms = 0
-        while i < len(dirs_list):
-            # while i < 1:
-            docs = self.reader.separate_docs_in_file(self.corpus_path, dirs_list[i])
-            # file_docs[dirs_list[i]] = docs.keys()
-            j = 0
-            # self.indexer.files_count += 1
-            for doc_id in docs:
-                self.parser.parsed_doc = docs[doc_id]
-                doc_terms_dict = self.parser.main_parser(docs[doc_id].text)
-                # print docs[doc_id].length
-                # print docs[doc_id].num_of_unique_words
-                # print docs[doc_id].max_tf
-                # num_of_docs+=1
-                # terms+=len(doc_dict)
-                if i == len(dirs_list) - 1 and j == len(docs) - 1:
-                    self.indexer.finished_parse = True
-                self.indexer.index_terms(doc_terms_dict, doc_id)
-                j += 1
-                docs[doc_id].text = None
-            i += 1
+        indexer = Indexer("\\Postings")
+        if self.to_stem:
+             indexer.to_stem = True
+        start_time = timer()
 
-        # self.indexer.read_post(0, [0, 1, 2])
-        mend = timer()
-        print(len(self.indexer.terms_dict))
-        # self.indexer.merge_posting()
-        # self.indexer.non_compressed_post()
-        # self.indexer.index_cities(self.reader.cities)
-        # self.indexer.read_post("", "")
-        # print terms
-        # print num_of_docs
-        '''
+        consecutive_post_files = {}
+        post_file_blocks = []
+        print "start"
+        dirs_dict = ParallelMain.start(self.corpus_path, self.posting_path, self.to_stem)
+        languages = set()
+        cities = {}
+        docs = {}
+        terms = {}
+        for dir in dirs_dict.keys():
+            docs.update(dirs_dict[dir][4])
+        for dir in dirs_dict.keys():
+            dirs_dict[dir][4] = None
+        for dir in dirs_dict.keys():
+            for language in dirs_dict[dir][3]:
+                languages.add(language)
+        for dir in dirs_dict.keys():
+            dirs_dict[dir][3] = None
+        for dir in dirs_dict.keys():
+            for city in dirs_dict[dir][2]:
+                if city in cities:
+                    cities[city].extend(docs)
+                else:
+                    cities[city] = dirs_dict[dir][2][city]
+        for dir in dirs_dict.keys():
+            dirs_dict[dir][2] = None
+        for dir in dirs_dict.keys():
+            terms.update(dirs_dict[dir][1])
+        for dir in dirs_dict.keys():
+            dirs_dict[dir][1] = None
+        j = 0
+        for dir in dirs_dict.keys():
+            old_post_files_block = dirs_dict[dir][0]
+            for i in range(0, len(old_post_files_block)):
+                consecutive_post_files[j] = dir + "\\Posting" + str(i) if not self.to_stem else dir + "\\PostingS" + str(i)
+                post_file_blocks.append(old_post_files_block[i])
+                j += 1
+        dirs_dict = None
+        indexer.post_files_blocks = post_file_blocks
+        indexer.consecutive_post_files = consecutive_post_files
+        post_file_blocks = None
+        consecutive_post_files = None
+        indexer.terms_dict = terms
+        indexer.merge_posting()
+        end_time = timer()
+        print("total time: " + str(end_time - start_time))
+        print "End"
+        pass
 
     def load(self):
         self.indexer.load()
