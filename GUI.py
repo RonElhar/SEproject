@@ -65,7 +65,6 @@ class IndexView:
             return
         dir_path = self.posting_entry.get()
         self.controller.set_posting_path(dir_path)
-
         self.controller.start()
 
         ''''

@@ -29,14 +29,17 @@ class Main:
         self.parser.set_stemming_bool(to_stem)
 
     def start(self):
-        if self.to_stem:
-            self.parser.to_stem = True
-            self.indexer.to_stem = True
-        mstart = timer()
+        # if self.to_stem:
+        #     self.parser.to_stem = True
+        #     self.indexer.to_stem = True
+        # mstart = timer()
         # self.set_corpus_path(os.path.dirname(os.path.abspath(__file__)) + "\\corpus")
         # self.indexer.posting_path = self.posting_path
         print "start"
-        ParallelMain.start(self.corpus_path, self.posting_path, self.to_stem)
+        dict = ParallelMain.start(self.corpus_path, self.posting_path, self.to_stem)
+        for dir in dict:
+            print str(dict[dir])
+        pass
         ''''
         doc_terms_dict = {}
         locs_dict = {}

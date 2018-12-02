@@ -138,28 +138,22 @@ class Indexer:
             print (term + ':' + str(tf_dict[term]) + '     ' + str(loc_dict[term]))
         return terms, tf_dict, loc_dict
 
-    def read_post_consecutive(self, post_num, start_block, num_of_blocks):
+    def read_post_consecutive(self, f, post_num, start_block, num_of_blocks):
         tf_dict = {}
         loc_dict = {}
         terms = []
         data_blocks = []
-        file_name = 'Posting' if not self.to_stem else 'PostingS'
-        with open(self.posting_path + file_name + str(post_num), 'rb') as f:
-            i = 0
-            while (i < num_of_blocks):
-                if not start_block + i < len(self.post_files_blocks[post_num]):
-                    break
-                read_from = self.post_files_blocks[post_num][start_block + i]
-                if start_block + i + 1 < len(self.post_files_blocks[post_num]):
-                    read_to = self.post_files_blocks[post_num][start_block + i + 1]
-                    f.seek(read_from, 0)
-                    data_blocks.append(f.read(read_to))
-                else:
-                    f.seek(read_from, 0)
-                    data_blocks.append(f.read())
-                i += 1
+        i = 0
+        while i < num_of_blocks:
+            if not start_block + i + 1 < len(self.post_files_blocks[post_num]):
+                break
+            read_from = self.post_files_blocks[post_num][start_block + i]
+            read_to = self.post_files_blocks[post_num][start_block + i + 1]
+            f.seek(read_from, 0)
+            data_blocks.append(f.read(read_to))
+            i += 1
 
-        for i in range(0, len(data_blocks) - 1):
+        for i in range(0, len(data_blocks)):
             block = data_blocks[i]
             decompressed = zlib.decompress(block)
             indexes = str.split(decompressed, '@')
@@ -174,16 +168,27 @@ class Indexer:
         # print (term + ':' + str(tf_dict[term]) + '     ' + str(loc_dict[term]))
         return terms, tf_dict, loc_dict
 
-    def non_compressed_post_less_memory_use(self):
-        for i in range(0, len(self.post_files_blocks) - 1):
-            self.non_compressed_final_post(i, len(self.post_files_blocks[i]) - 1)
+    def non_compressed_post(self):
+        posting_dictionaries = []
+        for i in range(0, len(self.post_files_blocks)):
+            posting_dictionaries.append(self.read_post_consecutive(i, 0, len(self.post_files_blocks[i]) - 1))
+        j = 0
+        for dict in posting_dictionaries:
+            with open("TestPost" + str(j), 'wb') as f:
+                for term in dict[0]:
+                    index = '{}|{}|{}\n'.format(term, str(dict[1][term]), str(dict[2][term]))
+                    f.write(index)
+            f.close()
+            j += 1
+
+    '''
 
     def non_compressed_post(self):
         posting_dictionaries = []
         for i in range(0, len(self.post_files_blocks) - 1):
             dict = ''
             dict = self.read_post_consecutive(i, 0, len(self.post_files_blocks[i]) - 1)
-            with open(self.posting_path + "TestPost" + str(i), 'wb') as f:
+            with open("TestPost" + str(i), 'wb') as f:
                 for term in dict[0]:
                     index = '{}|{}|{}\n'.format(term, str(dict[1][term]), str(dict[2][term]))
                     f.write(index)
@@ -192,9 +197,9 @@ class Indexer:
         self.non_compressed_final_post(final_index, len(self.post_files_blocks[i]) - 1)
 
     def non_compressed_final_post(self, post_num, num_of_blocks):
-        file_name = '\\Posting' if not self.to_stem else 'PostingS'
+        file_name = 'Posting' if not self.to_stem else 'PostingS'
         with open(self.posting_path + file_name + str(post_num), 'rb') as f:
-            with open(self.posting_path + "TestPost" + str(post_num), 'wb') as f2:
+            with open("TestPost" + str(post_num), 'wb') as f2:
                 i = 0
                 while i < num_of_blocks:
                     if not i + 1 < len(self.post_files_blocks[post_num]):
@@ -212,6 +217,7 @@ class Indexer:
                         index = '{}|{}|{}\n'.format(term, ast.literal_eval(index[1]), ast.literal_eval(index[2]))
                         f2.write(index)
                     i += 1
+    '''
 
     def merge_posting(self):
         length = self.post_files_blocks.__len__()
@@ -221,6 +227,7 @@ class Indexer:
         big_tf_dict = {}
         big_loc_dict = {}
         terms = []
+        opened_files = []
         tf_dicts = []
         loc_dicts = []
         read_blocks = []
@@ -239,7 +246,10 @@ class Indexer:
         for j in range(0, length):
             total_num_of_blocks += self.post_files_blocks[j].__len__()
         for i in range(0, length):
-            term, tf_dict, loc_dict = self.read_post_consecutive(i, 0, num_of_blocks_to_read)
+            file_name = 'Posting' if not self.to_stem else 'PostingS'
+            f = open(self.posting_path + '\\' + file_name + str(i), 'rb')
+            opened_files.append(f)
+            term, tf_dict, loc_dict = self.read_post_consecutive(f, i, 0, num_of_blocks_to_read)
             terms.append(term)
             tf_dicts.append(tf_dict)
             loc_dicts.append(loc_dict)
@@ -319,7 +329,7 @@ class Indexer:
                 if num_of_blocks_to_read > self.post_files_blocks[min_ind].__len__() - 1 - read_blocks[min_ind]:
                     num_of_blocks_to_read = self.post_files_blocks[min_ind].__len__() - 1 - read_blocks[min_ind]
                 terms[min_ind], tf_dicts[min_ind], loc_dicts[min_ind] = self.read_post_consecutive(
-                    min_ind, read_blocks[min_ind], num_of_blocks_to_read)
+                    opened_files[min_ind],min_ind, read_blocks[min_ind], num_of_blocks_to_read)
                 read_blocks[min_ind] += num_of_blocks_to_read
                 last_min_term = min_term
                 min_term = terms[min_ind][terms[min_ind].__len__() - 1]
@@ -332,9 +342,9 @@ class Indexer:
                 last_min_term = min_term
                 min_term = "zzzzzzz"
                 # num_of_blocks_to_read = 5
+        for f in opened_files:
+            f.close()
         self.post_count += 1
-
-        # Final post file 'post_num' for read is ""
 
     # Final post file 'post_num' for read is ""
     def final_posting(self, terms, tf_dict, loc_dict, finished):
@@ -373,12 +383,12 @@ class Indexer:
 
         # if with some size that we'll decide - we want to aggregate many terms before posing
         #   posting
-        if self.final_count > 100000 or finished:
+        if self.final_count > 20000 or finished:
             self.final_count = 0
             self.compressed_blocks.append(zlib.compress(self.block, 4))
             self.block = ''
             # self.block_size = 0
-            file_name = 'Posting' + str(self.post_count) if not self.to_stem else 'PostingS' + str(self.post_count)
+            file_name = '\\Posting' + str(self.post_count) if not self.to_stem else '\\PostingS' + str(self.post_count)
             with open(self.posting_path + file_name, 'ab+') as f:
                 for block in self.compressed_blocks:
                     f.write(block)
@@ -405,7 +415,7 @@ class Indexer:
         f.close()
 
     def index_docs(self, docs):
-        with open("Documents", 'ab+') as f:
+        with open(self.posting_path + "Documents", 'ab+') as f:
             for doc in docs:
                 startbyte = f.tell()
                 cPickle.dump(doc, f)
