@@ -73,7 +73,7 @@ class Main:
         post_file_blocks = None
         consecutive_post_files = None
         indexer.terms_dict = terms
-        indexer.merge_posting()
+        #indexer.merge_posting()
         end_time = timer()
         print("total time: " + str(end_time - start_time))
         print "End"

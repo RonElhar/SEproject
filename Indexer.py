@@ -55,7 +55,7 @@ class Indexer:
         #  if (self.i < 8 and self.files_count == 180) or (self.i == 8 and self.files_count == 195):
         # if (self.docs_count > 29532 and self.post_count < 3) or (
         #         self.docs_count > 29532 and self.post_count == 3 and self.i < 4) or self.finished_parse:  # 29531
-        if len(self.docs_tf_dict) > 200000 or self.finished_parse:
+        if len(self.docs_tf_dict) > 20000 or self.finished_parse:
             terms = sorted(self.docs_tf_dict.keys())
             self.aggregate_indexes(terms, self.docs_tf_dict, self.docs_locations_dict)
             self.i += 1
@@ -242,7 +242,7 @@ class Indexer:
         all_terms_to_merge = []
         checked_tf_dict = {}
         checked_loc_dict = {}
-        num_of_blocks_to_read = 5
+        num_of_blocks_to_read = 100
         total_num_of_blocks = 0
         min_blocks = self.post_files_blocks[0].__len__()
         for x in range(1, length):
@@ -253,8 +253,9 @@ class Indexer:
         for j in range(0, length):
             total_num_of_blocks += self.post_files_blocks[j].__len__()
         for i in range(0, length):
-            # file_name = 'Posting' if not self.to_stem else 'PostingS'
-            f = open(os.path.dirname(os.path.abspath(__file__)) + self.consecutive_post_files[i], 'rb')
+            file_name = 'Posting' if not self.to_stem else 'PostingS'
+            #open(os.path.dirname(os.path.abspath(__file__)) + self.consecutive_post_files[i], 'rb')
+            f = open(self.posting_path + "\\" + file_name + str(i), 'rb')
             opened_files.append(f)
             term, tf_dict, loc_dict = self.read_post_consecutive(f, i, 0, num_of_blocks_to_read)
             terms.append(term)
@@ -294,6 +295,8 @@ class Indexer:
                         if terms[i3].__contains__(key):
                             tf_merge_values.update(tf_dicts[i3][key])
                             loc_merge_values.update(loc_dicts[i3][key])
+                if key == 'ABANDON':
+                    print ''
                 if big_term.__contains__(key):
                     tf_merge_values.update(big_tf_dict[key])
                     loc_merge_values.update(big_loc_dict[key])
@@ -341,7 +344,7 @@ class Indexer:
                 last_min_term = min_term
                 min_term = terms[min_ind][terms[min_ind].__len__() - 1]
                 # print "posting file: " + str(min_ind) + " num of blocks that was read: " + str(num_of_blocks_to_read)
-                num_of_blocks_to_read = 5
+                num_of_blocks_to_read = 100
             else:
                 terms[min_ind] = []
                 tf_dicts[min_ind] = {}
@@ -390,16 +393,16 @@ class Indexer:
 
         # if with some size that we'll decide - we want to aggregate many terms before posing
         #   posting
-        if self.final_count > 20000 or finished:
+        if self.final_count > 200000 or finished:
             self.final_count = 0
             self.compressed_blocks.append(zlib.compress(self.block, 4))
             self.block = ''
             # self.block_size = 0
-            dir = os.path.dirname(os.path.abspath(__file__)) + '\\FinalPosts'
-            if not os.path.exists(dir):
-                os.makedirs(dir)
+            # dir = os.path.dirname(os.path.abspath(__file__)) + '\\FinalPosts'
+            # if not os.path.exists(dir):
+            #     os.makedirs(dir)
             file_name = '\\Posting' + str(self.post_count) if not self.to_stem else '\\PostingS' + str(self.post_count)
-            with open(dir + file_name, 'ab+') as f:
+            with open(self.posting_path + file_name, 'ab+') as f:
                 for block in self.compressed_blocks:
                     f.write(block)
                     self.post_files_blocks[self.post_count].append(f.tell())
