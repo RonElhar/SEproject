@@ -55,7 +55,7 @@ class Indexer:
         #  if (self.i < 8 and self.files_count == 180) or (self.i == 8 and self.files_count == 195):
         # if (self.docs_count > 29532 and self.post_count < 3) or (
         #         self.docs_count > 29532 and self.post_count == 3 and self.i < 4) or self.finished_parse:  # 29531
-        if len(self.docs_tf_dict) > 20000 or self.finished_parse:
+        if len(self.docs_tf_dict) > 300000 or self.finished_parse:
             terms = sorted(self.docs_tf_dict.keys())
             self.aggregate_indexes(terms, self.docs_tf_dict, self.docs_locations_dict)
             self.i += 1
@@ -230,7 +230,6 @@ class Indexer:
         self.post_count = length
         self.post_files_blocks.append([])
         self.post_files_blocks[self.post_count].append(0)
-        big_term = []
         big_tf_dict = {}
         big_loc_dict = {}
         terms = []
@@ -295,15 +294,12 @@ class Indexer:
                         if terms[i3].__contains__(key):
                             tf_merge_values.update(tf_dicts[i3][key])
                             loc_merge_values.update(loc_dicts[i3][key])
-                if key == 'ABANDON':
-                    print ''
-                if big_term.__contains__(key):
+                if tf_merge_values.__contains__(key):
                     tf_merge_values.update(big_tf_dict[key])
                     loc_merge_values.update(big_loc_dict[key])
                 if Parse.isWord(key) and key.isupper():
                     new_key = key.lower()
                     if self.terms_dict.__contains__(new_key):
-                        big_term.append(new_key)
                         big_tf_dict[new_key] = tf_merge_values
                         big_loc_dict[new_key] = loc_merge_values
                     else:
@@ -327,10 +323,16 @@ class Indexer:
                     checked_tf_idf_dict[key] = tf_idf_values
                     tf_idf_values = {}
                     '''
-            for term in big_term:
-                if all_terms_to_merge.__contains__(term.upper()) and not checked_tf_dict.__contains__(term):
+            for term in big_tf_dict:
+                if all_terms_to_merge.__contains__(term.upper()): # and not checked_tf_dict.__contains__(term):
                     all_terms_to_merge.remove(term.upper())
             self.final_posting(sorted(all_terms_to_merge), checked_tf_dict, checked_loc_dict, False)
+            temp = list(big_tf_dict.keys())
+            for key in temp:
+                if all_terms_to_merge.__contains__(key):
+                    big_tf_dict.pop(key)
+                    big_loc_dict.pop(key)
+            temp = []
             all_terms_from_postings = []
             all_terms_to_merge = []
             checked_tf_dict = {}
