@@ -244,9 +244,11 @@ class Indexer:
         all_terms_to_merge = []
         checked_tf_dict = {}
         checked_loc_dict = {}
-        num_of_blocks_to_read = 20
+        num_of_blocks_to_read = 50
         total_num_of_blocks = 0
         min_blocks = self.post_files_blocks[0].__len__()
+        file_name = '\\Posting' + str(self.post_count) if not self.to_stem else '\\PostingS' + str(self.post_count)
+        final_post_file = open(self.posting_path + file_name,'ab+')
         for x in range(1, length):
             if min_blocks > self.post_files_blocks[x].__len__():
                 min_blocks = self.post_files_blocks[x].__len__()
@@ -329,7 +331,8 @@ class Indexer:
                 if all_terms_to_merge.__contains__(term.upper()):  # and not checked_tf_dict.__contains__(term):
                     all_terms_to_merge.remove(term.upper())
             t = threading.Thread(
-                target=self.final_posting, args=(sorted(all_terms_to_merge), checked_tf_dict, checked_loc_dict))
+                target=self.final_posting,
+                args=(final_post_file, sorted(all_terms_to_merge), checked_tf_dict, checked_loc_dict))
             t.start()
             threads.append(t)
             temp = list(big_tf_dict.keys())
@@ -362,29 +365,28 @@ class Indexer:
                 last_min_term = min_term
                 min_term = "zzzzzzz"
                 # num_of_blocks_to_read = 5
-            # h=hpy()
-            # print h.heap()
+                # h=hpy()
+                # print h.heap()
         for f in opened_files:
             f.close()
         for t in threads:
             if t.is_alive():
                 t.join()
+        final_post_file.close()
         self.post_count += 1
 
     # Final post file 'post_num' for read is ""
-    def final_posting(self, terms, tf_dict, loc_dict):
-        file_name = '\\Posting' + str(self.post_count) if not self.to_stem else '\\PostingS' + str(self.post_count)
-        with open(self.posting_path + file_name, 'ab+') as f:
-            for term in terms:
-                freq = 0
-                for doc in tf_dict[term]:
-                    freq += tf_dict[term][doc]
-                index = '{}|{}|{}\n'.format(term, str(tf_dict[term]), str(loc_dict[term]))
-                f.write(index)
-                self.terms_dict[term] = {'line': self.post_line, "freq": freq}
-                self.post_line += 1
-        # h=hpy()
-        # print h.heap()
+    def final_posting(self, f, terms, tf_dict, loc_dict):
+        for term in terms:
+            freq = 0
+            for doc in tf_dict[term]:
+                freq += tf_dict[term][doc]
+            index = '{}|{}|{}\n'.format(term, str(tf_dict[term]), str(loc_dict[term]))
+            f.write(index)
+            self.terms_dict[term] = {'line': self.post_line, "freq": freq}
+            self.post_line += 1
+            # h=hpy()
+            # print h.heap()
 
     def index_cities(self, cities):
         city_tf = {}
