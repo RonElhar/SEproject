@@ -39,6 +39,7 @@ class Main:
         cities = {}
         docs = {}
         terms = {}
+        ''''
         for dir in dirs_dict.keys():
             docs.update(dirs_dict[dir][4])
         for dir in dirs_dict.keys():
@@ -62,10 +63,10 @@ class Main:
             dirs_dict[dir][1] = None
         j = 0
         for dir in dirs_dict.keys():
-            old_post_files_block = dirs_dict[dir][0]
-            for i in range(0, len(old_post_files_block)):
+            old_post_files_lines = dirs_dict[dir][0]
+            for i in range(0, len(old_post_files_lines)):
                 consecutive_post_files[j] = dir + "\\Posting" + str(i) if not self.to_stem else dir + "\\PostingS" + str(i)
-                post_file_blocks.append(old_post_files_block[i])
+                post_file_blocks.append(old_post_files_lines[i])
                 j += 1
         dirs_dict = None
         indexer.post_files_blocks = post_file_blocks
@@ -74,6 +75,7 @@ class Main:
         consecutive_post_files = None
         indexer.terms_dict = terms
         #indexer.merge_posting()
+                '''''
         end_time = timer()
         print("total time: " + str(end_time - start_time))
         print "End"

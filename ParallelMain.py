@@ -36,8 +36,8 @@ def start_indexing(dirs_list, dirs_dicts, corpus_path, posting_path, to_stem, st
 
     # print sys.getsizeof([indexer.post_files_blocks, indexer.terms_dict, reader.cities, reader.languages , documents])
     print 'started merge'
-    indexer.merge_posting()
-    dirs_dicts[directory] = [indexer.post_files_blocks, indexer.terms_dict, reader.cities, reader.languages , documents]
+    #indexer.merge_posting()
+    dirs_dicts[directory] = [indexer.post_files_lines, indexer.terms_dict, reader.cities, reader.languages , documents]
 
 
 def start(corpus_path, posting_path, to_stem):
