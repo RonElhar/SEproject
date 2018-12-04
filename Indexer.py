@@ -29,15 +29,15 @@ class Indexer:
         self.finished_parse = False
         self.to_stem = False
         self.post_line = 0
-        self.post_files_lines=[]
+        self.post_files_lines = []
 
     def index_terms(self, doc_terms_dict, doc_id):
         for term in doc_terms_dict:
             if not self.docs_tf_dict.__contains__(term):
-                self.terms_dict[term] = [doc_terms_dict[term][0],1]
+                self.terms_dict[term] = [doc_terms_dict[term][0], 1]
                 self.docs_locations_dict[term] = {}
                 self.docs_tf_dict[term] = {}
-            self.terms_dict[term] = [doc_terms_dict[term][0] + self.terms_dict[term][0],self.terms_dict[term][1] + 1]
+            self.terms_dict[term] = [doc_terms_dict[term][0] + self.terms_dict[term][0], self.terms_dict[term][1] + 1]
             self.docs_tf_dict[term][doc_id] = doc_terms_dict[term][0]  ## add tf_idf
             self.docs_locations_dict[term][doc_id] = doc_terms_dict[term][1]
 
@@ -49,89 +49,78 @@ class Indexer:
 
     def post(self, terms, docs_tf_dict, docs_locations_dict):
         line_count = 0
-        file_name = '\\Posting' + str(self.post_count) if not self.to_stem else 'PostingS'
+        file_name = '\\Posting' + str(self.post_count) if not self.to_stem else '\\sPosting'+ str(self.post_count)
         with open(self.posting_path + file_name, 'wb') as f:
             for term in terms:
                 index = '{}|{}#|{}#\n'.format(term, str(docs_tf_dict[term]), str(docs_locations_dict[term]))
                 f.write(index)
-                line_count +=1
+                line_count += 1
         self.post_files_lines.append(line_count)
         self.post_count += 1
 
     def index_cities(self, cities):
-        city_tf = {}
-        city_locations = {}
-        city_details = {}
-        with open("cities", 'wb') as f:
+        with open(self.posting_path + "\\cities", 'wb') as f:
+            lines_count = 0
             for city in cities:
                 city_details = CityDetailes.get_city_details(city)
-                city_index = CityIndex(city, city_details, cities[city], self.terms_dict.get(city))
-                startbyte = f.tell()
-                cPickle.dump(city_index, f)
-                endbyte = f.tell()
-                self.cities_dict[city] = [startbyte, endbyte]
-        f.close()
+                city_index = '{}|{}|{}|{}\n'.format(city, city_details, cities[city], self.terms_dict.get(city))
+                f.write(city_index)
+                self.cities_dict[city] = lines_count
+                lines_count += 1
 
     def index_docs(self, docs):
-        with open(self.posting_path + "Documents", 'ab+') as f:
-            for doc in docs:
-                startbyte = f.tell()
-                cPickle.dump(doc, f)
-                endbyte = f.tell()
-                self.docs_dict[doc] = [startbyte, endbyte]
-        f.close()
+        with open(self.posting_path + "\\Documents", 'wb') as f:
+            lines_count = 0
+            for doc_id in docs:
+                if Parse.isWord(doc_id):
+                    doc_index = "{}|{}|{}|{}|{}|{}\n".format(doc_id, docs[doc_id].title, docs[doc_id].origin_city,
+                                                             docs[doc_id].num_of_unique_words, docs[doc_id].length,
+                                                             docs[doc_id].max_tf)
+                    f.write(doc_index)
+                    self.docs_dict[doc_id] = lines_count
+                    lines_count += 1
 
-    def post_pointers(self):
-        with open(self.posting_path + "Post Blocks", 'wb') as f:
-            cPickle.dump(self.post_files_blocks, f)
-        f.close()
+    def post_pointers(self, languages):
+
         if self.to_stem:
-            with open(self.posting_path + "sTerms Pointers Dictionary", 'wb') as f:
+            with open(self.posting_path + "\\sTerms Pointers Dictionary", 'wb') as f:
                 cPickle.dump(self.terms_dict, f)
+            with open(self.posting_path + "\\sCities Pointers Dictionary", 'wb') as f:
+                cPickle.dump(self.cities_dict, f)
+            with open(self.posting_path + "\\sDocuments Pointers Dictionary", 'wb') as f:
+                cPickle.dump(self.docs_dict, f)
+            with open(self.posting_path + "\\sLanguages Dictionary", 'wb') as f:
+                cPickle.dump(languages, f)
+
         else:
-            with open(self.posting_path + "Terms Pointers Dictionary", 'wb') as f:
+            with open(self.posting_path + "\\Terms Pointers Dictionary", 'wb') as f:
                 cPickle.dump(self.terms_dict, f)
-        with open(self.posting_path + "Cities Pointers Dictionary", 'wb') as f:
-            cPickle.dump(self.cities_dict, f)
-        with open(self.posting_path + "Documents Pointers Dictionary", 'wb') as f:
-            cPickle.dump(self.docs_dict, f)
+            with open(self.posting_path + "\\Cities Pointers Dictionary", 'wb') as f:
+                cPickle.dump(self.cities_dict, f)
+            with open(self.posting_path + "\\Documents Pointers Dictionary", 'wb') as f:
+                cPickle.dump(self.docs_dict, f)
+            with open(self.posting_path + "\\Languages Dictionary", 'wb') as f:
+                cPickle.dump(languages, f)
 
     def load(self):
-        with open("Post Blocks", 'rb') as f:
-            self.post_files_blocks = cPickle.load(f)
-        f.close()
+        languages = None
         if self.to_stem:
             with open("sTerms Pointers Dictionary", 'rb') as f:
                 self.terms_dict = cPickle.load(f)
+            with open("sCities Pointers Dictionary", 'rb') as f:
+                self.cities_dict = cPickle.load(f)
+            with open("sDocuments Pointers Dictionary", 'rb') as f:
+                self.docs_dict = cPickle.load(f)
+            with open(self.posting_path + "Languages Dictionary", 'rb') as f:
+                languages = cPickle.load(f)
         else:
             with open("Terms Pointers Dictionary", 'rb') as f:
                 self.terms_dict = cPickle.load(f)
-        f.close()
-        with open("Cities Pointers Dictionary", 'rb') as f:
-            self.cities_dict = cPickle.load(f)
-        with open("Documents Pointers Dictionary", 'rb') as f:
-            self.docs_dict = cPickle.load(f)
+            with open("Cities Pointers Dictionary", 'rb') as f:
+                self.cities_dict = cPickle.load(f)
+            with open("Documents Pointers Dictionary", 'rb') as f:
+                self.docs_dict = cPickle.load(f)
+            with open(self.posting_path + "Languages Dictionary", 'rb') as f:
+                languages = cPickle.load(f)
 
-    def read_city(self, city_name):
-        doc = None
-        with open("Cities", 'rb') as f:
-            f.seek(self.cities_dict[city_name][0])
-            data = f.read(self.cities_dict[city_name][1])
-            doc = cPickle.loads(data)
-        return doc
-
-    def read_doc(self, doc_id):
-        doc = None
-        with open("Documents", 'rb') as f:
-            f.seek(self.docs_dict[doc_id][0])
-            data = f.read(self.docs_dict[doc_id][1])
-            doc = cPickle.loads(data)
-        return doc
-
-
-class CityIndex:
-    def __init__(self, city_name, city_details, doc_tags, terms_pointer):
-        self.city_name = city_name
-        self.city_details = city_details
-        self.doc_tags = doc_tags
-        self.terms_pointer = terms_pointer
+        return languages

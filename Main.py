@@ -1,5 +1,7 @@
 import os
 
+import shutil
+
 import Merge
 from GUI import *
 # from Indexer import Indexer
@@ -17,6 +19,8 @@ class Main:
         self.corpus_path = ''
         self.posting_path = ''
         self.to_stem = False
+        self.indexer = None
+        self.reader = ReadFile()
 
     def set_corpus_path(self, path):
         self.corpus_path = path
@@ -25,55 +29,50 @@ class Main:
         self.posting_path = path
 
     def set_stemming_bool(self, to_stem):
-        self.parser.set_stemming_bool(to_stem)
+        self.to_stem = to_stem
 
     def start(self):
+        if not os.path.exists(self.posting_path):
+            os.makedirs(self.posting_path)
         self.indexer = Indexer(self.posting_path)
         if self.to_stem:
             self.indexer.to_stem = True
         start_time = timer()
-        print "start"
-        dirs_dict = ParallelMain.start(self.corpus_path, self.posting_path, self.to_stem)
+        print "start :" + str(datetime.datetime.now())
+        dirs_list = os.listdir(self.corpus_path)
+        dirs_dict = ParallelMain.start(self.corpus_path, self.posting_path, self.to_stem, dirs_list)
         print "finished_postings :" + str(datetime.datetime.now())
-        files_names = []
-        languages = set()
-        cities = {}
         docs = {}
-        terms_dict = {}
-        post_files_lines = []
-        #post_files_lines, files_names, cities, docs, languages = Merge.posting_dicts_merge(dirs_dict, self.to_stem)
+        i = 0
 
+        # while i < len(dirs_list):
+        while i < 40:
+            self.reader.read_cities(self.corpus_path, dirs_list[i])
+            i += 1
+
+        files_names = []
+        post_files_lines = []
         for dir in dirs_dict.keys():
 
-            docs.update(dirs_dict[dir][4])
-
-            for language in dirs_dict[dir][3]:
-                languages.add(language)
-
-            for city in dirs_dict[dir][2]:
-                if city in cities:
-                    cities[city].extend(dirs_dict[dir][2][city])
-                else:
-                    cities[city] = dirs_dict[dir][2][city]
+            docs.update(dirs_dict[dir][2])
 
             old_post_files_lines = dirs_dict[dir][0]
             for i in range(0, len(old_post_files_lines)):
-                files_names.append(dir + "\\Posting" + str(i) if not self.to_stem else dir + "\\PostingS" + str(i))
+                files_names.append(dir + "\\Posting" + str(i) if not self.to_stem else dir + "\\sPosting" + str(i))
                 post_files_lines.append(old_post_files_lines[i])
 
-        # for dir in dirs_dict.keys():
-        #     for i in range(0, len(dirs_dict[dir])):
-        #         if not i == 1:
-        #             dirs_dict[dir][i] = None
-
         print "started merge: " + str(datetime.datetime.now())
-        terms_dict = Merge.start_merge(files_names, post_files_lines,
-                                       [dirs_dict["\\Postings1"][1], dirs_dict["\\Postings2"][1],
-                                        dirs_dict["\\Postings3"][1], dirs_dict["\\Postings4"][1]], self.posting_path,
-                                       self.to_stem)
+
+        terms_dicts = [dirs_dict["\\Postings1"][1], dirs_dict["\\Postings2"][1], dirs_dict["\\Postings3"][1],
+                       dirs_dict["\\Postings4"][1]]
+
+        terms_dict = Merge.start_merge(files_names, post_files_lines,terms_dicts, self.posting_path,self.to_stem)
+        print "finished_merge: " + str(datetime.datetime.now())
+
         dirs_dict = None
         self.indexer.terms_dict = terms_dict
-
+        self.indexer.index_docs(docs)
+        # self.indexer.index_cities(self.reader.cities)
         end_time = timer()
         print("total time: " + str(end_time - start_time))
         print "End: " + str(datetime.datetime.now())
@@ -84,16 +83,10 @@ class Main:
         pass
 
     def reset(self):
-        for the_file in os.listdir(self.posting_path):
-            file_path = os.path.join(self.posting_path, the_file)
-            try:
-                if os.path.isfile(file_path):
-                    os.unlink(file_path)
-            except Exception as e:
-                print(e)
-        self.indexer = Indexer()
-        self.reader = ReadFile()
-        self.parser = Parse()
+        shutil.rmtree(self.posting_path)
+        if not os.path.exists(self.posting_path):
+            os.makedirs(self.posting_path)
+        self.indexer = None
 
     def get_terms_dict(self):
         return self.indexer.terms_dict

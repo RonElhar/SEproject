@@ -4,8 +4,11 @@ import urllib, json
 def get_city_details(city):
     url = "http://getcitydetails.geobytes.com/GetCityDetails?fqcn=" + city
     response = urllib.urlopen(url)
+    data = None
     data = json.loads(response.read())
     city_details = {}
+    if data[u'geobytescountry'] == '':
+        return ''
     city_details["City"] = city
     city_details["Country"] = str(data[u'geobytescountry'])
     city_details["Currency"] = str(data[u'geobytescurrency'])

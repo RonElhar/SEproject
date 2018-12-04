@@ -45,6 +45,8 @@ class IndexView:
         pass
 
     def reset(self):
+        dir_path = self.posting_entry.get()
+        self.controller.set_posting_path(dir_path)
         self.controller.reset()
         self.language_list.insert(END, '')
         pass
@@ -56,18 +58,16 @@ class IndexView:
             self.invalid_path("Corpus")
             return
         self.controller.set_corpus_path(dir_path)
+        dir_path = self.posting_entry.get()
         if not os.path.isdir(dir_path):
             self.invalid_path("Posting")
             return
-        dir_path = self.posting_entry.get()
         self.controller.set_posting_path(dir_path)
         self.controller.start()
 
-        ''''
         lang_list = self.controller.get_languages()
         for lang in sorted(lang_list):
             self.language_list.insert(END, lang)
-        '''''
 
     def invalid_path(self, path_type):
         tkMessageBox.showinfo("Error ", "Invalid {} path".format(path_type))
@@ -93,8 +93,8 @@ class IndexView:
         listNodes.config(yscrollcommand=scrollbar.set)
 
         # dict = {'Ron': 1, 'gal': 3, 'lian': 4}
-        for term in terms_dict:
-            listNodes.insert(END, "{} - {}\n".format(term, str(terms_dict[term]["freq"])))
+        for term in sorted(terms_dict.keys()):
+            listNodes.insert(END, "{} - {}\n".format(term, str(terms_dict[term][1])))
 
     def stem_control(self):
         if self.stemming_bool:

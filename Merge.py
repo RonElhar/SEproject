@@ -28,7 +28,7 @@ def merge(files_paths, merge_path, post_files_lines, terms_dicts, shared_dict, i
         term_index_1 = read_next(files_paths[1])
 
         while count_lines_0 < post_files_lines[0] and count_lines_1 < post_files_lines[1]:
-            inverted_index = ''
+            inverted_index = []
 
             if term_index_0[0] < term_index_1[0]:
                 inverted_index = [term_index_0[0], term_index_0[1], term_index_0[2]]
@@ -53,54 +53,101 @@ def merge(files_paths, merge_path, post_files_lines, terms_dicts, shared_dict, i
                                 inverted_index[0].lower() in terms_dicts:
                     big_terms[inverted_index[0].lower()] = [inverted_index[1], inverted_index[2]]
                 else:
-                    if inverted_index[0] in big_terms:
-                        inverted_index = '{}|{}{}|{}{}'.format(inverted_index[0], inverted_index[1],
-                                                               big_terms[inverted_index[0]][0], inverted_index[2],
-                                                               big_terms[inverted_index[0]][1])
                     term = term_index_0[0]
-                    shared_dict[term] = {"line": merged_line_count, "freq": 0, "df": 0}
+                    shared_dict[term] = [merged_line_count, 0, 0]
                     for i in range(0, len(terms_dicts)):
-                        if term in terms_dicts[i]:
-                            shared_dict[term]["freq"], shared_dict[term]["df"] = shared_dict[term]["freq"] + \
-                                                                                 terms_dicts[i][term][
-                                                                                     0], shared_dict[term]["df"] + \
-                                                                                 terms_dicts[i][term][1]
-                    f.write('{}|{}|{}\n'.format(inverted_index[0], inverted_index[1], inverted_index[2]))
-                    merged_line_count += 1
+                        for i in range(0, len(terms_dicts)):
+                            if term in terms_dicts[i]:
+                                shared_dict[term] = [shared_dict[term][0], shared_dict[term][1] + \
+                                                     terms_dicts[i][term][0],
+                                                     shared_dict[term][2] + terms_dicts[i][term][1]]
+                        if inverted_index[0] in big_terms:
+                            inverted_index = '{}|{}{}|{}{}'.format(inverted_index[0], inverted_index[1],
+                                                                   big_terms[inverted_index[0]][0], inverted_index[2],
+                                                                   big_terms[inverted_index[0]][1])
+                            for i in range(0, len(terms_dicts)):
+                                if term in terms_dicts[i]:
+                                    shared_dict[term] = [shared_dict[term][0], shared_dict[term][1] + \
+                                                     terms_dicts[i][term][0],
+                                                     shared_dict[term][2] + terms_dicts[i][term][1]]
+                            big_terms.pop(inverted_index[0])
+
+                        f.write('{}|{}|{}\n'.format(inverted_index[0], inverted_index[1], inverted_index[2]))
+                        merged_line_count += 1
             else:
                 f.write('{}|{}|{}\n'.format(inverted_index[0], inverted_index[1], inverted_index[2]))
                 merged_line_count += 1
 
         if count_lines_0 < post_files_lines[0]:
             while count_lines_0 < post_files_lines[0]:  # - 1:
-                f.write('{}|{}|{}\n'.format(term_index_0[0], term_index_0[1], term_index_0[2]))
+                inverted_index = [term_index_0[0], term_index_0[1], term_index_0[2]]
                 term_index_0 = read_next(files_paths[0])
                 count_lines_0 += 1
+                term = term_index_0[0]
+                if is_final_posting:
+                    if Parse.isWord(inverted_index[0]) and inverted_index[0].isupper() and \
+                                    inverted_index[0].lower() in terms_dicts:
+                        big_terms[inverted_index[0].lower()] = [inverted_index[1], inverted_index[2]]
+                    else:
+                        term = term_index_0[0]
+                        shared_dict[term] = [merged_line_count, 0, 0]
+                        for i in range(0, len(terms_dicts)):
+                            if term in terms_dicts[i]:
+                                shared_dict[term] = [shared_dict[term][0], shared_dict[term][1] + \
+                                                     terms_dicts[i][term][0],
+                                                     shared_dict[term][2] + terms_dicts[i][term][1]]
+                        if inverted_index[0] in big_terms:
+                            inverted_index = '{}|{}{}|{}{}'.format(inverted_index[0], inverted_index[1],
+                                                                   big_terms[inverted_index[0]][0], inverted_index[2],
+                                                                   big_terms[inverted_index[0]][1])
+                            for i in range(0, len(terms_dicts)):
+                                if term in terms_dicts[i]:
+                                    shared_dict[term] = [shared_dict[term][0], shared_dict[term][1] + \
+                                                         terms_dicts[i][term][0],
+                                                         shared_dict[term][2] + terms_dicts[i][term][1]]
+                            big_terms.pop(inverted_index[0])
+
+                        f.write('{}|{}|{}\n'.format(inverted_index[0], inverted_index[1], inverted_index[2]))
+                        merged_line_count += 1
+                else:
+                    f.write('{}|{}|{}\n'.format(inverted_index[0], inverted_index[1], inverted_index[2]))
+                    merged_line_count += 1
 
         elif count_lines_1 < post_files_lines[1]:
             while count_lines_1 < post_files_lines[1]:  # - 1:
-                f.write('{}|{}|{}\n'.format(term_index_1[0], term_index_1[1], term_index_1[2]))
+                inverted_index = [term_index_1[0], term_index_1[1], term_index_1[2]]
                 term_index_1 = read_next(files_paths[1])
                 count_lines_1 += 1
+                if is_final_posting:
+                    if Parse.isWord(inverted_index[0]) and inverted_index[0].isupper() and \
+                                    inverted_index[0].lower() in terms_dicts:
+                        big_terms[inverted_index[0].lower()] = [inverted_index[1], inverted_index[2]]
+                    else:
+                        term = term_index_0[0]
+                        shared_dict[term] = [merged_line_count, 0, 0]
+                        for i in range(0, len(terms_dicts)):
+                            if term in terms_dicts[i]:
+                                shared_dict[term] = [shared_dict[term][0], shared_dict[term][1] + \
+                                                     terms_dicts[i][term][0],
+                                                     shared_dict[term][2] + terms_dicts[i][term][1]]
+                        if inverted_index[0] in big_terms:
+                            inverted_index = '{}|{}{}|{}{}'.format(inverted_index[0], inverted_index[1],
+                                                                   big_terms[inverted_index[0]][0], inverted_index[2],
+                                                                   big_terms[inverted_index[0]][1])
+                            for i in range(0, len(terms_dicts)):
+                                if term in terms_dicts[i]:
+                                    shared_dict[term] = [shared_dict[term][0], shared_dict[term][1] + \
+                                                         terms_dicts[i][term][0],
+                                                         shared_dict[term][2] + terms_dicts[i][term][1]]
+                            big_terms.pop(inverted_index[0])
+
+                        f.write('{}|{}|{}\n'.format(inverted_index[0], inverted_index[1], inverted_index[2]))
+                        merged_line_count += 1
+                else:
+                    f.write('{}|{}|{}\n'.format(inverted_index[0], inverted_index[1], inverted_index[2]))
+                    merged_line_count += 1
 
     merged_post_lines[merge_path + merged_post_name] = merged_line_count
-
-
-def merge_cities_dict(dirs_dict, cities):
-    for directory in dirs_dict.keys():
-        for city in dirs_dict[directory][2]:
-            if city in cities:
-                cities[city].extend(dirs_dict[directory][2][city])
-            else:
-                cities[city] = dirs_dict[directory][2][city]
-
-
-def merge_langs_docs(dirs_dict, docs, languages):
-    for dir in dirs_dict.keys():
-        docs.update(dirs_dict[dir][4])
-    for dir in dirs_dict.keys():
-        for language in dirs_dict[dir][3]:
-            languages[language] = None
 
 
 def start_merge(files_names, post_files_lines, terms_dicts, posting_path, to_stem):
@@ -159,37 +206,3 @@ def start_merge(files_names, post_files_lines, terms_dicts, posting_path, to_ste
     p.start()
     p.join()
     return shared_dict
-
-
-def posting_dicts_merge(dirs_dict, to_stem):
-    print "merging dirs_dicts"
-    cities_manager = multiprocessing.Manager()
-    languages_manager = multiprocessing.Manager()
-    docs_manager = multiprocessing.Manager()
-
-    # terms_dict = terms_manager.dict()
-    cities = cities_manager.dict()
-    languages = languages_manager.dict()
-    docs = docs_manager.dict()
-    post_files_lines = []
-    files_names = []
-
-    p_cities = multiprocessing.Process(target=merge_cities_dict, args=(dirs_dict, cities))
-    p_cities.start()
-
-    p_names_lines = multiprocessing.Process(target=merge_langs_docs,
-                                            args=(dirs_dict, docs, languages))
-    p_names_lines.start()
-
-    for directory in dirs_dict.keys():
-        old_post_files_lines = dirs_dict[directory][0]
-        for i in range(0, len(old_post_files_lines)):
-            files_names.append(
-                directory + "\\Posting" + str(i) if not to_stem else directory + "\\PostingS" + str(i))
-            post_files_lines.append(old_post_files_lines[i])
-
-    # p_terms.join()
-    p_cities.join()
-    p_names_lines.join()
-
-    return post_files_lines, files_names, cities, docs, languages

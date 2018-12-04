@@ -91,6 +91,29 @@ class ReadFile:
         cur_file.close()
         return docs
 
+    def read_cities(self,path, filename):
+        with open(path + "\\" + filename + "\\" + filename, "r") as f:
+            lines = f.readlines()
+            for i in range(len(lines)):
+                line = lines[i]
+                if line.__contains__("<DOC>"):
+                    doc_id = ""
+                    doc_city = ""
+                if line.__contains__("<DOCNO>"):
+                    line = line.replace("<DOCNO>", '')
+                    line = line.replace("</DOCNO>", '')
+                    doc_id = line.replace('\n', '')
+                if line.__contains__('<F P=104>'):
+                    temp = line.split('>')
+                    temp = temp[1].split('<')
+                    temp = temp[0].split(' ')
+                    for s in temp:
+                        if not s == ' ' and not s == '':
+                            doc_city = temp[2]
+                    if doc_city not in self.cities:
+                        self.cities[doc_city] = [doc_id]
+                    else:
+                        self.cities[doc_city].append(doc_id)
 
 class Document:
     def __init__(self, name, doc_id, date, title, city, text):
