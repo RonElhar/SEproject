@@ -40,7 +40,7 @@ class Indexer:
             self.terms_dict[term] = [doc_terms_dict[term][0],self.terms_dict[term][0] + 1]
             self.docs_tf_dict[term][doc_id] = doc_terms_dict[term][0]  ## add tf_idf
             self.docs_locations_dict[term][doc_id] = doc_terms_dict[term][1]
-        if len(self.docs_tf_dict) > 30000 or self.finished_parse:
+        if len(self.docs_tf_dict) > 300000 or self.finished_parse:
             terms = sorted(self.docs_tf_dict.keys())
             self.post(terms, self.docs_tf_dict, self.docs_locations_dict)
             self.docs_tf_dict = {}

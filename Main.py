@@ -9,6 +9,7 @@ from ReadFile import Document
 from timeit import default_timer as timer
 from Indexer import Indexer
 import ParallelMain
+import datetime
 
 
 class Main:
@@ -27,18 +28,21 @@ class Main:
         self.parser.set_stemming_bool(to_stem)
 
     def start(self):
-        indexer = Indexer("\\Postings")
+        self.indexer = Indexer(self.posting_path)
         if self.to_stem:
-            indexer.to_stem = True
+            self.indexer.to_stem = True
         start_time = timer()
         print "start"
         dirs_dict = ParallelMain.start(self.corpus_path, self.posting_path, self.to_stem)
+        print "finished_postings :" + str(datetime.datetime.now())
         files_names = []
         languages = set()
         cities = {}
         docs = {}
         terms_dict = {}
         post_files_lines = []
+        terms_dict, post_files_lines, cities, docs, languages = Merge.posting_dicts_merge(dirs_dict,self.to_stem)
+        ''''
         for dir in dirs_dict.keys():
             docs.update(dirs_dict[dir][4])
         # for dir in dirs_dict.keys():
@@ -51,12 +55,12 @@ class Main:
         for dir in dirs_dict.keys():
             for city in dirs_dict[dir][2]:
                 if city in cities:
-                    cities[city].extend(docs)
+                    cities[city].extend(dirs_dict[dir][2][city])
                 else:
                     cities[city] = dirs_dict[dir][2][city]
         # for dir in dirs_dict.keys():
         #     dirs_dict[dir][2] = None
-        ''''
+        
         for dir in dirs_dict.keys():
             for term in dirs_dict[dir][1]:
                 if not term in terms_dict:
@@ -64,24 +68,25 @@ class Main:
                 else:
                     terms_dict[term] = [terms_dict[term][0] + dirs_dict[dir][1][term][0],
                                         terms_dict[term][1] + dirs_dict[dir][1][term][1]]
-        '''
+        
         # for dir in dirs_dict.keys():
         #     dirs_dict[dir][1] = None
-        j = 0
+        
+
         for dir in dirs_dict.keys():
             old_post_files_lines = dirs_dict[dir][0]
             for i in range(0, len(old_post_files_lines)):
                 files_names.append(dir + "\\Posting" + str(i) if not self.to_stem else dir + "\\PostingS" + str(i))
                 post_files_lines.append(old_post_files_lines[i])
-                j += 1
-        dirs_dict.clear()
-        Merge.start_merge(files_names, post_files_lines, terms_dict, self.posting_path, self.to_stem)
-
-        indexer.terms_dict = terms_dict
+        '''
+        dirs_dict = None
+        print "started merge: " + str(datetime.datetime.now())
+        terms_dict = Merge.start_merge(files_names, post_files_lines, terms_dict, self.posting_path, self.to_stem)
+        self.indexer.terms_dict = terms_dict
 
         end_time = timer()
         print("total time: " + str(end_time - start_time))
-        print "End"
+        print "End: " + str(datetime.datetime.now())
         pass
 
     def load(self):

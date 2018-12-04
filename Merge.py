@@ -1,9 +1,6 @@
 import linecache
-
 import os
-
 import shutil
-
 import Parse
 import multiprocessing
 
@@ -74,22 +71,45 @@ def merge(files_paths, merge_path, post_files_lines, terms_dict, dict, is_final_
                 f.write('{}|{}|{}\n'.format(term_index_0[0], term_index_0[1], term_index_0[2]))
                 term_index_0 = read_next(files_paths[0])
                 count_lines_0 += 1
-                # if not term_index_0 == '':
-                #     f.write('{}|{}|{}'.format(term_index_0[0], term_index_0[1], term_index_0[2]))
 
         elif count_lines_1 < post_files_lines[1]:
             while count_lines_1 < post_files_lines[1]:  # - 1:
                 f.write('{}|{}|{}\n'.format(term_index_1[0], term_index_1[1], term_index_1[2]))
                 term_index_1 = read_next(files_paths[1])
                 count_lines_1 += 1
-                # if not term_index_1 == '':
-                #     f.write('{}|{}|{}'.format(term_index_1[0], term_index_1[1], term_index_1[2]))
 
     if is_final_posting:
         dict = terms_dict
     if 'C:\Users\\ronelhar\PycharmProjects\SEproject\Merge2\merge0' == merge_path + merged_post_name:
         print ' '
     merged_post_lines[merge_path + merged_post_name] = merged_line_count
+
+
+def merge_terms_dict(dirs_dict, terms_dict):
+    for directory in dirs_dict.keys():
+        for term in dirs_dict[directory][1]:
+            if not term in terms_dict:
+                terms_dict[term] = [dirs_dict[directory][1][term][0], dirs_dict[directory][1][term][1]]
+            else:
+                terms_dict[term] = [terms_dict[term][0] + dirs_dict[directory][1][term][0],
+                                    terms_dict[term][1] + dirs_dict[directory][1][term][1]]
+
+
+def merge_cities_dict(dirs_dict, cities):
+    for directory in dirs_dict.keys():
+        for city in dirs_dict[directory][2]:
+            if city in cities:
+                cities[city].extend(dirs_dict[directory][2][city])
+            else:
+                cities[city] = dirs_dict[directory][2][city]
+
+
+def merge_post_files_name_lines(dirs_dict, files_names, post_files_lines, to_stem):
+    for directory in dirs_dict.keys():
+        old_post_files_lines = dirs_dict[directory][0]
+        for i in range(0, len(old_post_files_lines)):
+            files_names.append(directory + "\\Posting" + str(i) if not to_stem else directory + "\\PostingS" + str(i))
+            post_files_lines.append(old_post_files_lines[i])
 
 
 def start_merge(files_names, post_files_lines, terms_dict, posting_path, to_stem):
@@ -147,3 +167,40 @@ def start_merge(files_names, post_files_lines, terms_dict, posting_path, to_stem
         terms_dict, shared_dict, True, "\\Final_Post", merged_post_lines))
     p.start()
     p.join()
+
+
+def posting_dicts_merge(dirs_dict, to_stem):
+    print "merging dirs_dicts"
+    cities_manager = multiprocessing.Manager()
+    terms_manager = multiprocessing.Manager()
+    files_names_manager = multiprocessing.Manager()
+    post_files_lines_manager = multiprocessing.Manager()
+
+    terms_dict = terms_manager.dict()
+    cities = cities_manager.dict()
+    files_names = files_names_manager.list()
+    post_files_lines = post_files_lines_manager.list()
+
+    p_terms = multiprocessing.Process(target=merge_terms_dict, args=(dirs_dict, terms_dict))
+    p_terms.start()
+
+    p_cities = multiprocessing.Process(target=merge_cities_dict, args=(dirs_dict, cities))
+    p_cities.start()
+
+    p_names_lines = multiprocessing.Process(target=merge_post_files_name_lines,
+                                            args=(dirs_dict, files_names, post_files_lines,to_stem))
+    p_names_lines.start()
+
+    docs = {}
+    languages = set()
+    for dir in dirs_dict.keys():
+        docs.update(dirs_dict[dir][4])
+    for dir in dirs_dict.keys():
+        for language in dirs_dict[dir][3]:
+            languages.add(language)
+
+    p_terms.join()
+    p_cities.join()
+    p_names_lines.join()
+
+    return terms_dict, post_files_lines, cities, docs, languages
