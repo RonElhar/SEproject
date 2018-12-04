@@ -41,10 +41,6 @@ class IndexView:
         self.posting_entry.insert(0, dir_path)
         self.controller.set_posting_path(dir_path)
 
-    def entered_posting(self):
-        dir_path = self.posting_entry.get()
-        self.controller.set_posting_path(dir_path)
-
     def language_chosen(self):
         pass
 
@@ -98,7 +94,7 @@ class IndexView:
 
         # dict = {'Ron': 1, 'gal': 3, 'lian': 4}
         for term in terms_dict:
-            listNodes.insert(END, "{} - {}\n".format(term, str(terms_dict[term]["df"])))
+            listNodes.insert(END, "{} - {}\n".format(term, str(terms_dict[term]["freq"])))
 
     def stem_control(self):
         if self.stemming_bool:

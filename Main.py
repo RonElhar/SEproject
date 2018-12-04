@@ -41,47 +41,37 @@ class Main:
         docs = {}
         terms_dict = {}
         post_files_lines = []
-        terms_dict, post_files_lines, cities, docs, languages = Merge.posting_dicts_merge(dirs_dict,self.to_stem)
-        ''''
+        #post_files_lines, files_names, cities, docs, languages = Merge.posting_dicts_merge(dirs_dict, self.to_stem)
+
         for dir in dirs_dict.keys():
+
             docs.update(dirs_dict[dir][4])
-        # for dir in dirs_dict.keys():
-        #     dirs_dict[dir][4] = None
-        for dir in dirs_dict.keys():
+
             for language in dirs_dict[dir][3]:
                 languages.add(language)
-        # for dir in dirs_dict.keys():
-        #     dirs_dict[dir][3] = None
-        for dir in dirs_dict.keys():
+
             for city in dirs_dict[dir][2]:
                 if city in cities:
                     cities[city].extend(dirs_dict[dir][2][city])
                 else:
                     cities[city] = dirs_dict[dir][2][city]
-        # for dir in dirs_dict.keys():
-        #     dirs_dict[dir][2] = None
-        
-        for dir in dirs_dict.keys():
-            for term in dirs_dict[dir][1]:
-                if not term in terms_dict:
-                    terms_dict[term] = [dirs_dict[dir][1][term][0], dirs_dict[dir][1][term][1]]
-                else:
-                    terms_dict[term] = [terms_dict[term][0] + dirs_dict[dir][1][term][0],
-                                        terms_dict[term][1] + dirs_dict[dir][1][term][1]]
-        
-        # for dir in dirs_dict.keys():
-        #     dirs_dict[dir][1] = None
-        
 
-        for dir in dirs_dict.keys():
             old_post_files_lines = dirs_dict[dir][0]
             for i in range(0, len(old_post_files_lines)):
                 files_names.append(dir + "\\Posting" + str(i) if not self.to_stem else dir + "\\PostingS" + str(i))
                 post_files_lines.append(old_post_files_lines[i])
-        '''
-        dirs_dict = None
+
+        # for dir in dirs_dict.keys():
+        #     for i in range(0, len(dirs_dict[dir])):
+        #         if not i == 1:
+        #             dirs_dict[dir][i] = None
+
         print "started merge: " + str(datetime.datetime.now())
-        terms_dict = Merge.start_merge(files_names, post_files_lines, terms_dict, self.posting_path, self.to_stem)
+        terms_dict = Merge.start_merge(files_names, post_files_lines,
+                                       [dirs_dict["\\Postings1"][1], dirs_dict["\\Postings2"][1],
+                                        dirs_dict["\\Postings3"][1], dirs_dict["\\Postings4"][1]], self.posting_path,
+                                       self.to_stem)
+        dirs_dict = None
         self.indexer.terms_dict = terms_dict
 
         end_time = timer()

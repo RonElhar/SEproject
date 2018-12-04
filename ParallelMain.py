@@ -5,15 +5,18 @@ from Parse import Parse
 from timeit import default_timer as timer
 from Indexer import Indexer
 import multiprocessing
+
 import sys
 
 
-def start_indexing(dirs_list, dirs_dicts, corpus_path, posting_path, to_stem, start_index, end_index, directory):
+def start_indexing(dirs_list, dirs_dicts,  corpus_path, posting_path, to_stem, start_index, end_index,
+                   directory):
     dirs_dicts[directory] = None
     reader = ReadFile()
     parser = Parse()
     indexer = Indexer(posting_path + directory)
     documents = {}
+
     if to_stem:
         parser.to_stem = True
         indexer.to_stem = True
@@ -33,29 +36,60 @@ def start_indexing(dirs_list, dirs_dicts, corpus_path, posting_path, to_stem, st
             documents[doc_id] = docs[doc_id]
             j += 1
         i += 1
-    dirs_dicts[directory] = [indexer.post_files_lines, indexer.terms_dict, reader.cities, reader.languages , documents]
+    dirs_dicts[directory] = [indexer.post_files_lines, indexer.terms_dict, reader.cities, reader.languages, documents]
 
+def get_corpus_4partition(dirs_list, corpus_path):
+    files_partition = []
+
+    def get_size(start_path):
+        total_size = 0
+        for dirpath, dirnames, filenames in os.walk(start_path):
+            for f in filenames:
+                fp = os.path.join(dirpath, f)
+                total_size += os.path.getsize(fp)
+        return total_size
+
+    corpus_size = get_size(corpus_path)
+    process_size = corpus_size / 4
+    cursize = 0
+    i = 0
+    for directory in dirs_list:
+        dir_size = get_size(corpus_path + '\\' + directory)
+        if dir_size + cursize > process_size:
+            files_partition.append(i)
+            cursize = 0
+        else:
+            cursize += dir_size
+        i += 1
+
+    return files_partition
 
 def start(corpus_path, posting_path, to_stem):
     dirs_list = os.listdir(corpus_path)
+    files_partition = get_corpus_4partition(dirs_list, corpus_path)
     manager = multiprocessing.Manager()
     dirs_dicts = manager.dict()
     start_time = timer()
+
     p1 = multiprocessing.Process(target=start_indexing,
                                  args=(
-                                 dirs_list, dirs_dicts, corpus_path, posting_path, to_stem, 0, 395, "\\Postings1")) #0-395
+                                     dirs_list, dirs_dicts,  corpus_path, posting_path, to_stem, 0, files_partition[0],
+                                     "\\Postings1"))  # 0-395
     p1.start()
     p2 = multiprocessing.Process(target=start_indexing,
                                  args=(
-                                 dirs_list, dirs_dicts, corpus_path, posting_path, to_stem, 395, 791, "\\Postings2")) #395-791
+                                     dirs_list, dirs_dicts, corpus_path, posting_path, to_stem, files_partition[0],files_partition[1],
+                                     "\\Postings2"))  # 395-791
     p2.start()
     p3 = multiprocessing.Process(target=start_indexing,
                                  args=(
-                                 dirs_list, dirs_dicts, corpus_path, posting_path, to_stem, 791, 1243, "\\Postings3")) #791, 1243
+                                     dirs_list, dirs_dicts, corpus_path, posting_path, to_stem, files_partition[1], files_partition[2],
+                                     "\\Postings3"))  # 791, 1243
     p3.start()
     p4 = multiprocessing.Process(target=start_indexing,
                                  args=(
-                                 dirs_list, dirs_dicts, corpus_path, posting_path, to_stem, 1243, 1815, "\\Postings4")) #1243, 1815
+                                     dirs_list, dirs_dicts, corpus_path, posting_path, to_stem, files_partition[2], len(dirs_list),
+                                     "\\Postings4"))  # 1243, 1815
     p4.start()
     p1.join()
     p2.join()
