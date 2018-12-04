@@ -1,4 +1,6 @@
 import os
+
+import Merge
 from GUI import *
 # from Indexer import Indexer
 from ReadFile import ReadFile
@@ -10,7 +12,6 @@ import ParallelMain
 
 
 class Main:
-
     def __init__(self):
         self.corpus_path = ''
         self.posting_path = ''
@@ -28,54 +29,56 @@ class Main:
     def start(self):
         indexer = Indexer("\\Postings")
         if self.to_stem:
-             indexer.to_stem = True
+            indexer.to_stem = True
         start_time = timer()
-
-        consecutive_post_files = {}
-        post_file_blocks = []
         print "start"
         dirs_dict = ParallelMain.start(self.corpus_path, self.posting_path, self.to_stem)
+        files_names = []
         languages = set()
         cities = {}
         docs = {}
-        terms = {}
-        ''''
+        terms_dict = {}
+        post_files_lines = []
         for dir in dirs_dict.keys():
             docs.update(dirs_dict[dir][4])
-        for dir in dirs_dict.keys():
-            dirs_dict[dir][4] = None
+        # for dir in dirs_dict.keys():
+        #     dirs_dict[dir][4] = None
         for dir in dirs_dict.keys():
             for language in dirs_dict[dir][3]:
                 languages.add(language)
-        for dir in dirs_dict.keys():
-            dirs_dict[dir][3] = None
+        # for dir in dirs_dict.keys():
+        #     dirs_dict[dir][3] = None
         for dir in dirs_dict.keys():
             for city in dirs_dict[dir][2]:
                 if city in cities:
                     cities[city].extend(docs)
                 else:
                     cities[city] = dirs_dict[dir][2][city]
+        # for dir in dirs_dict.keys():
+        #     dirs_dict[dir][2] = None
+        ''''
         for dir in dirs_dict.keys():
-            dirs_dict[dir][2] = None
-        for dir in dirs_dict.keys():
-            terms.update(dirs_dict[dir][1])
-        for dir in dirs_dict.keys():
-            dirs_dict[dir][1] = None
+            for term in dirs_dict[dir][1]:
+                if not term in terms_dict:
+                    terms_dict[term] = [dirs_dict[dir][1][term][0], dirs_dict[dir][1][term][1]]
+                else:
+                    terms_dict[term] = [terms_dict[term][0] + dirs_dict[dir][1][term][0],
+                                        terms_dict[term][1] + dirs_dict[dir][1][term][1]]
+        '''
+        # for dir in dirs_dict.keys():
+        #     dirs_dict[dir][1] = None
         j = 0
         for dir in dirs_dict.keys():
             old_post_files_lines = dirs_dict[dir][0]
             for i in range(0, len(old_post_files_lines)):
-                consecutive_post_files[j] = dir + "\\Posting" + str(i) if not self.to_stem else dir + "\\PostingS" + str(i)
-                post_file_blocks.append(old_post_files_lines[i])
+                files_names.append(dir + "\\Posting" + str(i) if not self.to_stem else dir + "\\PostingS" + str(i))
+                post_files_lines.append(old_post_files_lines[i])
                 j += 1
-        dirs_dict = None
-        indexer.post_files_blocks = post_file_blocks
-        indexer.consecutive_post_files = consecutive_post_files
-        post_file_blocks = None
-        consecutive_post_files = None
-        indexer.terms_dict = terms
-        #indexer.merge_posting()
-                '''''
+        dirs_dict.clear()
+        Merge.start_merge(files_names, post_files_lines, terms_dict, self.posting_path, self.to_stem)
+
+        indexer.terms_dict = terms_dict
+
         end_time = timer()
         print("total time: " + str(end_time - start_time))
         print "End"

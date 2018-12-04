@@ -47,19 +47,19 @@ def start(corpus_path, posting_path, to_stem):
     start_time = timer()
     p1 = multiprocessing.Process(target=start_indexing,
                                  args=(
-                                 dirs_list, dirs_dicts, corpus_path, posting_path, to_stem, 0, 395, "\\Postings1"))
+                                 dirs_list, dirs_dicts, corpus_path, posting_path, to_stem, 0, 395, "\\Postings1")) #0-395
     p1.start()
     p2 = multiprocessing.Process(target=start_indexing,
                                  args=(
-                                 dirs_list, dirs_dicts, corpus_path, posting_path, to_stem, 395, 791, "\\Postings2"))
+                                 dirs_list, dirs_dicts, corpus_path, posting_path, to_stem, 395, 791, "\\Postings2")) #395-791
     p2.start()
     p3 = multiprocessing.Process(target=start_indexing,
                                  args=(
-                                 dirs_list, dirs_dicts, corpus_path, posting_path, to_stem, 791, 1243, "\\Postings3"))
+                                 dirs_list, dirs_dicts, corpus_path, posting_path, to_stem, 791, 1243, "\\Postings3")) #791, 1243
     p3.start()
     p4 = multiprocessing.Process(target=start_indexing,
                                  args=(
-                                 dirs_list, dirs_dicts, corpus_path, posting_path, to_stem, 1243, 1815, "\\Postings4"))
+                                 dirs_list, dirs_dicts, corpus_path, posting_path, to_stem, 1243, 1815, "\\Postings4")) #1243, 1815
     p4.start()
     p1.join()
     p2.join()
