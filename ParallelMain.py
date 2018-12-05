@@ -38,7 +38,7 @@ def start_indexing(dirs_list, dirs_dicts, corpus_path, posting_path, to_stem, st
             documents[doc_id] = docs[doc_id]
             j += 1
         i += 1
-    dirs_dicts[directory] = [indexer.post_files_lines, indexer.terms_dict, documents]
+    dirs_dicts[directory] = [indexer.post_files_lines, indexer.terms_dict, documents, reader.languages]
 
 
 def get_corpus_4partition(dirs_list, corpus_path):

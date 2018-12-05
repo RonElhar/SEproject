@@ -73,6 +73,8 @@ class IndexView:
         tkMessageBox.showinfo("Error ", "Invalid {} path".format(path_type))
 
     def load(self):
+        dir_path = self.posting_entry.get()
+        self.controller.set_posting_path(dir_path)
         self.controller.load()
         lang_list = self.controller.get_languages()
         for lang in sorted(lang_list):
