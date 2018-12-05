@@ -44,7 +44,7 @@ class Main:
         docs = {}
         num_of_docs = 0
         terms = 0
-        while i < len(dirs_list):
+        while i < 10:
             # while i < 1:
             docs = self.reader.separate_docs_in_file(self.corpus_path, dirs_list[i])
             # file_docs[dirs_list[i]] = docs.keys()

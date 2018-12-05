@@ -100,8 +100,6 @@ class Document:
         self.num_of_unique_words = 0
         self.text = text
 
-    def set_length(self, length):
-        self.length = length
 
     def tostr(self):
         return self.id + ', ' + self.title
