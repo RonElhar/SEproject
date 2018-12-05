@@ -13,7 +13,6 @@ del_size = sys.getsizeof('\n')
 
 
 class Indexer:
-
     def __init__(self, posting_path):
         self.posting_path = posting_path
         self.docs_tf_dict = {}
@@ -61,14 +60,15 @@ class Indexer:
         lines_count = 0
         for city in cities:
             if Parse.isWord(city):
-                city_details = {}
+                city_details = None
                 if city in capitals_details:
-                    city_details[city] = capitals_details[city]
+                    city_details = capitals_details[city]
                     self.countries.add(city_details["Country"])
-                    self.num_of_capitals +=1
+                    self.num_of_capitals += 1
                 else:
                     city_details = CityDetailes.get_city_details(city)
-                    self.countries.add(city_details["Country"])
+                    if not city_details is "" and not city_details is None:
+                        self.countries.add(city_details["Country"])
                 self.cities_dict[city] = [city_details, cities[city], self.terms_dict.get(city)]
                 lines_count += 1
 
