@@ -73,9 +73,9 @@ class Main:
 
         dirs_dict = None
         self.indexer.terms_dict = terms_dict
-        self.indexer.index_docs(docs)
-        self.indexer.index_cities(self.reader.cities)
-        self.indexer.post_pointers(self.languages)
+        # self.indexer.index_docs(docs)
+        # self.indexer.index_cities(self.reader.cities)
+        # self.indexer.post_pointers(self.languages)
         end_time = timer()
 
         print("total time: " + str(end_time - start_time))
@@ -102,12 +102,13 @@ class Main:
         return self.languages
 
     def report(self):
-        print "Num of terms: " + str(len(self.indexer.terms_dict))
+        print "Num of terms: " + str(len(self.indexer.terms_dict.values()))
         num_count = 0
         i = 0
-        for term in self.indexer.terms_dict:
+        for term in self.indexer.terms_dict.keys():
             if Parse.isFloat(term):
                 num_count += 1
+
         print "Num of terms which are nums: " + str(num_count)
         print "Num of countries: " + str(len(self.indexer.countries))
         print "Num of capitals: " + str(self.indexer.num_of_capitals)
