@@ -48,8 +48,8 @@ class Main:
         docs = {}
         # '''
         i = 0
-        # while i < len(dirs_list):
-        while i < 40:
+        while i < len(dirs_list):
+        # while i < 40:
             self.reader.read_cities(self.corpus_path, dirs_list[i])
             i += 1
         files_names = []
@@ -105,6 +105,9 @@ class Main:
         print "Num of terms: " + str(len(self.indexer.terms_dict))
         num_count = 0
         i = 0
+        for term in self.indexer.terms_dict:
+            if Parse.isFloat(term):
+                num_count += 1
         print "Num of terms which are nums: " + str(num_count)
         print "Num of countries: " + str(len(self.indexer.countries))
         print "Num of capitals: " + str(self.indexer.num_of_capitals)

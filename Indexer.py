@@ -38,7 +38,7 @@ class Indexer:
             self.docs_tf_dict[term][doc_id] = doc_terms_dict[term][0]  ## add tf_idf
             self.docs_locations_dict[term][doc_id] = doc_terms_dict[term][1]
 
-        if len(self.docs_tf_dict) > 300000 or self.finished_parse:
+        if len(self.docs_tf_dict) > 350000 or self.finished_parse:
             terms = sorted(self.docs_tf_dict.keys())
             self.post(terms, self.docs_tf_dict, self.docs_locations_dict)
             self.docs_tf_dict = {}
@@ -49,7 +49,7 @@ class Indexer:
         file_name = '\\Posting' + str(self.post_count) if not self.to_stem else '\\sPosting' + str(self.post_count)
         with open(self.posting_path + file_name, 'wb') as f:
             for term in terms:
-                index = '{}|{}#|{}#\n'.format(term, str(docs_tf_dict[term]), str(docs_locations_dict[term]))
+                index = '{}|{}#|{}#\n'.format(term, str(docs_tf_dict[term]), str(docs_locations_dict[term])).replace(' ','')
                 f.write(index)
                 line_count += 1
         self.post_files_lines.append(line_count)

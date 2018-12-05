@@ -157,7 +157,7 @@ class Parse:
                                                    self.list_strings[self.index + 3])
                 self.add_to_dict(token, self.index)
                 self.index += 3
-            else:
+            elif len(token)>1 and not (token.__contains__('<') or token.__contains__('>')) :
                 self.add_to_dict(token, self.index)
             self.index += 1
             document_length += 1
@@ -173,7 +173,7 @@ class Parse:
 
     def get_terms(self, text):
         SEPS = (' ', '--')
-        allowed = "{}{}-$%/.".format(string.ascii_letters, string.digits)
+        allowed = "{}{}-$%/.<>".format(string.ascii_letters, string.digits)
         start = timer()
         rsplit = re.compile("|".join(SEPS)).split
         terms = [s.strip() for s in rsplit(text)]
