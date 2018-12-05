@@ -66,6 +66,7 @@ class IndexView:
         dir_path = self.posting_entry.get()
         self.controller.set_posting_path(dir_path)
         self.controller.start()
+        self.index_window.destroy()
 
         ''''
         lang_list = self.controller.get_languages()
@@ -81,7 +82,6 @@ class IndexView:
         lang_list = self.controller.get_languages()
         for lang in sorted(lang_list):
             self.language_list.insert(END, lang)
-
     def show(self):
         dict_window = Tk()
         dict_window.geometry("200x500")

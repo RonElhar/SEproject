@@ -1,3 +1,4 @@
+
 import os
 from GUI import *
 # from Indexer import Indexer
@@ -7,7 +8,6 @@ from ReadFile import Document
 from timeit import default_timer as timer
 from Indexer import Indexer
 import ParallelMain
-
 
 class Main:
 
@@ -28,7 +28,7 @@ class Main:
     def start(self):
         indexer = Indexer("\\Postings")
         if self.to_stem:
-             indexer.to_stem = True
+            indexer.to_stem = True
         start_time = timer()
 
         consecutive_post_files = {}
@@ -64,7 +64,8 @@ class Main:
         for dir in dirs_dict.keys():
             old_post_files_block = dirs_dict[dir][0]
             for i in range(0, len(old_post_files_block)):
-                consecutive_post_files[j] = dir + "\\Posting" + str(i) if not self.to_stem else dir + "\\PostingS" + str(i)
+                consecutive_post_files[j] = dir + "\\Posting" + str(
+                    i) if not self.to_stem else dir + "\\PostingS" + str(i)
                 post_file_blocks.append(old_post_files_block[i])
                 j += 1
         dirs_dict = None
