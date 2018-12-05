@@ -31,6 +31,7 @@ def get_capitals_details():
         city_details["Country"] = details[u'name']
         city_details["Currency"] = str(details[u'currencies'])
         city_details["Population"] = str("%.2f" % (float(details[u'population']) / 1000000)) + 'M'
+        # print details['capital']
         capitals_dict[details['capital']] = city_details
     return capitals_dict
 
