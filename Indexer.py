@@ -64,11 +64,11 @@ class Indexer:
                 city_details = {}
                 if city in capitals_details:
                     city_details[city] = capitals_details[city]
-                    self.countries.add(city_details["Country"])
+#                    self.countries.add(city_details["Country"])
                     self.num_of_capitals +=1
                 else:
                     city_details = CityDetailes.get_city_details(city)
-                    self.countries.add(city_details["Country"])
+                    #self.countries.add(city_details["Country"])
                 self.cities_dict[city] = [city_details, cities[city], self.terms_dict.get(city)]
                 lines_count += 1
 
@@ -88,63 +88,74 @@ class Indexer:
         if not os.path.exists(self.posting_path + "\\Pointers"):
             os.makedirs(self.posting_path + "\\Pointers")
 
+        print self.docs_dict
+
         if self.to_stem:
-            with open(self.posting_path + "\\Pointers\\sTerms Pointers Dictionary", 'wb') as f:
-                pickle.dump(self.terms_dict, f)
-            with open(self.posting_path + "\\Pointers\\sCities Pointers Dictionary", 'wb') as f:
-                pickle.dump(self.cities_dict, f)
-            with open(self.posting_path + "\\Pointers\\sDocuments Pointers Dictionary", 'wb') as f:
-                pickle.dump(self.docs_dict, f)
-            with open(self.posting_path + "\\Pointers\\sLanguages Dictionary", 'wb') as f:
-                pickle.dump(languages, f)
+            with open(self.posting_path + "\\Pointers\\sTermsPointersDictionary", 'wb') as f:
+                cPickle.dump(self.terms_dict, f)
+            with open(self.posting_path + "\\Pointers\\sCitiesPointersDictionary", 'wb') as f:
+                cPickle.dump(self.cities_dict, f)
+            with open(self.posting_path + "\\Pointers\\sDocumentsPointersDictionary", 'wb') as f:
+                cPickle.dump(self.docs_dict, f)
+            with open(self.posting_path + "\\Pointers\\sLanguagesDictionary", 'wb') as f:
+                cPickle.dump(languages, f)
 
         else:
-            with open(self.posting_path + "\\Pointers\\Terms Pointers Dictionary", 'wb') as f:
-                pickle.dump(self.terms_dict, f)
-            with open(self.posting_path + "\\Pointers\\Cities Pointers Dictionary", 'wb') as f:
-                pickle.dump(self.cities_dict, f)
-            with open(self.posting_path + "\\Pointers\\Documents Pointers Dictionary", 'wb') as f:
-                pickle.dump(self.docs_dict, f)
-            with open(self.posting_path + "\\Pointers\\Languages Dictionary", 'wb') as f:
-                pickle.dump(languages, f)
+            with open(self.posting_path + "\\Pointers\\TermsPointersDictionary", 'wb') as f:
+                cPickle.dump(self.terms_dict, f)
+            with open(self.posting_path + "\\Pointers\\CitiesPointersDictionary", 'wb') as f:
+                cPickle.dump(self.cities_dict, f)
+            with open(self.posting_path + "\\Pointers\\DocumentsPointersDictionary", 'wb') as f:
+                cPickle.dump(self.docs_dict, f)
+            with open(self.posting_path + "\\Pointers\\LanguagesDictionary", 'wb') as f:
+                cPickle.dump(languages, f)
 
     def load(self):
         languages = None
         for root, dirs, filenames in os.walk(self.posting_path):
             for filename in filenames:
                 if self.to_stem:
-                    if filename == 'sTerms Pointers Dictionary':
+                    if filename == 'sTermsPointersDictionary':
                         filename = os.path.join(root, filename)
                         with open(filename, 'rb') as f:
                             self.terms_dict = cPickle.load(f)
-                    if filename == 'sCities Pointers Dictionary':
+                    if filename == 'sCitiesPointersDictionary':
                         filename = os.path.join(root, filename)
                         with open(filename, 'rb') as f:
                             self.cities_dict = cPickle.load(f)
-                    if filename == 'sDocuments Pointers Dictionary':
+                    if filename == 'sDocumentsPointersDictionary':
                         filename = os.path.join(root, filename)
                         with open(filename, 'rb') as f:
                             self.docs_dict = cPickle.load(f)
-                    if filename == 'sLanguages Dictionary':
+                    if filename == 'sLanguagesDictionary':
                         filename = os.path.join(root, filename)
                         with open(filename, 'rb') as f:
                             languages = cPickle.load(f)
                 else:
-                    if filename == 'Terms Pointers Dictionary':
-                        filename = os.path.join(root, filename)
-                        with open(filename, 'rb') as f:
-                            self.terms_dict = cPickle.load(f)
-                    if filename == 'Cities Pointers Dictionary':
+                    if filename == 'CitiesPointersDictionary':
                         filename = os.path.join(root, filename)
                         with open(filename, 'rb') as f:
                             self.cities_dict = cPickle.load(f)
-                    if filename == 'Documents Pointers Dictionary':
+                    if filename == 'TermsPointersDictionary':
+                        filename = os.path.join(root, filename)
+                        with open(filename, 'rb') as f:
+                            self.terms_dict = cPickle.load(f)
+                    if filename == 'DocumentsPointersDictionary':
                         filename = os.path.join(root, filename)
                         with open(filename, 'rb') as f:
                             self.docs_dict = cPickle.load(f)
-                    if filename == 'Languages Dictionary':
+                    if filename == 'LanguagesDictionary':
                         filename = os.path.join(root, filename)
                         with open(filename, 'rb') as f:
                             languages = cPickle.load(f)
 
         return languages
+
+
+# with (open(filename, "rb")) as openfile:
+#     while True:
+#         try:
+#             self.terms_dict = pickle.load(openfile)
+#         except Exception as e:
+#             print e
+#             break

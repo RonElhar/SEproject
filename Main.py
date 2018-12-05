@@ -48,7 +48,7 @@ class Main:
         docs = {}
         # '''
         i = 0
-        while i < len(dirs_list):
+        while i < 40: #len(dirs_list):
             self.reader.read_cities(self.corpus_path, dirs_list[i])
             i += 1
         # '''
@@ -82,7 +82,7 @@ class Main:
         print("total time: " + str(end_time - start_time))
         print "End: " + str(datetime.datetime.now())
 
-        self.report()
+        # self.report()
 
     def load(self):
         self.indexer = Indexer(self.posting_path)
@@ -102,41 +102,41 @@ class Main:
         # should return string with languages separated with '\n'
         return self.languages
 
-    def report(self):
-        print "Num of terms: " + str(len(self.indexer.terms_dict))
-        num_count = 0
-        i = 0
-        freq_terms = {}
-        for term in sorted(self.indexer.terms_dict.keys()):
-            freq = self.indexer.terms_dict[term][1]
-            if freq in freq_terms:
-                freq_terms[freq] = [term]
-            else:
-                freq_terms[freq].append(term)
-            if Parse.isFloat(term):
-                num_count += 1
-
-        print  '#### max terms ###'
-        i = 0
-        while i < 10:
-            max_freq = max(freq_terms, key=int)
-            for term in freq_terms[max_freq]:
-                print term
-                i += 1
-            freq_terms.pop(max_freq)
-
-        print  '#### min terms ###'
-        i = 0
-        while i < 10:
-            min_freq = min(freq_terms, key=int)
-            for term in freq_terms[min_freq]:
-                print term
-                i += 1
-            freq_terms.pop(min_freq)
-
-        print "Num of terms which are nums: " + str(num_count)
-        print "Num of countries: " + str(len(self.indexer.countries))
-        print "Num of capitals: " + str(self.indexer.num_of_capitals)
+    # def report(self):
+    #     print "Num of terms: " + str(len(self.indexer.terms_dict))
+    #     num_count = 0
+    #     i = 0
+    #     freq_terms = {}
+    #     for term in sorted(self.indexer.terms_dict.keys()):
+    #         freq = self.indexer.terms_dict[term][1]
+    #         if freq in freq_terms:
+    #             freq_terms[freq] = [term]
+    #         else:
+    #             freq_terms[freq].append(term)
+    #         if Parse.isFloat(term):
+    #             num_count += 1
+    #
+    #     print  '#### max terms ###'
+    #     i = 0
+    #     while i < 10:
+    #         max_freq = max(freq_terms, key=int)
+    #         for term in freq_terms[max_freq]:
+    #             print term
+    #             i += 1
+    #         freq_terms.pop(max_freq)
+    #
+    #     print  '#### min terms ###'
+    #     i = 0
+    #     while i < 10:
+    #         min_freq = min(freq_terms, key=int)
+    #         for term in freq_terms[min_freq]:
+    #             print term
+    #             i += 1
+    #         freq_terms.pop(min_freq)
+    #
+    #     print "Num of terms which are nums: " + str(num_count)
+    #     print "Num of countries: " + str(len(self.indexer.countries))
+    #     print "Num of capitals: " + str(self.indexer.num_of_capitals)
 
 
 if __name__ == "__main__":
