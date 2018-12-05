@@ -26,6 +26,8 @@ class Indexer:
         self.to_stem = False
         self.post_line = 0
         self.post_files_lines = []
+        self.countries = set()
+        self.num_of_capitals = 0
 
     def index_terms(self, doc_terms_dict, doc_id):
         for term in doc_terms_dict:
@@ -37,7 +39,7 @@ class Indexer:
             self.docs_tf_dict[term][doc_id] = doc_terms_dict[term][0]  ## add tf_idf
             self.docs_locations_dict[term][doc_id] = doc_terms_dict[term][1]
 
-        if len(self.docs_tf_dict) > 30000 or self.finished_parse:
+        if len(self.docs_tf_dict) > 300000 or self.finished_parse:
             terms = sorted(self.docs_tf_dict.keys())
             self.post(terms, self.docs_tf_dict, self.docs_locations_dict)
             self.docs_tf_dict = {}
@@ -62,8 +64,11 @@ class Indexer:
                 city_details = {}
                 if city in capitals_details:
                     city_details[city] = capitals_details[city]
+                    self.countries.add(city_details["Country"])
+                    self.num_of_capitals +=1
                 else:
                     city_details = CityDetailes.get_city_details(city)
+                    self.countries.add(city_details["Country"])
                 self.cities_dict[city] = [city_details, cities[city], self.terms_dict.get(city)]
                 lines_count += 1
 
