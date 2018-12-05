@@ -1,7 +1,4 @@
-import os
-
 import shutil
-
 import Merge
 from GUI import *
 # from Indexer import Indexer
@@ -73,9 +70,9 @@ class Main:
 
         dirs_dict = None
         self.indexer.terms_dict = terms_dict
-        # self.indexer.index_docs(docs)
-        # self.indexer.index_cities(self.reader.cities)
-        # self.indexer.post_pointers(self.languages)
+        self.indexer.index_docs(docs)
+        self.indexer.index_cities(self.reader.cities)
+        self.indexer.post_pointers(self.languages)
         end_time = timer()
 
         print("total time: " + str(end_time - start_time))
@@ -102,7 +99,7 @@ class Main:
         return self.languages
 
     def report(self):
-        print "Num of terms: " + str(len(self.indexer.terms_dict.values()))
+        print "Num of terms: " + str(len(self.indexer.terms_dict.keys()))
         num_count = 0
         i = 0
         for term in self.indexer.terms_dict.keys():

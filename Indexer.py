@@ -45,7 +45,7 @@ class Indexer:
         file_name = '\\Posting' + str(self.post_count) if not self.to_stem else '\\sPosting' + str(self.post_count)
         with open(self.posting_path + file_name, 'wb') as f:
             for term in terms:
-                index = '{}|{}#\n'.format(term, str(tf_loc_dict[term])).replace(' ','')
+                index = '{}|{}#\n'.format(term, str(tf_loc_dict[term]).replace(' ',''))
                 f.write(index)
                 line_count += 1
         self.post_files_lines.append(line_count)

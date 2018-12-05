@@ -21,30 +21,29 @@ def merge(files_paths, merge_path, post_files_lines, terms_dicts, shared_dict, i
         merged_line_count = 0
         big_terms = {}
         min_lines = min(post_files_lines)
-        count_lines_0 = 1
-        count_lines_1 = 1
+        count_first_file_lines = 1
+        count_second_file_lines = 1
         first_file_index = read_next(files_paths[0])
         second_file_index = read_next(files_paths[1])
 
-        while count_lines_0 < post_files_lines[0] and count_lines_1 < post_files_lines[1]:
+        while count_first_file_lines < post_files_lines[0] and count_second_file_lines < post_files_lines[1]:
             inverted_index = []
             if first_file_index[0] < second_file_index[0]:
                 inverted_index = [first_file_index[0], first_file_index[1]]
                 first_file_index = read_next(files_paths[0])
-                count_lines_0 += 1
+                count_first_file_lines += 1
 
             elif first_file_index[0] == second_file_index[0]:
                 inverted_index = [first_file_index[0], "{}{}".format(first_file_index[1], second_file_index[1])]
                 first_file_index = read_next(files_paths[0])
-                count_lines_0 += 1
+                count_first_file_lines += 1
                 second_file_index = read_next(files_paths[1])
-                count_lines_1 += 1
+                count_second_file_lines += 1
 
             else:
                 inverted_index = [second_file_index[0], second_file_index[1]]
                 second_file_index = read_next(files_paths[1])
-                count_lines_1 += 1
-
+                count_second_file_lines += 1
             if is_final_posting:
                 if Parse.isWord(inverted_index[0]) and inverted_index[0].isupper() and \
                         (inverted_index[0].lower() in terms_dicts[0] or
@@ -67,11 +66,13 @@ def merge(files_paths, merge_path, post_files_lines, terms_dicts, shared_dict, i
                                 shared_dict[term] = [shared_dict[term][0], shared_dict[term][1] + \
                                                      terms_dicts[i][term.upper()][0],
                                                      shared_dict[term][2] + terms_dicts[i][term.upper()][1]]
+                        # print term.upper()
                         big_terms.pop(term)
-                        # if inverted_index[0] == 'MOSCOW':
-                        #     print '{}|{}|{}\n'.format(inverted_index[0], inverted_index[1], inverted_index[2])
+                    if inverted_index[0] == 'MOSCOW':
+                        print '{}|{}|{}\n'.format(inverted_index[0], inverted_index[1], inverted_index[2])
                     f.write('{}|{}\n'.format(inverted_index[0], inverted_index[1]))
                     merged_line_count += 1
+
             else:
                 f.write('{}|{}\n'.format(inverted_index[0], inverted_index[1]))
                 merged_line_count += 1
@@ -80,13 +81,13 @@ def merge(files_paths, merge_path, post_files_lines, terms_dicts, shared_dict, i
         post_file_line = 0
         term_index = ''
         path_index = -1
-        if count_lines_0 < post_files_lines[0]:
-            count_lines = count_lines_0
+        if count_first_file_lines < post_files_lines[0]:
+            count_lines = count_first_file_lines
             post_file_line = post_files_lines[0]
             term_index = first_file_index
             path_index = 0
-        elif count_lines_1 < post_files_lines[1]:
-            count_lines = count_lines_1
+        elif count_second_file_lines < post_files_lines[1]:
+            count_lines = count_second_file_lines
             post_file_line = post_files_lines[1]
             term_index = second_file_index
             path_index = 1
@@ -117,15 +118,18 @@ def merge(files_paths, merge_path, post_files_lines, terms_dicts, shared_dict, i
                                 shared_dict[term] = [shared_dict[term][0], shared_dict[term][1] + \
                                                      terms_dicts[i][term.upper()][0],
                                                      shared_dict[term][2] + terms_dicts[i][term.upper()][1]]
+                        # print term.upper()
                         big_terms.pop(term)
-                        # if inverted_index[0] == 'MOSCOW':
-                        #     print '{}|{}|{}\n'.format(inverted_index[0], inverted_index[1], inverted_index[2])
+                    if inverted_index[0] == 'MOSCOW':
+                        print '{}|{}|{}\n'.format(inverted_index[0], inverted_index[1], inverted_index[2])
 
                     f.write('{}|{}\n'.format(inverted_index[0], inverted_index[1]))
                     merged_line_count += 1
             else:
                 f.write('{}|{}\n'.format(inverted_index[0], inverted_index[1]))
                 merged_line_count += 1
+    print big_terms
+    print len(big_terms)
     print merged_line_count
     merged_post_lines[merge_path + merged_post_name] = merged_line_count
 
