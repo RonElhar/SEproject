@@ -4,7 +4,33 @@ import shutil
 import Parse
 import multiprocessing
 
+"""
+~~~~~~~~~~~~~~~~~~~~~~~~  Module Description ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+    This Module Contains Methods for merging post files 
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+"""
+
+
+"""
+   Description :
+       This method merges 2 posting files, 
+       When it is the last merge, it also create terms pointers to index files 
+       It also solves terms "Big letter - Small letters" issue
+   Args:
+       param1: file paths
+       param2: merge path
+       param3: number of lines in each posting file
+       param4: terms dictionaries (frequency and df) 
+       param5: shared dictionary for retriving info from the processes 
+       param6: bool for final posting
+       param7: the merged file name
+       
+    Return:
+        Dictionary of terms pointers to index files 
+
+"""
 def merge(files_paths, merge_path, post_files_lines, terms_dicts, shared_dict, is_final_posting, merged_post_name,
           merged_post_lines):
     files_line = {files_paths[0]: 0, files_paths[1]: 0}
@@ -121,7 +147,23 @@ def merge(files_paths, merge_path, post_files_lines, terms_dicts, shared_dict, i
                 merged_line_count += 1
     merged_post_lines[merge_path + merged_post_name] = merged_line_count
 
-
+"""
+    Description :
+       This method manages merge between all of the posting files,
+       It implements a "Merge Sort" version for crating merged and sorted
+       final post of the terms indexes
+    Args:
+       param1: Posting files names
+       param2: The document id 
+       param3: number of lines in each posting file
+       param4: terms dictionaries (frequency and df) 
+       param5: posting path
+       param6: stemming bool
+    
+    Return:
+        Dictionary of terms pointers to index files 
+        
+"""
 def start_merge(files_names, post_files_lines, terms_dicts, posting_path, to_stem):
     manager2 = multiprocessing.Manager()
     merged_post_lines = manager2.dict()

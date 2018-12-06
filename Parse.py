@@ -4,8 +4,8 @@ import Stemmer
 import re
 
 
-def get_stop_words():
-    stop_words_file = open("stopwords.txt")
+def get_stop_words(main_path):
+    stop_words_file = open(main_path + "\\stopwords.txt")
     lines = stop_words_file.readlines()
     stop_words = set()
     for word in lines:
@@ -13,13 +13,6 @@ def get_stop_words():
         stop_words.add(word)
     return stop_words
 
-
-# def isFloat(token):
-#     try:
-#         float(token)
-#         return True
-#     except ValueError:
-#         return False
 
 
 def isFloat(token):
@@ -85,7 +78,7 @@ def isNumTerm(token):
 
 
 class Parse:
-    def __init__(self):
+    def __init__(self, main_path):
         self.date_dict = {'JANUARY': '01', 'January': '01', 'JAN': '01', 'Jan': '01', 'FEBRUARY': '02',
                           'February': '02', 'FEB': '02', 'Feb': '02', 'MARCH': '03', 'March': '03', 'MAR': '03',
                           'Mar': '03', 'APRIL': '04', 'April': '04', 'APR': '04', 'Apr': '04', 'MAY': '05', 'May': '05',
@@ -96,19 +89,12 @@ class Parse:
                           'Nov': '11', 'DECEMBER': '12', 'December': '12', 'DEC': '12', 'Dec': '12'}
         self.num_dict = {'million': 1, 'm': 1, 'billion': 1000, 'bn': 1000, 'trillion': 1000000}
         self.num_word_dict = {'million': 'M', 'billion': 'B', 'thousand': 'K', 'trillion': '', "bn": 'B', "m": "M"}
-        self.stop_words = get_stop_words()
+        self.stop_words = get_stop_words(main_path)
         self.terms_dict = {}
         self.parsed_doc = object
         self.index = 0
         self.to_stem = False
         self.pystemmer = Stemmer.Stemmer('english')
-        '''''
-        self.get_terms_time = 0
-        self.main_parser_time = 0
-        self.number_terms_time = 0
-        self.unite_dicts_time = 0
-        self.range_term_time = 0
-        '''''
 
     def set_stemming_bool(self, to_stem):
         self.to_stem = to_stem
@@ -128,7 +114,7 @@ class Parse:
             elif reg_number.match(token):
                 self.number_term(token)
             elif token.__contains__('-'):
-                if isWord(token.replace('-','')):
+                if isWord(token.replace('-', '')):
                     tokens = token.split('-')
                     for t in tokens:
                         if not t == '':
