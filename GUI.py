@@ -4,6 +4,7 @@ from Tkinter import tkinter
 from Tkinter import *
 import tkFileDialog
 import tkMessageBox
+from timeit import default_timer as timer
 
 
 def make_entry(parent, caption, row, column, width=None, **options):
@@ -16,7 +17,6 @@ def make_entry(parent, caption, row, column, width=None, **options):
 
 
 class IndexView:
-
     def __init__(self, controller):
         self.controller = controller
         self.stemming_bool = False
@@ -32,11 +32,13 @@ class IndexView:
         return self.stemming_bool
 
     def browse_corpus_dir(self):
+        self.corpus_entry.delete(first=0, last=100)
         dir_path = tkFileDialog.askdirectory()
         self.corpus_entry.insert(0, dir_path)
         self.controller.set_corpus_path(dir_path)
 
     def browse_posting_dir(self):
+        self.posting_entry.delete(first=0, last=100)
         dir_path = tkFileDialog.askdirectory()
         self.posting_entry.insert(0, dir_path)
         self.controller.set_posting_path(dir_path)
@@ -63,8 +65,13 @@ class IndexView:
             self.invalid_path("Posting")
             return
         self.controller.set_posting_path(dir_path)
+        start = timer()
         self.controller.start()
-
+        end = timer()
+        tkMessageBox.showinfo('Finished',
+                              "Indexed {} docs\nNum of unique terms in the corpus is: {}\nTotal processing time is: ".format(
+                                  len(self.controller.indexer.docs_dict), len(self.controller.indexer.terms_dict),
+                                  str(end - start)))
         lang_list = self.controller.get_languages()
         for lang in sorted(lang_list):
             self.language_list.insert(END, lang)
@@ -73,6 +80,8 @@ class IndexView:
         tkMessageBox.showinfo("Error ", "Invalid {} path".format(path_type))
 
     def load(self):
+        self.language_list.delete(0, END)
+
         dir_path = self.posting_entry.get()
         self.controller.set_posting_path(dir_path)
         self.controller.load()

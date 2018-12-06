@@ -85,7 +85,6 @@ def isNumTerm(token):
 
 
 class Parse:
-
     def __init__(self):
         self.date_dict = {'JANUARY': '01', 'January': '01', 'JAN': '01', 'Jan': '01', 'FEBRUARY': '02',
                           'February': '02', 'FEB': '02', 'Feb': '02', 'MARCH': '03', 'March': '03', 'MAR': '03',
@@ -117,15 +116,8 @@ class Parse:
     def main_parser(self, text):
         self.terms_dict = {}
         self.index = 0
-        # self.list_strings = ["world", "6-7", "1000-2000", "Aviad", "Between", "6000", "and", "7000", "World", "May",
-        # "1994", "14", "MAY", "JUNE", "4", "20.6", "Dollars", "32", "bn", "Dollars", "Aviad",
-        # "$100", "million",
-        # "40.5", "Dollars", "100", "billion", "U.S.", "dollars", "NBA", "32", "million", "U.S.",
-        # "dollars", "1",
-        # "trillion", "U.S.", "dollars", "22 3/4", "Dollars", "NBA", "$100", "billion"]
         self.list_strings = self.get_terms(text)
-        reg_number = re.compile(r'\$?\d+\.?\d*$')  # r'\$?[0-9]+.?[0-9]?$')
-        # reg_word = re.compile(r'[a-zA-Z]+')
+        reg_number = re.compile(r'\$?\d+\.?\d*$')
         document_length = 0
         while self.index < len(self.list_strings):
             token = self.list_strings[self.index]
@@ -136,36 +128,34 @@ class Parse:
             elif reg_number.match(token):
                 self.number_term(token)
             elif token.__contains__('-'):
-                tokens = token.split('-')
-                for t in tokens:
-                    if isWord(t):
-                        self.add_word_term(token)
-                if token[0].isupper():
-                    self.add_to_dict(token.upper())
-
+                if isWord(token.replace('-','')):
+                    tokens = token.split('-')
+                    for t in tokens:
+                        if not t == '':
+                            if isWord(t):
+                                self.add_word_term(t)
+                if token.istitle():
+                    self.add_to_dict(token.upper(), self.index)
+                else:
+                    self.add_to_dict(token.lower(), self.index)
             elif str.__contains__(token, '/'):
                 if re.match(r'\$?[0-9]* ?[0-9]+/[0-9]+$', token):
                     if self.index + 1 < len(self.list_strings) and (
-                            self.list_strings[self.index + 1] == "Dollars" or token.startswith('$')):
+                                    self.list_strings[self.index + 1] == "Dollars" or token.startswith('$')):
                         self.add_to_dict('{} Dollars'.format(token.replace('$', '')), self.index)
                         self.index += 1
                     else:
                         self.add_to_dict(token, self.index)
-                else:
-                    token = token.replace('/', '')
-                    if not token is '':
-                        if isWord(token):
-                            self.add_word_term(token)
-                        else:
-                            self.add_to_dict(token, self.index)
+                elif not token.__contains__('<'):
+                    self.add_to_dict(token, self.index)
             elif self.index + 3 < len(self.list_strings) and token == "Between" and reg_number.match(
                     self.list_strings[self.index + 1]) and self.list_strings[
-                self.index + 2] == "and" and reg_number.match(self.list_strings[self.index + 3]):
+                        self.index + 2] == "and" and reg_number.match(self.list_strings[self.index + 3]):
                 token = "between {} and {}".format(self.list_strings[self.index + 1],
                                                    self.list_strings[self.index + 3])
                 self.add_to_dict(token, self.index)
                 self.index += 3
-            elif len(token)>1 and not (token.__contains__('<') or token.__contains__('>')) :
+            elif len(token) > 1 and not (token.__contains__('<') or token.__contains__('>')):
                 self.add_to_dict(token, self.index)
             self.index += 1
             document_length += 1
@@ -252,7 +242,7 @@ class Parse:
             term = "{}%".format(num_word)
             self.index += 1
         elif self.index + 1 < terms_len and self.list_strings[self.index + 1] == "kgs":
-            term = "{} kilograms".format(num_word)
+            term = "{} Kilograms".format(num_word)
             self.index += 1
         elif self.index + 1 < terms_len and self.list_strings[self.index + 1] == "GMT" and self.list_strings[
             self.index] and len(self.list_strings[self.index]) is 4:
@@ -262,12 +252,12 @@ class Parse:
             num = float(dollar_expression.group(1))
             if dollar_expression.group(2):
                 num *= self.num_dict[str.lower(dollar_expression.group(2))]
-                term = "{:.2f} M Dollars".format(num).replace('.00', '')
+                term = "{:.3f} M Dollars".format(num).replace('.000', '')
             elif num >= 1000000:
                 num = num / 1000000.0
-                term = "{:.2f} M Dollars".format(num).replace('.00', '')
+                term = "{:.3f} M Dollars".format(num).replace('.000', '')
             else:
-                term = "{:.2f} Dollars".format(num).replace('.00', '')
+                term = "{:.3f} Dollars".format(num).replace('.000', '')
             self.index += (1 if dollar_expression.group(4) else 0) + (1 if dollar_expression.group(3) else 0) + \
                           (1 if dollar_expression.group(2) else 0)
         elif self.index + 1 < terms_len and self.list_strings[self.index + 1] in self.date_dict:
@@ -295,5 +285,5 @@ class Parse:
             while number > 999:
                 number = number / 1000.0
                 counter += 1
-            term = "{:.2f}{}".format(number, amounts[counter]).replace(".00", "")
+            term = "{:.3f}{}".format(number, amounts[counter]).replace(".000", "")
         self.add_to_dict(term, orig_idx)

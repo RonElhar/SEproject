@@ -11,6 +11,7 @@ import ParallelMain
 import datetime
 import Parse
 
+from operator import itemgetter
 
 class Main:
     def __init__(self):
@@ -102,9 +103,16 @@ class Main:
         print "Num of terms: " + str(len(self.indexer.terms_dict.keys()))
         num_count = 0
         i = 0
+        freq = {}
         for term in self.indexer.terms_dict.keys():
             if Parse.isFloat(term):
                 num_count += 1
+            freq[term] = self.indexer.terms_dict[term][1]
+
+        freq_list = sorted(freq.items(), key=itemgetter(1))
+        with open('frequency.txt', 'wb') as f:
+            for n in freq_list:
+                    f.write(str(n[0]) + ": " + str(n[1]) + '\n')
 
         print "Num of terms which are nums: " + str(num_count)
         print "Num of countries: " + str(len(self.indexer.countries))

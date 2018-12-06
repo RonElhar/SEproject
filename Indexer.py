@@ -72,12 +72,12 @@ class Indexer:
         with open(self.posting_path + "\\Documents", 'wb') as f:
             lines_count = 0
             for doc_id in docs:
-                    doc_index = "{}|{}|{}|{}|{}|{}\n".format(doc_id, docs[doc_id].title, docs[doc_id].origin_city,
-                                                             docs[doc_id].num_of_unique_words, docs[doc_id].length,
-                                                             docs[doc_id].max_tf)
-                    f.write(doc_index)
-                    self.docs_dict[doc_id] = lines_count
-                    lines_count += 1
+                doc_index = "{}|{}|{}|{}|{}|{}\n".format(doc_id, docs[doc_id].title, docs[doc_id].origin_city,
+                                                         docs[doc_id].num_of_unique_words, docs[doc_id].length,
+                                                         docs[doc_id].max_tf)
+                f.write(doc_index)
+                self.docs_dict[doc_id] = lines_count
+                lines_count += 1
 
     def post_pointers(self, languages):
         if not os.path.exists(self.posting_path + "\\Pointers"):
@@ -85,6 +85,7 @@ class Indexer:
 
         tmp_dict = {}
         for term in self.terms_dict.keys():
+            self.terms_dict[term][1] -= 1
             tmp_dict[term] = self.terms_dict[term]
         self.terms_dict = tmp_dict
 

@@ -45,12 +45,11 @@ def merge(files_paths, merge_path, post_files_lines, terms_dicts, shared_dict, i
                 second_file_index = read_next(files_paths[1])
                 count_second_file_lines += 1
             if is_final_posting:
+                lower_term = inverted_index[0].lower()
                 if Parse.isWord(inverted_index[0]) and inverted_index[0].isupper() and \
-                        (inverted_index[0].lower() in terms_dicts[0] or
-                                 inverted_index[0].lower() in terms_dicts[1] or
-                                 inverted_index[0].lower() in terms_dicts[2] or
-                                 inverted_index[0].lower() in terms_dicts[3]):
-                    big_terms[inverted_index[0].lower()] = inverted_index[1]
+                        (lower_term in terms_dicts[0] or lower_term in terms_dicts[1] or lower_term in terms_dicts[2]
+                         or lower_term in terms_dicts[3]):
+                    big_terms[lower_term] = inverted_index[1]
                 else:
                     term = inverted_index[0]
                     shared_dict[term] = [merged_line_count, 0, 0]
@@ -66,10 +65,8 @@ def merge(files_paths, merge_path, post_files_lines, terms_dicts, shared_dict, i
                                 shared_dict[term] = [shared_dict[term][0], shared_dict[term][1] + \
                                                      terms_dicts[i][term.upper()][0],
                                                      shared_dict[term][2] + terms_dicts[i][term.upper()][1]]
-                        # print term.upper()
-                        big_terms.pop(term)
-                    if inverted_index[0] == 'MOSCOW':
-                        print '{}|{}|{}\n'.format(inverted_index[0], inverted_index[1])
+                    if inverted_index[0] == 'moscow':
+                        print '{}|{}\n'.format(inverted_index[0], inverted_index[1])
                     f.write('{}|{}\n'.format(inverted_index[0], inverted_index[1]))
                     merged_line_count += 1
 
@@ -97,12 +94,11 @@ def merge(files_paths, merge_path, post_files_lines, terms_dicts, shared_dict, i
             term_index = read_next(files_paths[path_index])
             count_lines += 1
             if is_final_posting:
+                lower_term = inverted_index[0].lower()
                 if Parse.isWord(inverted_index[0]) and inverted_index[0].isupper() and \
-                        (inverted_index[0].lower() in terms_dicts[0] or
-                                 inverted_index[0].lower() in terms_dicts[1] or
-                                 inverted_index[0].lower() in terms_dicts[2] or
-                                 inverted_index[0].lower() in terms_dicts[3]):
-                    big_terms[inverted_index[0].lower()] = inverted_index[1]
+                        (lower_term in terms_dicts[0] or lower_term in terms_dicts[1] or lower_term in terms_dicts[2]
+                         or lower_term in terms_dicts[3]):
+                    big_terms[lower_term] = inverted_index[1]
                 else:
                     term = inverted_index[0]
                     shared_dict[term] = [merged_line_count, 0, 0]
@@ -118,19 +114,14 @@ def merge(files_paths, merge_path, post_files_lines, terms_dicts, shared_dict, i
                                 shared_dict[term] = [shared_dict[term][0], shared_dict[term][1] + \
                                                      terms_dicts[i][term.upper()][0],
                                                      shared_dict[term][2] + terms_dicts[i][term.upper()][1]]
-                        # print term.upper()
-                        big_terms.pop(term)
-                    if inverted_index[0] == 'MOSCOW':
-                        print '{}|{}|{}\n'.format(inverted_index[0], inverted_index[1])
+                    if inverted_index[0] == 'moscow':
+                        print '{}|{}\n'.format(inverted_index[0], inverted_index[1])
 
                     f.write('{}|{}\n'.format(inverted_index[0], inverted_index[1]))
                     merged_line_count += 1
             else:
                 f.write('{}|{}\n'.format(inverted_index[0], inverted_index[1]))
                 merged_line_count += 1
-    print big_terms
-    print len(big_terms)
-    print merged_line_count
     merged_post_lines[merge_path + merged_post_name] = merged_line_count
 
 
