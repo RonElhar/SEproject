@@ -69,7 +69,7 @@ def merge(files_paths, merge_path, post_files_lines, terms_dicts, shared_dict, i
                         # print term.upper()
                         big_terms.pop(term)
                     if inverted_index[0] == 'MOSCOW':
-                        print '{}|{}|{}\n'.format(inverted_index[0], inverted_index[1], inverted_index[2])
+                        print '{}|{}|{}\n'.format(inverted_index[0], inverted_index[1])
                     f.write('{}|{}\n'.format(inverted_index[0], inverted_index[1]))
                     merged_line_count += 1
 
@@ -121,7 +121,7 @@ def merge(files_paths, merge_path, post_files_lines, terms_dicts, shared_dict, i
                         # print term.upper()
                         big_terms.pop(term)
                     if inverted_index[0] == 'MOSCOW':
-                        print '{}|{}|{}\n'.format(inverted_index[0], inverted_index[1], inverted_index[2])
+                        print '{}|{}|{}\n'.format(inverted_index[0], inverted_index[1])
 
                     f.write('{}|{}\n'.format(inverted_index[0], inverted_index[1]))
                     merged_line_count += 1

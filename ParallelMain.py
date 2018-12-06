@@ -73,46 +73,46 @@ def start(corpus_path, posting_path, to_stem, dirs_list):
     manager = multiprocessing.Manager()
     dirs_dicts = manager.dict()
     start_time = timer()
-    p1 = multiprocessing.Process(target=start_indexing,
-                                 args=(
-                                     dirs_list, dirs_dicts, corpus_path, posting_path, to_stem, 0, files_partition[0],
-                                     "\\Postings1"))  # 0-395
-
-    p2 = multiprocessing.Process(target=start_indexing,
-                                 args=(
-                                     dirs_list, dirs_dicts, corpus_path, posting_path, to_stem, files_partition[0],
-                                     files_partition[1],
-                                     "\\Postings2"))  # 395-791
-
-    p3 = multiprocessing.Process(target=start_indexing,
-                                 args=(
-                                     dirs_list, dirs_dicts, corpus_path, posting_path, to_stem, files_partition[1],
-                                     files_partition[2],
-                                     "\\Postings3"))  # 791, 1243
-
-    p4 = multiprocessing.Process(target=start_indexing,
-                                 args=(
-                                     dirs_list, dirs_dicts, corpus_path, posting_path, to_stem, files_partition[2],
-                                     len(dirs_list), "\\Postings4"))
-
-
     # p1 = multiprocessing.Process(target=start_indexing,
     #                              args=(
-    #                                  dirs_list, dirs_dicts, corpus_path, posting_path, to_stem, 0, 10,
+    #                                  dirs_list, dirs_dicts, corpus_path, posting_path, to_stem, 0, files_partition[0],
     #                                  "\\Postings1"))  # 0-395
+    #
     # p2 = multiprocessing.Process(target=start_indexing,
     #                              args=(
-    #                                  dirs_list, dirs_dicts, corpus_path, posting_path, to_stem, 10,
-    #                                  20, "\\Postings2"))  # 395-791
+    #                                  dirs_list, dirs_dicts, corpus_path, posting_path, to_stem, files_partition[0],
+    #                                  files_partition[1],
+    #                                  "\\Postings2"))  # 395-791
+    #
     # p3 = multiprocessing.Process(target=start_indexing,
     #                              args=(
-    #                                  dirs_list, dirs_dicts, corpus_path, posting_path, to_stem, 20,
-    #                                  30, "\\Postings3"))  # 791, 1243
+    #                                  dirs_list, dirs_dicts, corpus_path, posting_path, to_stem, files_partition[1],
+    #                                  files_partition[2],
+    #                                  "\\Postings3"))  # 791, 1243
     #
     # p4 = multiprocessing.Process(target=start_indexing,
     #                              args=(
-    #                                  dirs_list, dirs_dicts, corpus_path, posting_path, to_stem, 30, 40,
-    #                                  "\\Postings4"))  # 1243, 1815
+    #                                  dirs_list, dirs_dicts, corpus_path, posting_path, to_stem, files_partition[2],
+    #                                  len(dirs_list), "\\Postings4"))
+    #
+    #
+    p1 = multiprocessing.Process(target=start_indexing,
+                                 args=(
+                                     dirs_list, dirs_dicts, corpus_path, posting_path, to_stem, 0, 10,
+                                     "\\Postings1"))  # 0-395
+    p2 = multiprocessing.Process(target=start_indexing,
+                                 args=(
+                                     dirs_list, dirs_dicts, corpus_path, posting_path, to_stem, 10,
+                                     20, "\\Postings2"))  # 395-791
+    p3 = multiprocessing.Process(target=start_indexing,
+                                 args=(
+                                     dirs_list, dirs_dicts, corpus_path, posting_path, to_stem, 20,
+                                     30, "\\Postings3"))  # 791, 1243
+
+    p4 = multiprocessing.Process(target=start_indexing,
+                                 args=(
+                                     dirs_list, dirs_dicts, corpus_path, posting_path, to_stem, 30, 40,
+                                     "\\Postings4"))  # 1243, 1815
 
     p1.start()
     p2.start()
