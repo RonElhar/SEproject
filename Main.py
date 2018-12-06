@@ -70,7 +70,7 @@ class Main:
         print "finished merge: " + str(datetime.datetime.now())
 
         dirs_dict = None
-        self.indexer.terms_dict = terms_dict
+        self.indexer.terms_dict.copy(terms_dict)
         self.indexer.index_docs(docs)
         self.indexer.index_cities(self.reader.cities)
         self.indexer.post_pointers(self.languages)
