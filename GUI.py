@@ -1,7 +1,9 @@
+import os
 from Tkinter import tkinter
 
 from Tkinter import *
 import tkFileDialog
+import tkMessageBox
 
 
 def make_entry(parent, caption, row, column, width=None, **options):
@@ -24,6 +26,7 @@ class IndexView:
         self.corpus_entry = make_entry(self.index_window, "Corpus Path:", 1, 0, 60)
         self.posting_entry = make_entry(self.index_window, "Posting Path:", 2, 0, 60)
         self.language_list = None
+        self.start_index_view()
 
     def get_stemming_bool(self):
         return self.stemming_bool
@@ -38,29 +41,40 @@ class IndexView:
         self.posting_entry.insert(0, dir_path)
         self.controller.set_posting_path(dir_path)
 
-    def entered_posting(self):
-        dir_path = self.posting_entry.get()
-        self.controller.set_posting_path(dir_path)
-
     def language_chosen(self):
         pass
 
     def reset(self):
+        dir_path = self.posting_entry.get()
+        self.controller.set_posting_path(dir_path)
         self.controller.reset()
         self.language_list.insert(END, '')
         pass
 
     def start(self):
+
         dir_path = self.corpus_entry.get()
+        if not os.path.isdir(dir_path):
+            self.invalid_path("Corpus")
+            return
         self.controller.set_corpus_path(dir_path)
         dir_path = self.posting_entry.get()
+        if not os.path.isdir(dir_path):
+            self.invalid_path("Posting")
+            return
         self.controller.set_posting_path(dir_path)
         self.controller.start()
+
         lang_list = self.controller.get_languages()
         for lang in sorted(lang_list):
             self.language_list.insert(END, lang)
 
+    def invalid_path(self, path_type):
+        tkMessageBox.showinfo("Error ", "Invalid {} path".format(path_type))
+
     def load(self):
+        dir_path = self.posting_entry.get()
+        self.controller.set_posting_path(dir_path)
         self.controller.load()
         lang_list = self.controller.get_languages()
         for lang in sorted(lang_list):
@@ -81,8 +95,8 @@ class IndexView:
         listNodes.config(yscrollcommand=scrollbar.set)
 
         # dict = {'Ron': 1, 'gal': 3, 'lian': 4}
-        for term in terms_dict:
-            listNodes.insert(END, "{} - {}\n".format(term, str(terms_dict[term]["df"])))
+        for term in sorted(terms_dict.keys()):
+            listNodes.insert(END, "{} - {}\n".format(term, str(terms_dict[term][1])))
 
     def stem_control(self):
         if self.stemming_bool:
@@ -129,5 +143,5 @@ class IndexView:
 
         self.index_window.mainloop()
 
-# view = IndexView("")
-# view.index_view()
+    if __name__ == "__main__":
+        start_index_view()

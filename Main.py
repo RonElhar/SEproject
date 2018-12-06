@@ -1,4 +1,8 @@
 import os
+
+import shutil
+
+import Merge
 from GUI import *
 # from Indexer import Indexer
 from ReadFile import ReadFile
@@ -6,17 +10,19 @@ from Parse import Parse
 from ReadFile import Document
 from timeit import default_timer as timer
 from Indexer import Indexer
+import ParallelMain
+import datetime
+import Parse
 
 
 class Main:
-
     def __init__(self):
-        self.reader = ReadFile()
-        self.indexer = Indexer("Postings\\")
-        self.parser = Parse()
         self.corpus_path = ''
         self.posting_path = ''
         self.to_stem = False
+        self.indexer = None
+        self.reader = ReadFile()
+        self.languages = set()
 
     def set_corpus_path(self, path):
         self.corpus_path = path
@@ -25,90 +31,118 @@ class Main:
         self.posting_path = path
 
     def set_stemming_bool(self, to_stem):
-        self.parser.set_stemming_bool(to_stem)
+        self.to_stem = to_stem
 
     def start(self):
+        if not os.path.exists(self.posting_path):
+            os.makedirs(self.posting_path)
+        self.indexer = Indexer(self.posting_path)
         if self.to_stem:
-            self.parser.to_stem = True
             self.indexer.to_stem = True
-        mstart = timer()
-        self.set_corpus_path(os.path.dirname(os.path.abspath(__file__)) + "\\corpus")
-        #self.indexer.posting_path = self.posting_path
-        print "start"
-        doc_terms_dict = {}
-        locs_dict = {}
+        start_time = timer()
+        print "start :" + str(datetime.datetime.now())
         dirs_list = os.listdir(self.corpus_path)
-        i = 0
-        j = 0
-        file_docs = {}
+        # ''''
+        dirs_dict = ParallelMain.start(self.corpus_path, self.posting_path, self.to_stem, dirs_list)
+        print "finished_postings: " + str(datetime.datetime.now())
         docs = {}
-        num_of_docs = 0
-        terms = 0
-        while i < 10:
-            # while i < 1:
-            docs = self.reader.separate_docs_in_file(self.corpus_path, dirs_list[i])
-            # file_docs[dirs_list[i]] = docs.keys()
-            j = 0
-            # self.indexer.files_count += 1
-            for doc_id in docs:
-                self.parser.parsed_doc = docs[doc_id]
-                doc_terms_dict = self.parser.main_parser(docs[doc_id].text)
-                # print docs[doc_id].length
-                # print docs[doc_id].num_of_unique_words
-                # print docs[doc_id].max_tf
-                # num_of_docs+=1
-                # terms+=len(doc_dict)
-                if i == len(dirs_list) - 1 and j == len(docs) - 1:
-                    self.indexer.finished_parse = True
-                self.indexer.index_terms(doc_terms_dict, doc_id)
-                j += 1
-                docs[doc_id].text = None
+        # '''
+        i = 0
+        while i < len(dirs_list):
+            self.reader.read_cities(self.corpus_path, dirs_list[i])
             i += 1
+        # '''
+        files_names = []
+        post_files_lines = []
+        for dir in dirs_dict.keys():
+            docs.update(dirs_dict[dir][2])
+            for lang in dirs_dict[dir][3]:
+                self.languages.add(lang)
+            old_post_files_lines = dirs_dict[dir][0]
+            for i in range(0, len(old_post_files_lines)):
+                files_names.append(dir + "\\Posting" + str(i) if not self.to_stem else dir + "\\sPosting" + str(i))
+                post_files_lines.append(old_post_files_lines[i])
 
-        # self.indexer.read_post(0, [0, 1, 2])
-        self.indexer.finished_parse = True
-        mend = timer()
-        print("total Index time: " + str(mend - mstart))
-        self.indexer.merge_posting()
-        # self.indexer.non_compressed_post()
-        # self.indexer.index_cities(self.reader.cities)
-        # self.indexer.read_post("", "")
-        # print terms
-        # print num_of_docs
+        print "started merge: " + str(datetime.datetime.now())
+
+        terms_dicts = [dirs_dict["\\Postings1"][1], dirs_dict["\\Postings2"][1], dirs_dict["\\Postings3"][1],
+                       dirs_dict["\\Postings4"][1]]
+
+        terms_dict = Merge.start_merge(files_names, post_files_lines, terms_dicts, self.posting_path, self.to_stem)
+        print "finished merge: " + str(datetime.datetime.now())
+
+        dirs_dict = None
+        self.indexer.terms_dict = terms_dict
+        self.indexer.index_docs(docs)
+        # '''
+        self.indexer.index_cities(self.reader.cities)
+        self.indexer.post_pointers(self.languages)
+        end_time = timer()
+
+        print("total time: " + str(end_time - start_time))
+        print "End: " + str(datetime.datetime.now())
+
+        self.report()
 
     def load(self):
-        self.indexer.load()
+        self.indexer = Indexer(self.posting_path)
+        self.languages = self.indexer.load()
         pass
 
     def reset(self):
-        for the_file in os.listdir(self.posting_path):
-            file_path = os.path.join(self.posting_path, the_file)
-            try:
-                if os.path.isfile(file_path):
-                    os.unlink(file_path)
-            except Exception as e:
-                print(e)
-        self.indexer = Indexer()
-        self.reader = ReadFile()
-        self.parser = Parse()
+        shutil.rmtree(self.posting_path)
+        if not os.path.exists(self.posting_path):
+            os.makedirs(self.posting_path)
+        self.indexer = None
 
     def get_terms_dict(self):
-        # return  terms-dfs
-        pass
+        return self.indexer.terms_dict
 
     def get_languages(self):
         # should return string with languages separated with '\n'
-        return self.reader.languages
+        return self.languages
+
+    def report(self):
+        print "Num of terms: " + str(len(self.indexer.terms_dict))
+        num_count = 0
+        i = 0
+        freq_terms = {}
+        for term in sorted(self.indexer.terms_dict.keys()):
+            freq = self.indexer.terms_dict[term][1]
+            if freq in freq_terms:
+                freq_terms[freq] = [term]
+            else:
+                freq_terms[freq].append(term)
+            if Parse.isFloat(term):
+                num_count += 1
+
+        print  '#### max terms ###'
+        i = 0
+        while i < 10:
+            max_freq = max(freq_terms, key=int)
+            for term in freq_terms[max_freq]:
+                print term
+                i += 1
+            freq_terms.pop(max_freq)
+
+        print  '#### min terms ###'
+        i = 0
+        while i < 10:
+            min_freq = min(freq_terms, key=int)
+            for term in freq_terms[min_freq]:
+                print term
+                i += 1
+            freq_terms.pop(min_freq)
+
+        print "Num of terms which are nums: " + str(num_count)
+        print "Num of countries: " + str(len(self.indexer.countries))
+        print "Num of capitals: " + str(self.indexer.num_of_capitals)
 
 
-start = timer()
-main = Main()
-# view = IndexView(main)
-# view.start_index_view()
-# main.to_stem = view.get_stemming_bool()
-main.start()
-end = timer()
-print("total time: " + str(end - start))
+if __name__ == "__main__":
+    controller = Main()
+    view = IndexView(controller)
+    view.start_index_view()
 
 '''''
 parse = Parse()

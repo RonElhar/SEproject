@@ -1,8 +1,6 @@
 from timeit import default_timer as timer
 import string
-import nltk
 import Stemmer
-from nltk.stem.porter import *
 import re
 
 
