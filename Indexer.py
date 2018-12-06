@@ -13,13 +13,11 @@ del_size = sys.getsizeof('\n')
 
 
 class Indexer:
-
     def __init__(self, posting_path):
         self.posting_path = posting_path
-        self.docs_tf_dict = {}
-        self.docs_locations_dict = {}
         self.post_count = 0
         self.terms_dict = {}
+        self.tf_loc_dict = {}
         self.cities_dict = {}
         self.docs_dict = {}
         self.finished_parse = False
@@ -31,26 +29,23 @@ class Indexer:
 
     def index_terms(self, doc_terms_dict, doc_id):
         for term in doc_terms_dict:
-            if not self.docs_tf_dict.__contains__(term):
+            if term not in self.tf_loc_dict:
                 self.terms_dict[term] = [doc_terms_dict[term][0], 1]
-                self.docs_locations_dict[term] = {}
-                self.docs_tf_dict[term] = {}
+                self.tf_loc_dict[term] = {}
             self.terms_dict[term] = [doc_terms_dict[term][0] + self.terms_dict[term][0], self.terms_dict[term][1] + 1]
-            self.docs_tf_dict[term][doc_id] = doc_terms_dict[term][0]  ## add tf_idf
-            self.docs_locations_dict[term][doc_id] = doc_terms_dict[term][1]
+            self.tf_loc_dict[term][doc_id] = [doc_terms_dict[term][0], doc_terms_dict[term][1]]
 
-        if len(self.docs_tf_dict) > 300000 or self.finished_parse:
-            terms = sorted(self.docs_tf_dict.keys())
-            self.post(terms, self.docs_tf_dict, self.docs_locations_dict)
-            self.docs_tf_dict = {}
-            self.docs_locations_dict = {}
+        if len(self.tf_loc_dict) > 350000 or self.finished_parse:
+            terms = sorted(self.tf_loc_dict.keys())
+            self.post(terms, self.tf_loc_dict)
+            self.tf_loc_dict = {}
 
-    def post(self, terms, docs_tf_dict, docs_locations_dict):
+    def post(self, terms, tf_loc_dict):
         line_count = 0
         file_name = '\\Posting' + str(self.post_count) if not self.to_stem else '\\sPosting' + str(self.post_count)
         with open(self.posting_path + file_name, 'wb') as f:
             for term in terms:
-                index = '{}|{}#|{}#\n'.format(term, str(docs_tf_dict[term]), str(docs_locations_dict[term]))
+                index = '{}|{}#\n'.format(term, str(tf_loc_dict[term]).replace(' ',''))
                 f.write(index)
                 line_count += 1
         self.post_files_lines.append(line_count)
@@ -61,14 +56,15 @@ class Indexer:
         lines_count = 0
         for city in cities:
             if Parse.isWord(city):
-                city_details = {}
+                city_details = None
                 if city in capitals_details:
-                    city_details[city] = capitals_details[city]
+                    city_details = capitals_details[city]
                     self.countries.add(city_details["Country"])
-                    self.num_of_capitals +=1
+                    self.num_of_capitals += 1
                 else:
                     city_details = CityDetailes.get_city_details(city)
-                    self.countries.add(city_details["Country"])
+                    if not city_details is "" and not city_details is None:
+                        self.countries.add(city_details["Country"])
                 self.cities_dict[city] = [city_details, cities[city], self.terms_dict.get(city)]
                 lines_count += 1
 
@@ -76,7 +72,6 @@ class Indexer:
         with open(self.posting_path + "\\Documents", 'wb') as f:
             lines_count = 0
             for doc_id in docs:
-                if Parse.isWord(doc_id):
                     doc_index = "{}|{}|{}|{}|{}|{}\n".format(doc_id, docs[doc_id].title, docs[doc_id].origin_city,
                                                              docs[doc_id].num_of_unique_words, docs[doc_id].length,
                                                              docs[doc_id].max_tf)
@@ -88,25 +83,30 @@ class Indexer:
         if not os.path.exists(self.posting_path + "\\Pointers"):
             os.makedirs(self.posting_path + "\\Pointers")
 
+        tmp_dict = {}
+        for term in self.terms_dict.keys():
+            tmp_dict[term] = self.terms_dict[term]
+        self.terms_dict = tmp_dict
+
         if self.to_stem:
             with open(self.posting_path + "\\Pointers\\sTerms Pointers Dictionary", 'wb') as f:
-                pickle.dump(self.terms_dict, f)
+                cPickle.dump(self.terms_dict, f)
             with open(self.posting_path + "\\Pointers\\sCities Pointers Dictionary", 'wb') as f:
-                pickle.dump(self.cities_dict, f)
+                cPickle.dump(self.cities_dict, f)
             with open(self.posting_path + "\\Pointers\\sDocuments Pointers Dictionary", 'wb') as f:
-                pickle.dump(self.docs_dict, f)
+                cPickle.dump(self.docs_dict, f)
             with open(self.posting_path + "\\Pointers\\sLanguages Dictionary", 'wb') as f:
-                pickle.dump(languages, f)
+                cPickle.dump(languages, f)
 
         else:
             with open(self.posting_path + "\\Pointers\\Terms Pointers Dictionary", 'wb') as f:
-                pickle.dump(self.terms_dict, f)
+                cPickle.dump(self.terms_dict, f)
             with open(self.posting_path + "\\Pointers\\Cities Pointers Dictionary", 'wb') as f:
-                pickle.dump(self.cities_dict, f)
+                cPickle.dump(self.cities_dict, f)
             with open(self.posting_path + "\\Pointers\\Documents Pointers Dictionary", 'wb') as f:
-                pickle.dump(self.docs_dict, f)
+                cPickle.dump(self.docs_dict, f)
             with open(self.posting_path + "\\Pointers\\Languages Dictionary", 'wb') as f:
-                pickle.dump(languages, f)
+                cPickle.dump(languages, f)
 
     def load(self):
         languages = None

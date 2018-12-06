@@ -135,6 +135,14 @@ class Parse:
                 self.add_word_term(token)
             elif reg_number.match(token):
                 self.number_term(token)
+            elif token.__contains__('-'):
+                tokens = token.split('-')
+                for t in tokens:
+                    if isWord(t):
+                        self.add_word_term(token)
+                if token[0].isupper():
+                    self.add_to_dict(token.upper())
+
             elif str.__contains__(token, '/'):
                 if re.match(r'\$?[0-9]* ?[0-9]+/[0-9]+$', token):
                     if self.index + 1 < len(self.list_strings) and (
@@ -157,7 +165,7 @@ class Parse:
                                                    self.list_strings[self.index + 3])
                 self.add_to_dict(token, self.index)
                 self.index += 3
-            else:
+            elif len(token)>1 and not (token.__contains__('<') or token.__contains__('>')) :
                 self.add_to_dict(token, self.index)
             self.index += 1
             document_length += 1
@@ -173,7 +181,7 @@ class Parse:
 
     def get_terms(self, text):
         SEPS = (' ', '--')
-        allowed = "{}{}-$%/.".format(string.ascii_letters, string.digits)
+        allowed = "{}{}-$%/.<>".format(string.ascii_letters, string.digits)
         start = timer()
         rsplit = re.compile("|".join(SEPS)).split
         terms = [s.strip() for s in rsplit(text)]
@@ -289,11 +297,3 @@ class Parse:
                 counter += 1
             term = "{:.2f}{}".format(number, amounts[counter]).replace(".00", "")
         self.add_to_dict(term, orig_idx)
-
-# parse = Parse()
-# print(parse.number_term(0, ['10','August']))
-
-# list = [1,2,3,4]
-# index =4
-# if index + 1 < len(list) and list[index+1] ==2:
-#    print "foo"

@@ -82,7 +82,7 @@ class IndexView:
 
     def show(self):
         dict_window = Tk()
-        dict_window.geometry("200x500")
+        dict_window.geometry("300x900")
         terms_dict = self.controller.get_terms_dict()
 
         listNodes = Listbox(dict_window, font=("Helvetica", 12))
