@@ -69,7 +69,7 @@ class IndexView:
         self.controller.start()
         end = timer()
         tkMessageBox.showinfo('Finished',
-                              "Indexed {} docs\nNum of unique terms in the corpus is: {}\nTotal processing time is: ".format(
+                              "Indexed {} docs\nNum of unique terms in the corpus is: {}\nTotal processing time is: {}".format(
                                   len(self.controller.indexer.docs_dict), len(self.controller.indexer.terms_dict),
                                   str(end - start)))
         lang_list = self.controller.get_languages()

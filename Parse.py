@@ -159,11 +159,6 @@ class Parse:
                 self.add_to_dict(token, self.index)
             self.index += 1
             document_length += 1
-        # if self.to_stem:
-        #     terms = self.terms_dict.keys()
-        #     for term in terms:
-        #         self.terms_dict[self.pystemmer.stem(term)] = self.terms_dict.pop(term)
-        # print self.terms_dict
         self.list_strings = ''
         self.parsed_doc.length = document_length
         self.parsed_doc.num_of_unique_words = len(self.terms_dict)
