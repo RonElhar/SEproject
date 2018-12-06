@@ -65,8 +65,7 @@ def merge(files_paths, merge_path, post_files_lines, terms_dicts, shared_dict, i
                                 shared_dict[term] = [shared_dict[term][0], shared_dict[term][1] + \
                                                      terms_dicts[i][term.upper()][0],
                                                      shared_dict[term][2] + terms_dicts[i][term.upper()][1]]
-                    if inverted_index[0] == 'moscow':
-                        print '{}|{}\n'.format(inverted_index[0], inverted_index[1])
+
                     f.write('{}|{}\n'.format(inverted_index[0], inverted_index[1]))
                     merged_line_count += 1
 
@@ -114,8 +113,6 @@ def merge(files_paths, merge_path, post_files_lines, terms_dicts, shared_dict, i
                                 shared_dict[term] = [shared_dict[term][0], shared_dict[term][1] + \
                                                      terms_dicts[i][term.upper()][0],
                                                      shared_dict[term][2] + terms_dicts[i][term.upper()][1]]
-                    if inverted_index[0] == 'moscow':
-                        print '{}|{}\n'.format(inverted_index[0], inverted_index[1])
 
                     f.write('{}|{}\n'.format(inverted_index[0], inverted_index[1]))
                     merged_line_count += 1

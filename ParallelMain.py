@@ -72,7 +72,6 @@ def start(corpus_path, posting_path, to_stem, dirs_list):
     files_partition = get_corpus_4partition(dirs_list, corpus_path)
     manager = multiprocessing.Manager()
     dirs_dicts = manager.dict()
-    start_time = timer()
     p1 = multiprocessing.Process(target=start_indexing,
                                  args=(
                                      dirs_list, dirs_dicts, corpus_path, posting_path, to_stem, 0, files_partition[0],
@@ -95,25 +94,6 @@ def start(corpus_path, posting_path, to_stem, dirs_list):
                                      dirs_list, dirs_dicts, corpus_path, posting_path, to_stem, files_partition[2],
                                      len(dirs_list), "\\Postings4"))
 
-
-    # p1 = multiprocessing.Process(target=start_indexing,
-    #                              args=(
-    #                                  dirs_list, dirs_dicts, corpus_path, posting_path, to_stem, 0, 10,
-    #                                  "\\Postings1"))  # 0-395
-    # p2 = multiprocessing.Process(target=start_indexing,
-    #                              args=(
-    #                                  dirs_list, dirs_dicts, corpus_path, posting_path, to_stem, 10,
-    #                                  20, "\\Postings2"))  # 395-791
-    # p3 = multiprocessing.Process(target=start_indexing,
-    #                              args=(
-    #                                  dirs_list, dirs_dicts, corpus_path, posting_path, to_stem, 20,
-    #                                  30, "\\Postings3"))  # 791, 1243
-    #
-    # p4 = multiprocessing.Process(target=start_indexing,
-    #                              args=(
-    #                                  dirs_list, dirs_dicts, corpus_path, posting_path, to_stem, 30, 40,
-    #                                  "\\Postings4"))  # 1243, 1815
-
     p1.start()
     p2.start()
     p3.start()
@@ -122,6 +102,4 @@ def start(corpus_path, posting_path, to_stem, dirs_list):
     p2.join()
     p3.join()
     p4.join()
-    end_time = timer()
-    print("total time: " + str(end_time - start_time))
     return dirs_dicts

@@ -79,6 +79,7 @@ class Main:
         print("total time: " + str(end_time - start_time))
         print "End: " + str(datetime.datetime.now())
 
+        print "Num of terms: " + str(len(self.indexer.terms_dict.keys()))
         self.report()
 
     def load(self):
@@ -100,7 +101,6 @@ class Main:
         return self.languages
 
     def report(self):
-        print "Num of terms: " + str(len(self.indexer.terms_dict.keys()))
         num_count = 0
         i = 0
         freq = {}
