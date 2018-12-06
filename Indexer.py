@@ -72,7 +72,6 @@ class Indexer:
         with open(self.posting_path + "\\Documents", 'wb') as f:
             lines_count = 0
             for doc_id in docs:
-                if Parse.isWord(doc_id):
                     doc_index = "{}|{}|{}|{}|{}|{}\n".format(doc_id, docs[doc_id].title, docs[doc_id].origin_city,
                                                              docs[doc_id].num_of_unique_words, docs[doc_id].length,
                                                              docs[doc_id].max_tf)
