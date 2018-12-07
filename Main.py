@@ -45,8 +45,8 @@ class Main:
         docs = {}
         # '''
         i = 0
-        while i < len(dirs_list):
-        # while i < 40:
+        # while i < len(dirs_list):
+        while i < 20:
             self.reader.read_cities(self.corpus_path, dirs_list[i])
             i += 1
         files_names = []
@@ -70,15 +70,15 @@ class Main:
 
         dirs_dict = None
         self.indexer.terms_dict = terms_dict
-        self.indexer.index_docs(docs)
-        self.indexer.index_cities(self.reader.cities)
-        self.indexer.post_pointers(self.languages)
+        # self.indexer.index_docs(docs)
+        # self.indexer.index_cities(self.reader.cities)
+        # self.indexer.post_pointers(self.languages)
         end_time = timer()
 
         print("total time: " + str(end_time - start_time))
         print "End: " + str(datetime.datetime.now())
 
-        self.report()
+        # self.report()
 
     def load(self):
         self.indexer = Indexer(self.posting_path)

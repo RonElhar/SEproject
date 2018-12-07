@@ -102,8 +102,8 @@ def start(corpus_path, posting_path, to_stem, dirs_list):
                                      "\\Postings1"))  # 0-395
     p2 = multiprocessing.Process(target=start_indexing,
                                  args=(
-                                     dirs_list, dirs_dicts, corpus_path, posting_path, to_stem, 10,
-                                     20, "\\Postings2"))  # 395-791
+                                     dirs_list, dirs_dicts, corpus_path, posting_path, to_stem, 10, 20,
+                                     "\\Postings2"))  # 395-791
     p3 = multiprocessing.Process(target=start_indexing,
                                  args=(
                                      dirs_list, dirs_dicts, corpus_path, posting_path, to_stem, 20,

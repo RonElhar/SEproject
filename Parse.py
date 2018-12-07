@@ -135,14 +135,13 @@ class Parse:
                 self.add_word_term(token)
             elif reg_number.match(token):
                 self.number_term(token)
-            elif token.__contains__('-'):
-                tokens = token.split('-')
-                for t in tokens:
-                    if isWord(t):
-                        self.add_word_term(token)
-                if token[0].isupper():
-                    self.add_to_dict(token.upper())
-
+            # elif token.__contains__('-'):
+            #     tokens = token.split('-')
+            #     for t in tokens:
+            #         if isWord(t):
+            #             self.add_word_term(token)
+            #     if token[0].isupper():
+            #         self.add_to_dict(token.upper())
             elif str.__contains__(token, '/'):
                 if re.match(r'\$?[0-9]* ?[0-9]+/[0-9]+$', token):
                     if self.index + 1 < len(self.list_strings) and (
