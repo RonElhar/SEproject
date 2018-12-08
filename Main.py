@@ -70,7 +70,7 @@ class Main:
         # Gets Cities that appear in the corpus
         i = 0
         while i < len(dirs_list):
-            self.reader.read_cities(self.main_path, dirs_list[i])
+            self.reader.read_cities(self.main_path + '\\corpus', dirs_list[i])
             i += 1
 
         terms_dicts = [dirs_dict["\\Postings1"][1], dirs_dict["\\Postings2"][1], dirs_dict["\\Postings3"][1],
