@@ -78,7 +78,7 @@ class Main:
 
         terms_dict = Merge.start_merge(files_names, post_files_lines, terms_dicts, self.posting_path, self.to_stem)
 
-        self.indexer.terms_dict.copy(terms_dict)
+        self.indexer.terms_dict = terms_dict
         self.indexer.index_docs(docs)
         self.indexer.index_cities(self.reader.cities)
         self.indexer.post_pointers(self.languages)
