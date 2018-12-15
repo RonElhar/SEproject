@@ -202,8 +202,9 @@ class Parse:
             self.index += 1
             document_length += 1
         self.tokens_list = ''
-        self.parsed_doc.length = document_length
-        self.parsed_doc.num_of_unique_words = len(self.terms_dict)
+        if not self.parsed_doc is None:
+            self.parsed_doc.length = document_length
+            self.parsed_doc.num_of_unique_words = len(self.terms_dict)
         return self.terms_dict
 
     """
@@ -255,7 +256,7 @@ class Parse:
             self.terms_dict[term] = []
             self.terms_dict[term].append(1)
             self.terms_dict[term].append([index])
-        if self.terms_dict[term][0] > self.parsed_doc.max_tf:
+        if not self.parsed_doc is None and self.terms_dict[term][0] > self.parsed_doc.max_tf:
             self.parsed_doc.max_tf = self.terms_dict[term][0]
 
     """
