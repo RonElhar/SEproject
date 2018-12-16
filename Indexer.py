@@ -11,6 +11,8 @@ import Parse
     
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
+
+
 class Indexer:
     """
        Class Description :
@@ -22,6 +24,7 @@ class Indexer:
         Description :
             This method is for initializing the indexer properties
     """
+
     def __init__(self, posting_path):
         self.posting_path = posting_path
         self.post_count = 0
@@ -35,6 +38,8 @@ class Indexer:
         self.post_files_lines = []
         self.countries = set()
         self.num_of_capitals = 0
+        self.big_letters_words = set()
+        self.docs_avg_length = 0
 
     """
            Description :
@@ -58,7 +63,6 @@ class Indexer:
             if term not in self.tf_loc_dict:
                 self.tf_loc_dict[term] = {}
             self.tf_loc_dict[term][doc_id] = [doc_terms_dict[term][0], doc_terms_dict[term][1]]
-
         if len(self.tf_loc_dict) > 350000 or self.finished_parse:
             terms = sorted(self.tf_loc_dict.keys())
             self.post(terms, self.tf_loc_dict)
@@ -121,15 +125,18 @@ class Indexer:
     """
 
     def index_docs(self, docs):
+        length_sum = 0
         with open(self.posting_path + "\\Documents", 'wb') as f:
             lines_count = 0
             for doc_id in docs:
+                length_sum += docs[doc_id].length
                 doc_index = "{}|{}|{}|{}|{}|{}\n".format(doc_id, docs[doc_id].title, docs[doc_id].origin_city,
                                                          docs[doc_id].num_of_unique_words, docs[doc_id].length,
                                                          docs[doc_id].max_tf)
                 f.write(doc_index)
                 self.docs_dict[doc_id] = lines_count
                 lines_count += 1
+        self.docs_avg_length = length_sum / (len(self.docs_dict))
 
     """
               Description :
