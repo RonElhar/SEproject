@@ -4,8 +4,27 @@ from Tkinter import tkinter
 from Tkinter import *
 import tkFileDialog
 import tkMessageBox
+from timeit import default_timer as timer
 
+"""
+~~~~~~~~~~~~~~~~~~~~~~~~  Module Description ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+    This Module Contains Methods for creating and managing the Graphic User Interfacs
+    of the project 
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+"""
+
+"""
+   Description :
+       This is a generic method for generating tkinter entries 
+   Args:
+       param1 : Path of the file 
+       param2 : The name of the file
+
+   Returns:
+       Dictionaries of documents - key = document id , value = Document object
+"""
 def make_entry(parent, caption, row, column, width=None, **options):
     Label(parent, text=caption).grid(row=row, column=column, sticky='W')
     entry = Entry(parent, **options)
@@ -16,34 +35,65 @@ def make_entry(parent, caption, row, column, width=None, **options):
 
 
 class IndexView:
+    """
+       Class Description :
+           This Class is used the the gui of the index phase of the search engine
+    """
+
+    """
+        Description :
+            This method is for initializing the indexer properties
+    """
 
     def __init__(self, controller):
         self.controller = controller
         self.stemming_bool = False
         self.index_window = Tk()
         self.index_window.title("Documents Inverted Indexing")
-        # self.index_window.config(bg="LightBlue")
         self.corpus_entry = make_entry(self.index_window, "Corpus Path:", 1, 0, 60)
         self.posting_entry = make_entry(self.index_window, "Posting Path:", 2, 0, 60)
         self.language_list = None
         self.start_index_view()
 
+    """
+        Description :
+            This method is for getting the stemming bool, 
+            by the choose of the user in the radio button
+    """
+
     def get_stemming_bool(self):
         return self.stemming_bool
 
+    """
+        Description :
+            Browse button function - opens file dialog and gets the path of 
+            the chosen directiory
+    """
     def browse_corpus_dir(self):
+        self.corpus_entry.delete(first=0, last=100)
         dir_path = tkFileDialog.askdirectory()
         self.corpus_entry.insert(0, dir_path)
         self.controller.set_corpus_path(dir_path)
-
+    """
+        Description :
+            Browse button function - opens file dialog and gets the path of 
+            the chosen directiory
+    """
     def browse_posting_dir(self):
+        self.posting_entry.delete(first=0, last=100)
         dir_path = tkFileDialog.askdirectory()
         self.posting_entry.insert(0, dir_path)
         self.controller.set_posting_path(dir_path)
-
+    """
+       To be continued..........
+    """
     def language_chosen(self):
         pass
 
+    """
+         Description :
+             reset button function - calls the controller reset function
+    """
     def reset(self):
         dir_path = self.posting_entry.get()
         self.controller.set_posting_path(dir_path)
@@ -51,8 +101,11 @@ class IndexView:
         self.language_list.insert(END, '')
         pass
 
+    """
+         Description :
+             start button function - gets paths from entries and calls controller to start the program
+    """
     def start(self):
-
         dir_path = self.corpus_entry.get()
         if not os.path.isdir(dir_path):
             self.invalid_path("Corpus")
@@ -63,26 +116,49 @@ class IndexView:
             self.invalid_path("Posting")
             return
         self.controller.set_posting_path(dir_path)
+        start = timer()
         self.controller.start()
-
+        end = timer()
+        tkMessageBox.showinfo('Finished',
+                              "Indexed {} docs\nNum of unique terms in the corpus is: {}\nTotal processing time is: {}".format(
+                                  len(self.controller.indexer.docs_dict), len(self.controller.indexer.terms_dict),
+                                  str(end - start)))
         lang_list = self.controller.get_languages()
         for lang in sorted(lang_list):
             self.language_list.insert(END, lang)
 
+    """
+          Description :
+              Shows invalid pass message 
+    """
     def invalid_path(self, path_type):
         tkMessageBox.showinfo("Error ", "Invalid {} path".format(path_type))
 
+    """
+         Description :
+             load button function - gets paths from entries and calls controller to start the program
+    """
     def load(self):
+        self.language_list.delete(0, END)
         dir_path = self.posting_entry.get()
+        if not os.path.isdir(dir_path):
+            self.invalid_path("Posting")
+            return
         self.controller.set_posting_path(dir_path)
         self.controller.load()
         lang_list = self.controller.get_languages()
         for lang in sorted(lang_list):
             self.language_list.insert(END, lang)
 
+    """
+          Description :
+              Show button function - gets terms dictionary from controller and 
+              opens a window with box view for the terms and their frequency
+    """
     def show(self):
         dict_window = Tk()
         dict_window.geometry("300x900")
+
         terms_dict = self.controller.get_terms_dict()
 
         listNodes = Listbox(dict_window, font=("Helvetica", 12))
@@ -94,10 +170,12 @@ class IndexView:
 
         listNodes.config(yscrollcommand=scrollbar.set)
 
-        # dict = {'Ron': 1, 'gal': 3, 'lian': 4}
         for term in sorted(terms_dict.keys()):
             listNodes.insert(END, "{} - {}\n".format(term, str(terms_dict[term][1])))
-
+    """
+         Description :
+             stem radio button function - gets the user choose from the radio button
+    """
     def stem_control(self):
         if self.stemming_bool:
             self.stemming_bool = False
@@ -105,6 +183,10 @@ class IndexView:
             self.stemming_bool = True
         self.controller.set_stemming_bool(self.stemming_bool)
 
+    """
+          Description :
+              Creating the index view window and its buttons
+    """
     def start_index_view(self):
         welcome_instruction = Label(master=self.index_window,
                                     text='Hello! In order to proceed, please insert Corpus and Posting paths:')
@@ -142,6 +224,3 @@ class IndexView:
         reset_button.grid(row=4, column=3)
 
         self.index_window.mainloop()
-
-    if __name__ == "__main__":
-        start_index_view()

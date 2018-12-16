@@ -1,18 +1,27 @@
-import sys
-import pickle
-
 import os
-
 import CityDetailes
 import cPickle
-from timeit import default_timer as timer
-
 import Parse
 
-del_size = sys.getsizeof('\n')
+"""
+~~~~~~~~~~~~~~~~~~~~~~~~  Module Description ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-
+    This Module Contains the Indexer class, its part is to create index files 
+    And save the data of the program in files 
+    
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+"""
 class Indexer:
+    """
+       Class Description :
+           This Class is used for creating inverted index for terms,
+           and index for cities and docs/
+           It also used for saving the data of the program in files.
+    """
+    """
+        Description :
+            This method is for initializing the indexer properties
+    """
     def __init__(self, posting_path):
         self.posting_path = posting_path
         self.post_count = 0
@@ -27,12 +36,27 @@ class Indexer:
         self.countries = set()
         self.num_of_capitals = 0
 
+    """
+           Description :
+               This method creates inverted index in dictionaries form for terms,
+               and aggregating the info about the terms, until we are out of memory,
+               than it will call post method to save the data in files and 
+               clean it from the main memory
+           Args:
+               param1 : Parsed terms of a document
+               param2 : The document id 
+
+    """
+
     def index_terms(self, doc_terms_dict, doc_id):
         for term in doc_terms_dict:
-            if term not in self.tf_loc_dict:
+            if term not in self.terms_dict:
                 self.terms_dict[term] = [doc_terms_dict[term][0], 1]
+            else:
+                self.terms_dict[term] = [doc_terms_dict[term][0] + self.terms_dict[term][0],
+                                         self.terms_dict[term][1] + 1]
+            if term not in self.tf_loc_dict:
                 self.tf_loc_dict[term] = {}
-            self.terms_dict[term] = [doc_terms_dict[term][0] + self.terms_dict[term][0], self.terms_dict[term][1] + 1]
             self.tf_loc_dict[term][doc_id] = [doc_terms_dict[term][0], doc_terms_dict[term][1]]
 
         if len(self.tf_loc_dict) > 350000 or self.finished_parse:
@@ -40,16 +64,36 @@ class Indexer:
             self.post(terms, self.tf_loc_dict)
             self.tf_loc_dict = {}
 
+    """
+              Description :
+                  This method creates gets Terms' inverted index Dictionary
+                  and writes them to a file () 
+              Args:
+                  param1 : Sorted Parsed terms of a document
+                  param2 : inverted index Dictionaries 
+
+    """
+
     def post(self, terms, tf_loc_dict):
         line_count = 0
         file_name = '\\Posting' + str(self.post_count) if not self.to_stem else '\\sPosting' + str(self.post_count)
         with open(self.posting_path + file_name, 'wb') as f:
             for term in terms:
-                index = '{}|{}#\n'.format(term, str(tf_loc_dict[term]).replace(' ',''))
+                index = '{}|{}#\n'.format(term, str(tf_loc_dict[term]).replace(' ', ''))
                 f.write(index)
                 line_count += 1
         self.post_files_lines.append(line_count)
         self.post_count += 1
+
+    """
+              Description :
+                  This method creates gets Terms' inverted index Dictionary
+                  and writes them to a file () 
+              Args:
+                  param1 : Sorted Parsed terms of a document
+                  param2 : inverted index Dictionaries 
+
+    """
 
     def index_cities(self, cities):
         capitals_details = CityDetailes.get_capitals_details()
@@ -68,16 +112,32 @@ class Indexer:
                 self.cities_dict[city] = [city_details, cities[city], self.terms_dict.get(city)]
                 lines_count += 1
 
+    """
+              Description :
+                  This method creates gets the document objects of the corpus
+                  creates an index for them and writes them to a file () 
+              Args:
+                  param1 : Dictionary of documents objects
+    """
+
     def index_docs(self, docs):
         with open(self.posting_path + "\\Documents", 'wb') as f:
             lines_count = 0
             for doc_id in docs:
-                    doc_index = "{}|{}|{}|{}|{}|{}\n".format(doc_id, docs[doc_id].title, docs[doc_id].origin_city,
-                                                             docs[doc_id].num_of_unique_words, docs[doc_id].length,
-                                                             docs[doc_id].max_tf)
-                    f.write(doc_index)
-                    self.docs_dict[doc_id] = lines_count
-                    lines_count += 1
+                doc_index = "{}|{}|{}|{}|{}|{}\n".format(doc_id, docs[doc_id].title, docs[doc_id].origin_city,
+                                                         docs[doc_id].num_of_unique_words, docs[doc_id].length,
+                                                         docs[doc_id].max_tf)
+                f.write(doc_index)
+                self.docs_dict[doc_id] = lines_count
+                lines_count += 1
+
+    """
+              Description :
+                  This method saves pointers to indexes dictionaries 
+                  to files.
+              Args:
+                  param1 : languages
+    """
 
     def post_pointers(self, languages):
         if not os.path.exists(self.posting_path + "\\Pointers"):
@@ -85,7 +145,7 @@ class Indexer:
 
         tmp_dict = {}
         for term in self.terms_dict.keys():
-            tmp_dict[term] = self.terms_dict[term]
+            tmp_dict[term] = [self.terms_dict[term][0], self.terms_dict[term][1] - 1, self.terms_dict[term][2]]
         self.terms_dict = tmp_dict
 
         if self.to_stem:
@@ -107,6 +167,14 @@ class Indexer:
                 cPickle.dump(self.docs_dict, f)
             with open(self.posting_path + "\\Pointers\\Languages Dictionary", 'wb') as f:
                 cPickle.dump(languages, f)
+
+    """
+              Description :
+                  This method loads pointers to indexes dictionaries 
+                  to the program's memory.
+                
+               Returns languages of the corpus 
+    """
 
     def load(self):
         languages = None

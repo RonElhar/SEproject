@@ -4,7 +4,33 @@ import shutil
 import Parse
 import multiprocessing
 
+"""
+~~~~~~~~~~~~~~~~~~~~~~~~  Module Description ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+    This Module Contains Methods for merging post files 
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+"""
+
+
+"""
+   Description :
+       This method merges 2 posting files, 
+       When it is the last merge, it also create terms pointers to index files 
+       It also solves terms "Big letter - Small letters" issue
+   Args:
+       param1: file paths
+       param2: merge path
+       param3: number of lines in each posting file
+       param4: terms dictionaries (frequency and df) 
+       param5: shared dictionary for retriving info from the processes 
+       param6: bool for final posting
+       param7: the merged file name
+       
+    Return:
+        Dictionary of terms pointers to index files 
+
+"""
 def merge(files_paths, merge_path, post_files_lines, terms_dicts, shared_dict, is_final_posting, merged_post_name,
           merged_post_lines):
     files_line = {files_paths[0]: 0, files_paths[1]: 0}
@@ -45,12 +71,11 @@ def merge(files_paths, merge_path, post_files_lines, terms_dicts, shared_dict, i
                 second_file_index = read_next(files_paths[1])
                 count_second_file_lines += 1
             if is_final_posting:
+                lower_term = inverted_index[0].lower()
                 if Parse.isWord(inverted_index[0]) and inverted_index[0].isupper() and \
-                        (inverted_index[0].lower() in terms_dicts[0] or
-                                 inverted_index[0].lower() in terms_dicts[1] or
-                                 inverted_index[0].lower() in terms_dicts[2] or
-                                 inverted_index[0].lower() in terms_dicts[3]):
-                    big_terms[inverted_index[0].lower()] = inverted_index[1]
+                        (lower_term in terms_dicts[0] or lower_term in terms_dicts[1] or lower_term in terms_dicts[2]
+                         or lower_term in terms_dicts[3]):
+                    big_terms[lower_term] = inverted_index[1]
                 else:
                     term = inverted_index[0]
                     shared_dict[term] = [merged_line_count, 0, 0]
@@ -66,10 +91,7 @@ def merge(files_paths, merge_path, post_files_lines, terms_dicts, shared_dict, i
                                 shared_dict[term] = [shared_dict[term][0], shared_dict[term][1] + \
                                                      terms_dicts[i][term.upper()][0],
                                                      shared_dict[term][2] + terms_dicts[i][term.upper()][1]]
-                        # print term.upper()
-                        big_terms.pop(term)
-                    if inverted_index[0] == 'MOSCOW':
-                        print '{}|{}\n'.format(inverted_index[0], inverted_index[1])
+
                     f.write('{}|{}\n'.format(inverted_index[0], inverted_index[1]))
                     merged_line_count += 1
 
@@ -97,12 +119,11 @@ def merge(files_paths, merge_path, post_files_lines, terms_dicts, shared_dict, i
             term_index = read_next(files_paths[path_index])
             count_lines += 1
             if is_final_posting:
+                lower_term = inverted_index[0].lower()
                 if Parse.isWord(inverted_index[0]) and inverted_index[0].isupper() and \
-                        (inverted_index[0].lower() in terms_dicts[0] or
-                                 inverted_index[0].lower() in terms_dicts[1] or
-                                 inverted_index[0].lower() in terms_dicts[2] or
-                                 inverted_index[0].lower() in terms_dicts[3]):
-                    big_terms[inverted_index[0].lower()] = inverted_index[1]
+                        (lower_term in terms_dicts[0] or lower_term in terms_dicts[1] or lower_term in terms_dicts[2]
+                         or lower_term in terms_dicts[3]):
+                    big_terms[lower_term] = inverted_index[1]
                 else:
                     term = inverted_index[0]
                     shared_dict[term] = [merged_line_count, 0, 0]
@@ -118,22 +139,31 @@ def merge(files_paths, merge_path, post_files_lines, terms_dicts, shared_dict, i
                                 shared_dict[term] = [shared_dict[term][0], shared_dict[term][1] + \
                                                      terms_dicts[i][term.upper()][0],
                                                      shared_dict[term][2] + terms_dicts[i][term.upper()][1]]
-                        # print term.upper()
-                        big_terms.pop(term)
-                    if inverted_index[0] == 'MOSCOW':
-                        print '{}|{}|{}\n'.format(inverted_index[0], inverted_index[1])
 
                     f.write('{}|{}\n'.format(inverted_index[0], inverted_index[1]))
                     merged_line_count += 1
             else:
                 f.write('{}|{}\n'.format(inverted_index[0], inverted_index[1]))
                 merged_line_count += 1
-    print big_terms
-    print len(big_terms)
-    print merged_line_count
     merged_post_lines[merge_path + merged_post_name] = merged_line_count
 
-
+"""
+    Description :
+       This method manages merge between all of the posting files,
+       It implements a "Merge Sort" version for crating merged and sorted
+       final post of the terms indexes
+    Args:
+       param1: Posting files names
+       param2: The document id 
+       param3: number of lines in each posting file
+       param4: terms dictionaries (frequency and df) 
+       param5: posting path
+       param6: stemming bool
+    
+    Return:
+        Dictionary of terms pointers to index files 
+        
+"""
 def start_merge(files_names, post_files_lines, terms_dicts, posting_path, to_stem):
     manager2 = multiprocessing.Manager()
     merged_post_lines = manager2.dict()

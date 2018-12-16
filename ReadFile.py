@@ -1,23 +1,40 @@
 import os
 import re
 
+"""
+~~~~~~~~~~~~~~~~~~~~~~~~  Module Description ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    This Module is used for getting documents texts and more info about the documents in the corpus .
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+"""
+
 
 class ReadFile:
+    """
+       Class Description :
+           This Class is used for getting info and seperating documents from files
+    """
 
     def __init__(self):
         self.cities = {}
         self.languages = set()
         pass
 
-    # def read_directory_files(self, path):
-    #     files = {}
-    #     docs = []
-    #     for filename in os.listdir(path):
-    #         files.__setitem__(filename, self.separate_docs_in_file(path, filename))
-    #     return files
+    """
+        Description :
+            This method separates documents in a given file, and creating object for each document
+        Args:
+            param1 : Path of the file 
+            param2 : The name of the file
+ 
+        Returns:
+            Dictionaries of documents - key = document id , value = Document object
+    """
 
     def separate_docs_in_file(self, path, filename):
-        docs = {}  # This is the Array of the content of each doc (including tags);
+        docs = {}
         doc_index = 0
         cur_file = open(path + "\\" + filename + "\\" + filename, "r")
         lines = cur_file.readlines()
@@ -91,7 +108,17 @@ class ReadFile:
         cur_file.close()
         return docs
 
-    def read_cities(self,path, filename):
+    """
+        Description :
+            This method Gets Cities that appear in the given file
+        Args:
+            param1 : Path of the file 
+            param2 : The name of the file
+        Returns:
+            Dictionary of dictionaries that where created by the processes
+    """
+
+    def read_cities(self, path, filename):
         with open(path + "\\" + filename + "\\" + filename, "r") as f:
             lines = f.readlines()
             for i in range(len(lines)):
@@ -115,7 +142,18 @@ class ReadFile:
                     else:
                         self.cities[doc_city].append(doc_id)
 
+
 class Document:
+    """
+       Class Description :
+           This class Represnents a document
+    """
+
+    """
+        Description
+        Initializing a documnent and its properties
+    """
+
     def __init__(self, name, doc_id, date, title, city, text):
         self.file_name = name
         self.id = doc_id
@@ -127,6 +165,16 @@ class Document:
         self.num_of_unique_words = 0
         self.text = text
 
+    """
+        Description
+        Sets the length of the document 
+    """
 
-    def tostr(self):
+    def set_length(self, length):
+        self.length = length
+    """
+        @overriding str method
+        Creates a string representation for document object
+    """
+    def __str__(self):
         return self.id + ', ' + self.title
