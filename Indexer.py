@@ -1,4 +1,9 @@
+import ast
+import linecache
 import os
+
+import math
+
 import CityDetailes
 import cPickle
 import Parse
@@ -11,6 +16,8 @@ import Parse
     
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
+
+
 class Indexer:
     """
        Class Description :
@@ -22,6 +29,7 @@ class Indexer:
         Description :
             This method is for initializing the indexer properties
     """
+
     def __init__(self, posting_path):
         self.posting_path = posting_path
         self.post_count = 0
@@ -35,6 +43,9 @@ class Indexer:
         self.post_files_lines = []
         self.countries = set()
         self.num_of_capitals = 0
+        self.docs_big_letters_words = {}
+        self.tf_idf_dict = {}
+        self.docs_avg_length = 0
 
     """
            Description :
@@ -58,7 +69,6 @@ class Indexer:
             if term not in self.tf_loc_dict:
                 self.tf_loc_dict[term] = {}
             self.tf_loc_dict[term][doc_id] = [doc_terms_dict[term][0], doc_terms_dict[term][1]]
-
         if len(self.tf_loc_dict) > 350000 or self.finished_parse:
             terms = sorted(self.tf_loc_dict.keys())
             self.post(terms, self.tf_loc_dict)
@@ -121,15 +131,25 @@ class Indexer:
     """
 
     def index_docs(self, docs):
+
+        tmp_dict = {}
+        for term in self.terms_dict.keys():
+            tmp_dict[term] = [self.terms_dict[term][0], self.terms_dict[term][1] - 1, self.terms_dict[term][2]]
+        self.terms_dict = tmp_dict
+
+        length_sum = 0
         with open(self.posting_path + "\\Documents", 'wb') as f:
             lines_count = 0
             for doc_id in docs:
+                doc = docs[doc_id]
+                length_sum += docs[doc_id].length
                 doc_index = "{}|{}|{}|{}|{}|{}\n".format(doc_id, docs[doc_id].title, docs[doc_id].origin_city,
-                                                         docs[doc_id].num_of_unique_words, docs[doc_id].length,
-                                                         docs[doc_id].max_tf)
+                                                      docs[doc_id].num_of_unique_words, docs[doc_id].max_tf,
+                                                      docs[doc_id].five_entities)
                 f.write(doc_index)
-                self.docs_dict[doc_id] = lines_count
+                self.docs_dict[doc_id] = [lines_count, docs[doc_id].length]
                 lines_count += 1
+        self.docs_avg_length = length_sum / (len(self.docs_dict))
 
     """
               Description :
@@ -142,11 +162,6 @@ class Indexer:
     def post_pointers(self, languages):
         if not os.path.exists(self.posting_path + "\\Pointers"):
             os.makedirs(self.posting_path + "\\Pointers")
-
-        tmp_dict = {}
-        for term in self.terms_dict.keys():
-            tmp_dict[term] = [self.terms_dict[term][0], self.terms_dict[term][1] - 1, self.terms_dict[term][2]]
-        self.terms_dict = tmp_dict
 
         if self.to_stem:
             with open(self.posting_path + "\\Pointers\\sTerms Pointers Dictionary", 'wb') as f:
@@ -168,11 +183,41 @@ class Indexer:
             with open(self.posting_path + "\\Pointers\\Languages Dictionary", 'wb') as f:
                 cPickle.dump(languages, f)
 
+    def calculate_tf_idf(self):
+        terms = sorted(self.terms_dict.keys())
+        path = self.posting_path + '\FinalPost' + '\Final_Post'
+        term_count = 0
+        term = terms[0]
+        while term[0] < 'A':
+            term_count += 1
+            term = terms[term_count]
+        while term[0] <= 'Z':
+            tf_idf = 0
+            line = self.terms_dict[term][0] + 1
+            term_line = linecache.getline(path, line)
+            term_docs = term_line.split('|')[1].split('#')
+            df = self.terms_dict[term][2]
+            i = 0
+
+            while i < len(term_docs) - 1:
+                term_doc_info = ast.literal_eval(term_docs[i])
+                doc = term_doc_info.keys()[0]
+                tf = term_doc_info[doc][1]
+                tf_idf = (
+                    (float(tf) / self.docs_dict[doc][1]) * (math.log10(len(self.docs_dict) / float(df))))
+                if not doc in self.tf_idf_dict:
+                    self.tf_idf_dict[doc] = {}
+                self.tf_idf_dict[doc][term] = tf_idf
+                i += 1
+
+            term_count += 1
+            term = terms[term_count]
+
     """
               Description :
                   This method loads pointers to indexes dictionaries 
                   to the program's memory.
-                
+
                Returns languages of the corpus 
     """
 
