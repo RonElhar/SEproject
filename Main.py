@@ -8,6 +8,7 @@ import Merge
 import os
 import ParallelMain
 import Parse
+from Searcher import Searcher
 
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~  Module Description ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -38,6 +39,7 @@ class Main:
         self.indexer = None
         self.reader = ReadFile()
         self.languages = set()
+        self.searcher = None
 
     """
         Description :
@@ -45,7 +47,6 @@ class Main:
     """
 
     def start(self):
-
         self.indexer = Indexer(self.posting_path)
 
         if self.to_stem:
@@ -91,6 +92,9 @@ class Main:
     def load(self):
         self.indexer = Indexer(self.posting_path)
         self.languages = self.indexer.load()
+        self.searcher = Searcher(self.main_path, self.posting_path, self.indexer.terms_dict, self.indexer.cities_dict,
+                                 self.indexer.docs_dict)
+        self.searcher.search("China is great-attitude")
         pass
 
     """
@@ -162,7 +166,6 @@ class Main:
         print "Num of terms which are nums: " + str(num_count)
         print "Num of countries: " + str(len(self.indexer.countries))
         print "Num of capitals: " + str(self.indexer.num_of_capitals)
-
 
 """
 Script Description:

@@ -1,5 +1,5 @@
 import ast
-
+from Ranker import Ranker
 from Parse import Parse
 import linecache
 
@@ -12,13 +12,14 @@ class Searcher:
         self.docs_dict = docs_dict
         self.parser = Parse(corpus_path)  ## corpus path for stop words
         self.posting_path = posting_path
-        self.ranker = ''
+        self.ranker = Ranker()
 
     def get_terms_from_post(self, query_terms):
-        path = self.posting_path + '\FinalPost' + '\Final_Post', 'rb'
+        path = self.posting_path + '\\FinalPost' + '\\Final_Post'
         query_dict = {}
         for term in query_terms:
-            term_index = linecache.getline(path, self.terms_dict[term][0] + 1)
+            line = self.terms_dict[term][0] + 1
+            term_index = linecache.getline(path, line)
             term_index = term_index.split('|')[1].split('#')
             i = 0
             while i < len(term_index) - 1:
@@ -30,19 +31,15 @@ class Searcher:
                 i += 1
         print query_dict
 
-    def rank_terms(self, terms_and_info):
-        pass
-
     def get_five_entities(self, document):
         pass
 
     def search(self, query):
+        self.parser.parsed_doc = None
         query_terms = self.parser.main_parser(text=query)
-        return self.get_terms_from_post(query_terms)
+        result = self.ranker.rank_doc(query_terms, self.get_terms_from_post(query_terms), self.docs_dict)
+        return result
 
-parser = Parse('C:\Users\USER\Desktop\SearchEngine')
-parser.parsed_doc = None
-print parser.main_parser("who wants to live forever?")
 
 ''''
 query_dict = {}

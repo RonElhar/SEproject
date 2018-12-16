@@ -18,7 +18,7 @@ import heapq
 
 
 def get_stop_words(main_path):
-    stop_words_file = open(main_path + "\\stopwords.txt")
+    stop_words_file = open(main_path + "\\stop_words.txt")
     lines = stop_words_file.readlines()
     stop_words = set()
     for word in lines:
