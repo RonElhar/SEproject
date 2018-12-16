@@ -3,6 +3,7 @@ import os
 import shutil
 import Parse
 import multiprocessing
+import math
 
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~  Module Description ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -31,6 +32,7 @@ import multiprocessing
         Dictionary of terms pointers to index files 
 
 """
+
 def merge(files_paths, merge_path, post_files_lines, terms_dicts, shared_dict, is_final_posting, merged_post_name,
           merged_post_lines):
     files_line = {files_paths[0]: 0, files_paths[1]: 0}

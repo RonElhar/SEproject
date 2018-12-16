@@ -102,6 +102,8 @@ class ReadFile:
                     language = temp[0]
                     self.languages.add(language)
                     lines[i + 1] = ' '
+                if lines[i+2].__contains__("Article Type"):
+                    lines[i+2] = ''
                 if lines[i + 4].__contains__('<F P=106>'):
                     lines[i + 4] = lines[i + 4].replace('<F P=106>', '')
                     lines[i + 4] = lines[i + 4].replace('</F>', '')
@@ -158,12 +160,13 @@ class Document:
         self.file_name = name
         self.id = doc_id
         self.date = date
-        self.title = title
+        self.title = title.upper()
         self.origin_city = city
         self.length = 0
         self.max_tf = 0
         self.num_of_unique_words = 0
         self.text = text
+        self.five_entities = []
 
     """
         Description

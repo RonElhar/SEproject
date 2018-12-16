@@ -15,10 +15,10 @@ class Searcher:
         self.ranker = ''
 
     def get_terms_from_post(self, query_terms):
-        f = open(self.posting_path + '\FinalPost' + '\Final_Post', 'rb')
+        path = self.posting_path + '\FinalPost' + '\Final_Post', 'rb'
         query_dict = {}
         for term in query_terms:
-            term_index = linecache.getline(f, query_terms[term][0])
+            term_index = linecache.getline(path, self.terms_dict[term][0] + 1)
             term_index = term_index.split('|')[1].split('#')
             i = 0
             while i < len(term_index) - 1:
@@ -38,7 +38,7 @@ class Searcher:
 
     def search(self, query):
         query_terms = self.parser.main_parser(text=query)
-
+        return self.get_terms_from_post(query_terms)
 
 parser = Parse('C:\Users\USER\Desktop\SearchEngine')
 parser.parsed_doc = None
