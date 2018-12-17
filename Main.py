@@ -1,4 +1,4 @@
-from GUI import IndexView
+from GUI import View
 from operator import itemgetter
 from ReadFile import ReadFile
 from Parse import Parse
@@ -90,6 +90,8 @@ class Main:
     """
 
     def load(self):
+        if self.to_stem:
+            self.indexer.to_stem = True
         self.indexer = Indexer(self.posting_path)
         self.languages = self.indexer.load()
         self.searcher = Searcher(self.main_path, self.posting_path, self.indexer.terms_dict, self.indexer.cities_dict,
@@ -167,6 +169,13 @@ class Main:
         print "Num of countries: " + str(len(self.indexer.countries))
         print "Num of capitals: " + str(self.indexer.num_of_capitals)
 
+    def set_save_path(self, dir_path):
+        pass
+
+    def save(self):
+        pass
+
+
 """
 Script Description:
     This script starts the program by initializing Main object, GUI IndexView object
@@ -175,5 +184,5 @@ Script Description:
 
 if __name__ == "__main__":
     controller = Main()
-    view = IndexView(controller)
+    view = View(controller)
     view.start_index_view()
