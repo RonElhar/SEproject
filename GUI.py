@@ -279,15 +279,15 @@ class View:
         save_button = Button(master=search_query_window, text="save", command=save)
         save_button.grid(row=5, column=1)
 
-        cities_frame = Frame(self.search_query_file_window())
+        cities_frame = Frame(search_query_window)
         cities_frame.grid(row=3, column=0, sticky='W')
-        Label(master=self.index_window, text="Choose Cities:").grid(row=4, column=1, sticky='W')
+        Label(master=search_query_window, text="Choose Cities:").grid(row=4, column=1, sticky='W')
         cities_list = Listbox(master=cities_frame, width=20, height=10)
         cities_scrollbar = Scrollbar(cities_list, orient="vertical")
         cities_scrollbar.pack(side=RIGHT, fill=Y)
         cities_list.config(yscrollcommand=cities_scrollbar.set)
         cities_list.pack(expand=True, fill=Y)
-        cities_scrollbar.config(command=self.language_list.yview)
+        cities_scrollbar.config(command=cities_list.yview)
 
 
 
@@ -330,7 +330,18 @@ class View:
                                   command=browse_file_results_save)
         browse_save_file.grid(row=4, column=2, sticky='W')
 
-        start_button = Button(master=search_file_window, text="save", command=save)
-        start_button.grid(row=5, column=1)
+        save_button = Button(master=search_file_window, text="save", command=save)
+        save_button.grid(row=5, column=1)
+
+        cities_frame = Frame(search_file_window)
+        cities_frame.grid(row=3, column=0, sticky='W')
+        Label(master=search_file_window, text="Choose Cities:").grid(row=4, column=1, sticky='W')
+        cities_list = Listbox(master=cities_frame, width=20, height=10)
+        cities_scrollbar = Scrollbar(cities_list, orient="vertical")
+        cities_scrollbar.pack(side=RIGHT, fill=Y)
+        cities_list.config(yscrollcommand=cities_scrollbar.set)
+        cities_list.pack(expand=True, fill=Y)
+        cities_scrollbar.config(command=cities_list.yview)
+
 
         search_file_window.mainloop()
