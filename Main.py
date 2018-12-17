@@ -92,9 +92,11 @@ class Main:
     def load(self):
         self.indexer = Indexer(self.posting_path)
         self.languages = self.indexer.load()
+        # if 'LA081489-0045' in self.indexer.docs_dict.keys():
+        #     print "gg"
         self.searcher = Searcher(self.main_path, self.posting_path, self.indexer.terms_dict, self.indexer.cities_dict,
                                  self.indexer.docs_dict)
-        self.searcher.search("China is great-attitude")
+        self.searcher.search("china is great")
         pass
 
     """
