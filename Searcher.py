@@ -15,7 +15,7 @@ class Searcher:
         self.ranker = Ranker()
 
     def get_terms_from_post(self, query_terms):
-        path = self.posting_path + '\\FinalPost' + '\\Final_Post'
+        path = self.posting_path + '\FinalPost' + '\Final_Post'
         query_dict = {}
         for term in query_terms:
             line = self.terms_dict[term][0] + 1
