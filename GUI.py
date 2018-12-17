@@ -251,6 +251,9 @@ class View:
 
     def start_one_query_window(self):
 
+        def show_entities():
+            pass
+
         def save():
             self.controller.save()
 
@@ -272,6 +275,9 @@ class View:
         start_button = Button(master=search_query_window, text="Search", command=start_query_search)
         start_button.grid(row=2, column=1)
 
+        entities_button = Button(master=search_query_window, text="Show Entities", command=show_entities)
+        entities_button.grid(row=2, column=2)
+
         browse_save_file = Button(master=search_query_window, text='Browse', width=6,
                                   command=browse_query_results_save)
         browse_save_file.grid(row=4, column=2, sticky='W')
@@ -281,7 +287,8 @@ class View:
 
         cities_frame = Frame(search_query_window)
         cities_frame.grid(row=3, column=0, sticky='W')
-        Label(master=search_query_window, text="Choose Cities:").grid(row=4, column=1, sticky='W')
+
+        Label(master=search_query_window, text="Choose Cities:").grid(row=3, column=1, sticky='W')
         cities_list = Listbox(master=cities_frame, width=20, height=10)
         cities_scrollbar = Scrollbar(cities_list, orient="vertical")
         cities_scrollbar.pack(side=RIGHT, fill=Y)
@@ -289,14 +296,17 @@ class View:
         cities_list.pack(expand=True, fill=Y)
         cities_scrollbar.config(command=cities_list.yview)
 
-
-
+        cities_names = self.controller.get_cities_list
+        cities_list.insert(0, cities_names)
 
         search_query_window.mainloop()
 
     #############################################################################################################
 
     def search_query_file_window(self):
+
+        def show_entities():
+            pass
 
         def save():
             self.controller.save()
@@ -326,22 +336,41 @@ class View:
         browse_queries_file.grid(row=1, column=2, sticky='W')
         start_button = Button(master=search_file_window, text="Search", command=start_file_search())
         start_button.grid(row=2, column=1)
-        browse_save_file = Button(master=search_file_window, text='Browse', width=6,
-                                  command=browse_file_results_save)
-        browse_save_file.grid(row=4, column=2, sticky='W')
+        entities_button = Button(master=search_file_window, text="Show Entities", command=show_entities)
+        entities_button.grid(row=2, column=2)
 
-        save_button = Button(master=search_file_window, text="save", command=save)
-        save_button.grid(row=5, column=1)
+        # save_button = Button(master=search_file_window, text="save", command=save)
+        # save_button.grid(row=5, column=1)
+        # browse_save_file = Button(master=search_file_window, text='Browse', width=6,
+        #                           command=browse_file_results_save)
+        # browse_save_file.grid(row=4, column=2, sticky='W')
 
         cities_frame = Frame(search_file_window)
-        cities_frame.grid(row=3, column=0, sticky='W')
-        Label(master=search_file_window, text="Choose Cities:").grid(row=4, column=1, sticky='W')
-        cities_list = Listbox(master=cities_frame, width=20, height=10)
+        cities_frame.grid(row=3, column=0)
+        Label(master=search_file_window, text="Choose Cities:").grid(row=3, column=0, sticky='N')
+        cities_list = Listbox(master=cities_frame,width=20, height=10)
         cities_scrollbar = Scrollbar(cities_list, orient="vertical")
         cities_scrollbar.pack(side=RIGHT, fill=Y)
         cities_list.config(yscrollcommand=cities_scrollbar.set)
         cities_list.pack(expand=True, fill=Y)
         cities_scrollbar.config(command=cities_list.yview)
+        cities_names = self.controller.get_cities_list
+        cities_list.insert(0, cities_names)
+
+        """"
+         lang_frame = Frame(self.index_window)
+        lang_frame.grid(row=5, column=1, sticky='W')
+
+        Label(master=self.index_window, text="Languages:").grid(row=4, column=1, sticky='W')
+        self.language_list = Listbox(master=lang_frame, width=20, height=10, command=self.language_chosen())
+
+        scrollbar = Scrollbar(lang_frame, orient="vertical")
+        scrollbar.pack(side=RIGHT, fill=Y)
+
+        self.language_list.config(yscrollcommand=scrollbar.set)
+        self.language_list.pack(expand=True, fill=Y)
+        scrollbar.config(command=self.language_list.yview)
+        """""
 
 
         search_file_window.mainloop()

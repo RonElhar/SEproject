@@ -94,9 +94,9 @@ class Main:
             self.indexer.to_stem = True
         self.indexer = Indexer(self.posting_path)
         self.languages = self.indexer.load()
-        self.searcher = Searcher(self.main_path, self.posting_path, self.indexer.terms_dict, self.indexer.cities_dict,
-                                 self.indexer.docs_dict)
-        self.searcher.search("China is great-attitude")
+        # self.searcher = Searcher(self.main_path, self.posting_path, self.indexer.terms_dict, self.indexer.cities_dict,
+        #                          self.indexer.docs_dict)
+        # self.searcher.search("China is great-attitude")
         pass
 
     """
@@ -175,6 +175,8 @@ class Main:
     def save(self):
         pass
 
+    def get_cities_list(self):
+        return self.indexer.cities_dict.keys()
 
 """
 Script Description:
