@@ -2,6 +2,7 @@ from timeit import default_timer as timer
 import string
 import Stemmer
 import re
+import heapq
 
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~  Module Description ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -17,7 +18,7 @@ import re
 
 
 def get_stop_words(main_path):
-    stop_words_file = open(main_path + "\\stopwords.txt")
+    stop_words_file = open(main_path + "\\stop_words.txt")
     lines = stop_words_file.readlines()
     stop_words = set()
     for word in lines:
@@ -136,6 +137,7 @@ class Parse:
         self.index = 0
         self.to_stem = False
         self.pystemmer = Stemmer.Stemmer('english')
+        self.entities = []
 
     """
        Description :
@@ -156,6 +158,7 @@ class Parse:
     """
 
     def main_parser(self, text):
+        self.entities = []
         self.terms_dict = {}
         self.index = 0
         self.tokens_list = self.get_terms(text)
@@ -202,8 +205,13 @@ class Parse:
             self.index += 1
             document_length += 1
         self.tokens_list = ''
-        self.parsed_doc.length = document_length
-        self.parsed_doc.num_of_unique_words = len(self.terms_dict)
+        if not self.parsed_doc is None:
+            self.parsed_doc.length = document_length
+            self.parsed_doc.num_of_unique_words = len(self.terms_dict)
+            self.add_to_entities()
+            five_entities = heapq.nlargest(5,self.entities)
+            for entity in five_entities:
+                self.parsed_doc.five_entities.append(entity[1])
         return self.terms_dict
 
     """
@@ -255,8 +263,20 @@ class Parse:
             self.terms_dict[term] = []
             self.terms_dict[term].append(1)
             self.terms_dict[term].append([index])
-        if self.terms_dict[term][0] > self.parsed_doc.max_tf:
+
+        if not self.parsed_doc is None and self.terms_dict[term][0] > self.parsed_doc.max_tf:
             self.parsed_doc.max_tf = self.terms_dict[term][0]
+
+    def add_to_entities(self):
+        for term in self.terms_dict:
+            if term.isupper():
+                tf = self.terms_dict[term][0]
+                dominance = float(tf) / float(self.parsed_doc.length)
+                if term in self.parsed_doc.title :
+                    dominance = dominance*1.3
+                if self.terms_dict[term][1][0] < self.parsed_doc.length/10:
+                    dominance = dominance*1.1
+                heapq.heappush(self.entities, (dominance, term))
 
     """
            Description :

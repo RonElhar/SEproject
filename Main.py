@@ -8,6 +8,7 @@ import Merge
 import os
 import ParallelMain
 import Parse
+from Searcher import Searcher
 
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~  Module Description ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -38,6 +39,7 @@ class Main:
         self.indexer = None
         self.reader = ReadFile()
         self.languages = set()
+        self.searcher = None
 
     """
         Description :
@@ -45,7 +47,6 @@ class Main:
     """
 
     def start(self):
-
         self.indexer = Indexer(self.posting_path)
 
         if self.to_stem:
@@ -70,7 +71,7 @@ class Main:
         # Gets Cities that appear in the corpus
         i = 0
         while i < len(dirs_list):
-            self.reader.read_cities(self.main_path, dirs_list[i])
+            self.reader.read_cities(self.main_path + '\\corpus', dirs_list[i])
             i += 1
 
         terms_dicts = [dirs_dict["\\Postings1"][1], dirs_dict["\\Postings2"][1], dirs_dict["\\Postings3"][1],
@@ -78,7 +79,7 @@ class Main:
 
         terms_dict = Merge.start_merge(files_names, post_files_lines, terms_dicts, self.posting_path, self.to_stem)
 
-        self.indexer.terms_dict.copy(terms_dict)
+        self.indexer.terms_dict = terms_dict
         self.indexer.index_docs(docs)
         self.indexer.index_cities(self.reader.cities)
         self.indexer.post_pointers(self.languages)
@@ -91,6 +92,9 @@ class Main:
     def load(self):
         self.indexer = Indexer(self.posting_path)
         self.languages = self.indexer.load()
+        self.searcher = Searcher(self.main_path, self.posting_path, self.indexer.terms_dict, self.indexer.cities_dict,
+                                 self.indexer.docs_dict)
+        self.searcher.search("China is great-attitude")
         pass
 
     """
@@ -162,7 +166,6 @@ class Main:
         print "Num of terms which are nums: " + str(num_count)
         print "Num of countries: " + str(len(self.indexer.countries))
         print "Num of capitals: " + str(self.indexer.num_of_capitals)
-
 
 """
 Script Description:
