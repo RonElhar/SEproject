@@ -18,7 +18,7 @@ class Ranker:
                     l = len(words_dict[word])
                     w_tf = words_dict[word][doc][0]
                     q_tf = query_dict[word][0]
-                    d = docs_dict[doc][1]
+                    d = docs_dict[' ' + doc + ' '][1]
                     result[doc] = self.rank_BM25(l, w_tf, q_tf, d)
                 else:
                     result[doc] += self.rank_BM25(len(words_dict[word]), words_dict[word][doc][0], query_dict[word][0],
