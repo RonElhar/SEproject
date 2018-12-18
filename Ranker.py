@@ -1,25 +1,19 @@
 from math import log
 
-
 class Ranker:
-
     def __init__(self):
         self.k = 2
         self.b = 0.75
         self.num_of_docs = 472525
         self.avdl = 253
 
-
     def rank_doc(self, query_dict, words_dict, docs_dict):
         result = {}
         for word in query_dict:
             for doc in words_dict[word]:
                 if doc not in result:
-                    l = len(words_dict[word])
-                    w_tf = words_dict[word][doc][0]
-                    q_tf = query_dict[word][0]
-                    d = docs_dict[' ' + doc + ' '][1]
-                    result[doc] = self.rank_BM25(l, w_tf, q_tf, d)
+                    result[doc] = self.rank_BM25(len(words_dict[word]), words_dict[word][doc][0], query_dict[word][0],
+                                                 docs_dict[doc][1])
                 else:
                     result[doc] += self.rank_BM25(len(words_dict[word]), words_dict[word][doc][0], query_dict[word][0],
                                                   docs_dict[doc][1])

@@ -13,6 +13,8 @@ class Searcher:
         self.parser = Parse(corpus_path)  ## corpus path for stop words
         self.posting_path = posting_path
         self.ranker = Ranker()
+        self.model = None
+        self.with_semantics = True
 
     def get_terms_from_post(self, query_terms):
         path = self.posting_path + '\FinalPost' + '\Final_Post'
@@ -38,7 +40,16 @@ class Searcher:
 
     def search(self, query):
         self.parser.parsed_doc = None
-        query_terms = self.parser.main_parser(text=query)
+        if self.with_semantics:
+            query_terms = []
+            query = self.parser.main_parser(text=query)
+            for word in query:
+                synonyms = self.model.wv.most_similar(positive=word)
+                for i in range(0, 5):
+                    query_terms.append({synonyms[i][0]: 1}) # need to check!!!!!!!!!!!!!!!
+                query_terms.append({word: query[word][0]})
+        else:
+            query_terms = self.parser.main_parser(text=query)
         words_terms = self.get_terms_from_post(query_terms)
         result = self.ranker.rank_doc(query_terms, words_terms, self.docs_dict)
         return result
