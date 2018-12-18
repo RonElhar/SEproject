@@ -65,7 +65,7 @@ class ReadFile:
             if line.__contains__("<DOCNO>"):
                 line = line.replace("<DOCNO>", '')
                 line = line.replace("</DOCNO>", '')
-                doc_id = line.replace('\n', '')
+                doc_id = line.replace('\n', '').replace(' ', '')
                 continue
             if line.__contains__("<TI>"):
                 line = line.replace("<TI>", '')
@@ -102,8 +102,8 @@ class ReadFile:
                     language = temp[0]
                     self.languages.add(language)
                     lines[i + 1] = ' '
-                if lines[i+2].__contains__("Article Type"):
-                    lines[i+2] = ''
+                if lines[i + 2].__contains__("Article Type"):
+                    lines[i + 2] = ''
                 if lines[i + 4].__contains__('<F P=106>'):
                     lines[i + 4] = lines[i + 4].replace('<F P=106>', '')
                     lines[i + 4] = lines[i + 4].replace('</F>', '')
@@ -123,6 +123,8 @@ class ReadFile:
     def read_cities(self, path, filename):
         with open(path + "\\" + filename + "\\" + filename, "r") as f:
             lines = f.readlines()
+            doc_city = ""
+            doc_id = ""
             for i in range(len(lines)):
                 line = lines[i]
                 if line.__contains__("<DOC>"):
@@ -175,9 +177,11 @@ class Document:
 
     def set_length(self, length):
         self.length = length
+
     """
         @overriding str method
         Creates a string representation for document object
     """
+
     def __str__(self):
         return self.id + ', ' + self.title

@@ -101,7 +101,6 @@ def start(main_path, posting_path, to_stem, dirs_list):
     files_partition = get_corpus_4partition(dirs_list, main_path + '\\corpus')
     manager = multiprocessing.Manager()
     dirs_dicts = manager.dict()
-
     p1 = multiprocessing.Process(target=start_indexing,
                                  args=(
                                      dirs_list, dirs_dicts, main_path, posting_path, to_stem, 0, files_partition[0],
@@ -118,7 +117,6 @@ def start(main_path, posting_path, to_stem, dirs_list):
                                      dirs_list, dirs_dicts, main_path, posting_path, to_stem, files_partition[1],
                                      files_partition[2],
                                      "\\Postings3"))
-
     p4 = multiprocessing.Process(target=start_indexing,
                                  args=(
                                      dirs_list, dirs_dicts, main_path, posting_path, to_stem, files_partition[2],
@@ -145,8 +143,7 @@ def start(main_path, posting_path, to_stem, dirs_list):
                                  args=(
                                      dirs_list, dirs_dicts, main_path, posting_path, to_stem, 8,
                                      10, "\\Postings4"))
-   """
-
+    """
     p1.start()
     p2.start()
     p3.start()

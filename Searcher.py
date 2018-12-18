@@ -1,5 +1,5 @@
 import ast
-
+from Ranker import Ranker
 from Parse import Parse
 import linecache
 
@@ -12,39 +12,48 @@ class Searcher:
         self.docs_dict = docs_dict
         self.parser = Parse(corpus_path)  ## corpus path for stop words
         self.posting_path = posting_path
-        self.ranker = ''
+        self.ranker = Ranker()
+        self.model = None
+        self.with_semantics = True
 
     def get_terms_from_post(self, query_terms):
-        path = self.posting_path + '\FinalPost' + '\Final_Post', 'rb'
+        path = self.posting_path + '\FinalPost' + '\Final_Post'
         query_dict = {}
         for term in query_terms:
-            if not term in self.terms_dict:
+            if term not in self.terms_dict:
                 continue
-            term_index = linecache.getline(path, self.terms_dict[term][0] + 1)
+            line = self.terms_dict[term][0] + 1
+            term_index = linecache.getline(path, line)
             term_index = term_index.split('|')[1].split('#')
             i = 0
             while i < len(term_index) - 1:
                 term_doc_info = ast.literal_eval(term_index[i])
-                doc = term_doc_info.keys()[0]
-                if i == 0:
-                    query_dict[term] = {}
-                query_dict[term][doc] = term_doc_info[doc]
+                for doc in term_doc_info:
+                    if term not in query_dict:
+                        query_dict[term] = {}
+                    query_dict[term][doc] = term_doc_info[doc]
                 i += 1
-        print query_dict
-
-    def rank_terms(self, terms_and_info):
-        pass
+        return query_dict
 
     def get_five_entities(self, document):
         pass
 
     def search(self, query):
-        query_terms = self.parser.main_parser(text=query)
-        return self.get_terms_from_post(query_terms)
+        self.parser.parsed_doc = None
+        if self.with_semantics:
+            query_terms = []
+            query = self.parser.main_parser(text=query)
+            for word in query:
+                synonyms = self.model.wv.most_similar(positive=word)
+                for i in range(0, 5):
+                    query_terms.append({synonyms[i][0]: 1}) # need to check!!!!!!!!!!!!!!!
+                query_terms.append({word: query[word][0]})
+        else:
+            query_terms = self.parser.main_parser(text=query)
+        words_terms = self.get_terms_from_post(query_terms)
+        result = self.ranker.rank_doc(query_terms, words_terms, self.docs_dict)
+        return result
 
-parser = Parse('C:\Users\USER\Desktop\SearchEngine')
-parser.parsed_doc = None
-print parser.main_parser("who wants to live forever?")
 
 ''''
 query_dict = {}

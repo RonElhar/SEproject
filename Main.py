@@ -1,4 +1,4 @@
-from GUI import IndexView
+from GUI import View
 from operator import itemgetter
 from ReadFile import ReadFile
 from Parse import Parse
@@ -8,6 +8,8 @@ import Merge
 import os
 import ParallelMain
 import Parse
+from Searcher import Searcher
+from gensim.models import Word2Vec
 
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~  Module Description ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -38,6 +40,7 @@ class Main:
         self.indexer = None
         self.reader = ReadFile()
         self.languages = set()
+        self.searcher = None
 
     """
         Description :
@@ -45,7 +48,6 @@ class Main:
     """
 
     def start(self):
-
         self.indexer = Indexer(self.posting_path)
 
         if self.to_stem:
@@ -87,10 +89,17 @@ class Main:
         Description :
             This method calls the Indexer function for loading saved files to the programs main memory
     """
-
     def load(self):
+        if self.to_stem:
+            self.indexer.to_stem = True
         self.indexer = Indexer(self.posting_path)
         self.languages = self.indexer.load()
+        # if 'LA081489-0045' in self.indexer.docs_dict.keys():
+        #     print "gg"
+        self.searcher.model = Word2Vec.load('model.bin')
+        self.searcher = Searcher(self.main_path, self.posting_path, self.indexer.terms_dict, self.indexer.cities_dict,
+                                 self.indexer.docs_dict)
+        self.searcher.search("china is great")
         pass
 
     """
@@ -163,6 +172,16 @@ class Main:
         print "Num of countries: " + str(len(self.indexer.countries))
         print "Num of capitals: " + str(self.indexer.num_of_capitals)
 
+    def set_save_path(self, dir_path):
+        pass
+
+    def save(self):
+        pass
+
+    def get_cities_list(self):
+        if self.indexer is None:
+            return None
+        return self.indexer.cities_dict.keys()
 
 """
 Script Description:
@@ -172,5 +191,5 @@ Script Description:
 
 if __name__ == "__main__":
     controller = Main()
-    view = IndexView(controller)
+    view = View(controller)
     view.start_index_view()
