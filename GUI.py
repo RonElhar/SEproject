@@ -51,6 +51,7 @@ class View:
         self.controller = controller
         self.stemming_bool = False
         self.index_window = Tk()
+        self.index_window.protocol("WM_DELETE_WINDOW", self.index_window.destroy)
         self.index_window.title("Documents Inverted Indexing")
         self.corpus_entry = make_entry(self.index_window, "Corpus Path:", 1, 0, 60)
         self.posting_entry = make_entry(self.index_window, "Posting Path:", 2, 0, 60)
@@ -247,72 +248,40 @@ class View:
 
         self.index_window.mainloop()
 
-    #############################################################################################################
 
-    def start_one_query_window(self):
+    def search_query_file_window(self):
 
         def show_entities():
-            pass
+            entities = self.controller.get_doc_five_entities(docs_list.curselection())
+            dict_window = Tk()
+            dict_window.geometry("300x300")
+
+            list_nodes = Listbox(dict_window, font=("Helvetica", 12))
+            list_nodes.pack(side="left", fill="y")
+
+            scrollbar = Scrollbar(dict_window, orient="vertical")
+            scrollbar.config(command=list_nodes.yview)
+            scrollbar.pack(side="right", fill="y")
+
+            list_nodes.config(yscrollcommand=scrollbar.set)
+
+            for entity in entities:
+                list_nodes.insert(END, entity)
 
         def save():
             self.controller.save()
 
         def start_query_search():
-            pass
-
-        def browse_query_results_save():
-            save_query_results_entry.delete(first=0, last=100)
-            dir_path = tkFileDialog.askdirectory()
-            save_query_results_entry.insert(0, dir_path)
-            self.controller.set_save_path(dir_path)  ####################
-
-        search_query_window = Tk()
-        search_query_window.title("Search With Query")
-
-        query_entry = make_entry(search_query_window, "Enter Query:", 1, 0, 60)
-        save_query_results_entry = make_entry(search_query_window, "Save Path:", 4, 0, 60)
-
-        start_button = Button(master=search_query_window, text="Search", command=start_query_search)
-        start_button.grid(row=2, column=1)
-
-        entities_button = Button(master=search_query_window, text="Show Entities", command=show_entities)
-        entities_button.grid(row=2, column=2)
-
-        browse_save_file = Button(master=search_query_window, text='Browse', width=6,
-                                  command=browse_query_results_save)
-        browse_save_file.grid(row=4, column=2, sticky='W')
-
-        save_button = Button(master=search_query_window, text="save", command=save)
-        save_button.grid(row=5, column=1)
-
-        cities_frame = Frame(search_query_window)
-        cities_frame.grid(row=3, column=0, sticky='W')
-
-        Label(master=search_query_window, text="Choose Cities:").grid(row=3, column=1, sticky='W')
-        cities_list = Listbox(master=cities_frame, width=20, height=10)
-        cities_scrollbar = Scrollbar(cities_list, orient="vertical")
-        cities_scrollbar.pack(side=RIGHT, fill=Y)
-        cities_list.config(yscrollcommand=cities_scrollbar.set)
-        cities_list.pack(expand=True, fill=Y)
-        cities_scrollbar.config(command=cities_list.yview)
-
-        cities_names = self.controller.get_cities_list
-        cities_list.insert(0, cities_names)
-
-        search_query_window.mainloop()
-
-    #############################################################################################################
-
-    def search_query_file_window(self):
-
-        def show_entities():
-            pass
-
-        def save():
-            self.controller.save()
+            values = [cities_list.get(idx) for idx in cities_list.curselection()]
+            docs = self.controller.start_query_search(query_entry, values)
+            for doc in docs:
+                docs_list.insert(END, doc)
 
         def start_file_search():
-            pass
+            values = [cities_list.get(idx) for idx in cities_list.curselection()]
+            docs = self.controller.start_file_search(queries_path_entry, values)
+            for doc in docs:
+                docs_list.insert(END, doc)
 
         def browse_queries_file_dir():
             queries_path_entry.delete(first=0, last=100)
@@ -326,51 +295,69 @@ class View:
             save_file_results_entry.insert(0, dir_path)
             self.controller.set_save_path(dir_path)  ####################
 
-        search_file_window = Tk()
-        search_file_window.title("Search With Queries File")
-        queries_path_entry = make_entry(search_file_window, "Queries Path:", 1, 0, 60)
-        save_file_results_entry = make_entry(search_file_window, "Save Path:", 4, 0, 60)
+        def on_closing():
+            search_file_window.destroy()
+            self.index_window.lift()
 
+        self.index_window.lower()
+        search_file_window = Tk()
+        
+        query_entry = make_entry(search_file_window, "Enter Query:", 1, 0, 60)
+        start_button = Button(master=search_file_window, text="Search", command=start_query_search)
+        start_button.grid(row=2, column=1)
+        search_file_window.protocol("WM_DELETE_WINDOW", on_closing)
+
+        queries_path_entry = make_entry(search_file_window, "Queries Path:", 4, 0, 60)
         browse_queries_file = Button(master=search_file_window, text='Browse', width=6,
                                      command=browse_queries_file_dir)
-        browse_queries_file.grid(row=1, column=2, sticky='W')
-        start_button = Button(master=search_file_window, text="Search", command=start_file_search())
-        start_button.grid(row=2, column=1)
-        entities_button = Button(master=search_file_window, text="Show Entities", command=show_entities)
-        entities_button.grid(row=2, column=2)
+        browse_queries_file.grid(row=4, column=2, sticky='W')
+        search_queries_button = Button(master=search_file_window, text="Search", command=start_file_search)
+        search_queries_button.grid(row=5, column=1)
 
-        # save_button = Button(master=search_file_window, text="save", command=save)
-        # save_button.grid(row=5, column=1)
-        # browse_save_file = Button(master=search_file_window, text='Browse', width=6,
-        #                           command=browse_file_results_save)
-        # browse_save_file.grid(row=4, column=2, sticky='W')
+        save_file_results_entry = make_entry(search_file_window, "Save Path:", 6, 0, 60)
+        browse_save_file = Button(master=search_file_window, text='Browse', width=6,
+                                  command=browse_file_results_save)
+        browse_save_file.grid(row=6, column=2, sticky='W')
+        save_button = Button(master=search_file_window, text="save", command=save)
+        save_button.grid(row=7, column=1)
+
+        entities_button = Button(master=search_file_window, text="Show Entities", command=show_entities)
+        entities_button.grid(row=3, column=1, sticky='E')
 
         cities_frame = Frame(search_file_window)
         cities_frame.grid(row=3, column=0)
-        Label(master=search_file_window, text="Choose Cities:").grid(row=3, column=0, sticky='N')
-        cities_list = Listbox(master=cities_frame,width=20, height=10)
-        cities_scrollbar = Scrollbar(cities_list, orient="vertical")
+
+        Label(master=search_file_window, text="Choose Cities:").grid(row=2, column=0, sticky='NW')
+        cities_list = Listbox(master=cities_frame, width=15, height=10)
+
+        cities_scrollbar = Scrollbar(cities_frame, orient="vertical")
         cities_scrollbar.pack(side=RIGHT, fill=Y)
+
         cities_list.config(yscrollcommand=cities_scrollbar.set)
         cities_list.pack(expand=True, fill=Y)
         cities_scrollbar.config(command=cities_list.yview)
-        cities_names = self.controller.get_cities_list
-        cities_list.insert(0, cities_names)
 
-        """"
-         lang_frame = Frame(self.index_window)
-        lang_frame.grid(row=5, column=1, sticky='W')
+        cities_names = self.controller.get_cities_list()
+        """
+        if cities_names is None:
+            tkMessageBox.showinfo("Error ", "Please Load Dictionary before Search")
+            on_closing()
+            return
 
-        Label(master=self.index_window, text="Languages:").grid(row=4, column=1, sticky='W')
-        self.language_list = Listbox(master=lang_frame, width=20, height=10, command=self.language_chosen())
+        for city in sorted(cities_names):
+            cities_list.insert(END, city)
+        """
+        docs_frame = Frame(search_file_window)
+        docs_frame.grid(row=3, column=1)
 
-        scrollbar = Scrollbar(lang_frame, orient="vertical")
-        scrollbar.pack(side=RIGHT, fill=Y)
+        Label(master=search_file_window, text="      Results:").grid(row=3, column=1, sticky='W')
+        docs_list = Listbox(master=docs_frame, width=20, height=10)
 
-        self.language_list.config(yscrollcommand=scrollbar.set)
-        self.language_list.pack(expand=True, fill=Y)
-        scrollbar.config(command=self.language_list.yview)
-        """""
+        docs_scrollbar = Scrollbar(docs_frame, orient="vertical")
+        docs_scrollbar.pack(side=RIGHT, fill=Y)
 
+        docs_list.config(yscrollcommand=docs_scrollbar.set)
+        docs_list.pack(expand=True, fill=Y)
+        docs_scrollbar.config(command=docs_list.yview)
 
         search_file_window.mainloop()

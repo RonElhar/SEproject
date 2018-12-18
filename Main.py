@@ -176,6 +176,8 @@ class Main:
         pass
 
     def get_cities_list(self):
+        if self.indexer is None:
+            return None
         return self.indexer.cities_dict.keys()
 
 """
