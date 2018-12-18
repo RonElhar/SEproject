@@ -18,18 +18,20 @@ class Searcher:
         path = self.posting_path + '\FinalPost' + '\Final_Post'
         query_dict = {}
         for term in query_terms:
+            if term not in self.terms_dict:
+                continue
             line = self.terms_dict[term][0] + 1
             term_index = linecache.getline(path, line)
             term_index = term_index.split('|')[1].split('#')
             i = 0
             while i < len(term_index) - 1:
                 term_doc_info = ast.literal_eval(term_index[i])
-                doc = term_doc_info.keys()[0]
-                if i == 0:
-                    query_dict[term] = {}
-                query_dict[term][doc] = term_doc_info[doc]
+                for doc in term_doc_info:
+                    if term not in query_dict:
+                        query_dict[term] = {}
+                    query_dict[term][doc] = term_doc_info[doc]
                 i += 1
-        print query_dict
+        return query_dict
 
     def get_five_entities(self, document):
         pass
@@ -37,7 +39,8 @@ class Searcher:
     def search(self, query):
         self.parser.parsed_doc = None
         query_terms = self.parser.main_parser(text=query)
-        result = self.ranker.rank_doc(query_terms, self.get_terms_from_post(query_terms), self.docs_dict)
+        words_terms = self.get_terms_from_post(query_terms)
+        result = self.ranker.rank_doc(query_terms, words_terms, self.docs_dict)
         return result
 
 
