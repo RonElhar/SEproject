@@ -18,6 +18,8 @@ class Searcher:
         path = self.posting_path + '\FinalPost' + '\Final_Post', 'rb'
         query_dict = {}
         for term in query_terms:
+            if not term in self.terms_dict:
+                continue
             term_index = linecache.getline(path, self.terms_dict[term][0] + 1)
             term_index = term_index.split('|')[1].split('#')
             i = 0

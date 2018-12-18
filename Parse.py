@@ -24,6 +24,7 @@ def get_stop_words(main_path):
     for word in lines:
         word = word.replace('\n', '')
         stop_words.add(word)
+    stop_words.add('TYPEBFN')
     return stop_words
 
 
