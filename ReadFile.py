@@ -80,7 +80,7 @@ class ReadFile:
                 temp = temp[0].split(' ')
                 for s in temp:
                     if not s == ' ' and not s == '':
-                        doc_city = temp[2]
+                        doc_city = temp[2].upper()
                 if not doc_city in self.cities:
                     self.cities[doc_city] = [doc_id]
                 else:
@@ -140,7 +140,7 @@ class ReadFile:
                     temp = temp[0].split(' ')
                     for s in temp:
                         if not s == ' ' and not s == '':
-                            doc_city = temp[2]
+                            doc_city = temp[2].upper()
                     if doc_city not in self.cities:
                         self.cities[doc_city] = [doc_id]
                     else:

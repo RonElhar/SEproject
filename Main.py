@@ -94,11 +94,9 @@ class Main:
             self.indexer.to_stem = True
         self.indexer = Indexer(self.posting_path)
         self.languages = self.indexer.load()
-        # if 'LA081489-0045' in self.indexer.docs_dict.keys():
-        #     print "gg"
-        self.searcher.model = Word2Vec.load('model.bin')
         self.searcher = Searcher(self.main_path, self.posting_path, self.indexer.terms_dict, self.indexer.cities_dict,
                                  self.indexer.docs_dict)
+        self.searcher.model = Word2Vec.load('model.bin')
         self.searcher.search("china is great")
         pass
 
