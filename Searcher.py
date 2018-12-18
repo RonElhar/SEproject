@@ -45,7 +45,7 @@ class Searcher:
             query = self.parser.main_parser(text=query)
             for word in query:
                 synonyms = self.model.wv.most_similar(positive=word)
-                for i in range(0, 5):
+                for i in range(0, 3):
                     query_terms.append({synonyms[i][0]: 1}) # need to check!!!!!!!!!!!!!!!
                 query_terms.append({word: query[word][0]})
         else:
