@@ -134,7 +134,7 @@ class Indexer:
 
         tmp_dict = {}
         for term in self.terms_dict.keys():
-            tmp_dict[term] = [self.terms_dict[term][0], self.terms_dict[term][1] - 1, self.terms_dict[term][2]]
+            tmp_dict[term] = [self.terms_dict[term][0], self.terms_dict[term][1] , self.terms_dict[term][2]]
         self.terms_dict = tmp_dict
 
         length_sum = 0
@@ -150,6 +150,7 @@ class Indexer:
                 self.docs_dict[doc_id] = [lines_count, docs[doc_id].length]
                 lines_count += 1
         self.docs_avg_length = length_sum / (len(self.docs_dict))
+        print self.docs_avg_length
 
     """
               Description :
