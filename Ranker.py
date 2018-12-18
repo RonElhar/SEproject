@@ -1,4 +1,6 @@
 from math import log
+from operator import itemgetter
+
 
 class Ranker:
     def __init__(self):
@@ -17,6 +19,8 @@ class Ranker:
                 else:
                     result[doc] += self.rank_BM25(len(words_dict[word]), words_dict[word][doc][0], query_dict[word][0],
                                                   docs_dict[doc][1])
+        result = sorted(result.items(), key=itemgetter(1))
+        print result
         return result # sort by keys
 
     def compute_K(self, dl):
