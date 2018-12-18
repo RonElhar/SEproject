@@ -14,12 +14,13 @@ class Searcher:
         self.posting_path = posting_path
         self.ranker = Ranker()
         self.model = None
-        self.with_semantics = True
+        self.with_semantics = False
 
     def get_terms_from_post(self, query_terms):
         path = self.posting_path + '\FinalPost' + '\Final_Post'
         query_dict = {}
         for term in query_terms:
+            term = str(term)
             if term not in self.terms_dict:
                 continue
             line = self.terms_dict[term][0] + 1
@@ -40,16 +41,18 @@ class Searcher:
 
     def search(self, query):
         self.parser.parsed_doc = None
+        query_terms = {}
         if self.with_semantics:
-            query_terms = []
             query = self.parser.main_parser(text=query)
             for word in query:
                 synonyms = self.model.wv.most_similar(positive=word)
                 for i in range(0, 3):
-                    query_terms.append({synonyms[i][0]: 1}) # need to check!!!!!!!!!!!!!!!
-                query_terms.append({word: query[word][0]})
+                    query_terms[(synonyms[i][0]).encode("ascii")] = 1
+                query_terms[word] = query[word][0]
         else:
-            query_terms = self.parser.main_parser(text=query)
+            query = self.parser.main_parser(text=query)
+            for word in query:
+                query_terms[word] = query[word][0]
         words_terms = self.get_terms_from_post(query_terms)
         result = self.ranker.rank_doc(query_terms, words_terms, self.docs_dict)
         return result

@@ -36,7 +36,10 @@ class Semantics:
         similar = new_model.wv.most_similar(positive=w1)
         print similar
 
-
-sem = Semantics()
-sem.read_corpus()
-sem.start()
+text = '<F P=106> [Article by Ovidio Bellando] </F> [Text]  "he is absolutely convinced" that Great Britain "sees" Argentine-Chilean relations with good eyes. to cooperate over oil exploration...if that is possible.Chile, if facts kept in absolute secrecy until 4 March are'
+terms = gensim.utils.simple_preprocess(text)
+tokens = gensim.utils.simple_tokenize(text)
+print terms
+#sem = Semantics()
+#sem.read_corpus()
+#sem.start()

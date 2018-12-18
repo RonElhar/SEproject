@@ -14,14 +14,19 @@ class Ranker:
         for word in query_dict:
             for doc in words_dict[word]:
                 if doc not in result:
-                    result[doc] = self.rank_BM25(len(words_dict[word]), words_dict[word][doc][0], query_dict[word][0],
+                    result[doc] = self.rank_BM25(len(words_dict[word]), words_dict[word][doc][0], query_dict[word],
                                                  docs_dict[doc][1])
                 else:
-                    result[doc] += self.rank_BM25(len(words_dict[word]), words_dict[word][doc][0], query_dict[word][0],
+                    result[doc] += self.rank_BM25(len(words_dict[word]), words_dict[word][doc][0], query_dict[word],
                                                   docs_dict[doc][1])
         result = sorted(result.items(), key=itemgetter(1))
-        print result
-        return result # sort by keys
+        final = []
+        i = len(result) - 1
+        while i >= len(result) - 200:
+            final.append(result[i])
+            print result[i]
+            i -= 1
+        return final
 
     def compute_K(self, dl):
         return self.k * ((1 - self.b) + self.b * (float(dl) / float(self.avdl)))
@@ -29,5 +34,5 @@ class Ranker:
     def rank_BM25(self, word_df, doc_freq, query_freq, dl):
         K = self.compute_K(dl)
         log_part = log(float(self.num_of_docs + 1) / float(word_df))
-        middle_part = ((self.k + 1) * doc_freq) / (K + doc_freq)
-        return query_freq * middle_part * log_part
+        middle_part = float((self.k + 1) * doc_freq) / float(K + doc_freq)
+        return float(query_freq) * middle_part * log_part

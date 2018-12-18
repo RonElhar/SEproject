@@ -73,6 +73,7 @@ class ReadFile:
                 line = line.replace("<H3>", '')
                 line = line.replace("</H3>", '')
                 doc_title = line.replace('\n', '')
+                doc_text += doc_title
                 continue
             if line.__contains__('<F P=104>'):
                 temp = line.split('>')
@@ -99,7 +100,7 @@ class ReadFile:
                     temp = lines[i + 1].split('>')
                     temp = temp[1].split('<')
                     temp = temp[0].split(' ')
-                    language = temp[0]
+                    language = temp[0].replace(',','')
                     self.languages.add(language)
                     lines[i + 1] = ' '
                 if lines[i + 2].__contains__("Article Type"):

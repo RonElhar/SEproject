@@ -9,7 +9,7 @@ import os
 import ParallelMain
 import Parse
 from Searcher import Searcher
-from gensim.models import Word2Vec
+# from gensim.models import Word2Vec
 
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~  Module Description ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -96,10 +96,10 @@ class Main:
         self.languages = self.indexer.load()
         # if 'LA081489-0045' in self.indexer.docs_dict.keys():
         #     print "gg"
-        self.searcher.model = Word2Vec.load('model.bin')
         self.searcher = Searcher(self.main_path, self.posting_path, self.indexer.terms_dict, self.indexer.cities_dict,
                                  self.indexer.docs_dict)
-        self.searcher.search("china is great")
+        # self.searcher.model = Word2Vec.load('model.bin')
+        self.searcher.search("Falkland petroleum exploration")
         pass
 
     """

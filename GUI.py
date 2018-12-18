@@ -234,9 +234,6 @@ class View:
         load_dict_button = Button(master=self.index_window, text="Load Dictionary", command=self.load)
         load_dict_button.grid(row=4, column=1, sticky='E')
 
-        search_one_query = Button(master=self.index_window, text="Search Querry", command=self.start_one_query_window)
-        search_one_query.grid(row=5, column=1, sticky='E')
-
         search_file_query = Button(master=self.index_window, text="Search With File",
                                    command=self.search_query_file_window)
         search_file_query.grid(row=5, column=2, sticky='W')
