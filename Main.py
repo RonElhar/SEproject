@@ -1,3 +1,5 @@
+import linecache
+
 from GUI import View
 from operator import itemgetter
 from ReadFile import ReadFile
@@ -42,6 +44,7 @@ class Main:
         self.languages = set()
         self.searcher = None
         self.queries_docs_results = []
+        self.avg_doc_length =0
 
     """
         Description :
@@ -61,8 +64,14 @@ class Main:
         docs = {}
         files_names = []
         post_files_lines = []
+        total_length = 0
         for dir in dirs_dict.keys():
-            docs.update(dirs_dict[dir][2])
+            for doc in docs:
+                tmp_docs_dict = dirs_dict[dir][2]
+                for doc_id in tmp_docs_dict:
+                    docs[doc_id] = tmp_docs_dict[doc_id]
+                    total_length += docs[doc_id].length
+            self.avg_doc_length= total_length/len(docs)
             for lang in dirs_dict[dir][3]:
                 self.languages.add(lang)
             old_post_files_lines = dirs_dict[dir][0]
@@ -81,13 +90,16 @@ class Main:
 
         terms_dict = Merge.start_merge(files_names, post_files_lines, terms_dicts, self.posting_path, self.to_stem)
 
+        self.indexer.docs_avg_length = self.avg_doc_length
         self.indexer.terms_dict = terms_dict
         self.indexer.docs_dict = docs
         self.indexer.index_cities(self.reader.cities)
         self.indexer.post_pointers(self.languages)
         # self.searcher = Searcher(self.main_path, self.posting_path, self.indexer.terms_dict, self.indexer.cities_dict,
-        #                          self.indexer.docs_dict)
+        #                         self.indexer.docs_dict,self.avg_doc_length)
         # self.searcher.model = Word2Vec.load('model.bin')
+        # path = self.posting_path + '\FinalPost' + '\Final_Post'
+        # linecache.getline(path, 500,000)
 
     """
         Description :
@@ -100,8 +112,10 @@ class Main:
         self.indexer = Indexer(self.posting_path)
         self.languages = self.indexer.load()
         self.searcher = Searcher(self.main_path, self.posting_path, self.indexer.terms_dict, self.indexer.cities_dict,
-                                 self.indexer.docs_dict)
+                                 self.indexer.docs_dict,self.avg_doc_length)
         self.searcher.model = Word2Vec.load('model.bin')
+        path = self.posting_path + '\FinalPost' + '\Final_Post'
+        linecache.getline(path, 500,000)
         # self.searcher.search("china is great")
 
     """
@@ -198,15 +212,14 @@ class Main:
                 if '<num>' in line:
                     id = line.split(':')[1]
                 elif '<title>' in line:
-                    query = line.replace('<title>', '').replace('\n','')
+                    query = line.replace('<title>', '').replace('\n', '')
                     queries_list.append((id, query))
                 ### option add desc or narr
         for query_tuple in queries_list:
-            docs_result = self.start_query_search(query_tuple[1],chosen_cities)
+            docs_result = self.start_query_search(query_tuple[1], chosen_cities)
             tmp = (query_tuple[0], query_tuple[1], docs_result)
             current_queries_results.append(tmp)
             self.queries_docs_results.append(tmp)
-
 
 
 """

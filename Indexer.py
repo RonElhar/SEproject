@@ -139,8 +139,8 @@ class Indexer:
                 doc = docs[doc_id]
                 length_sum += docs[doc_id].length
                 doc_index = "{}|{}|{}|{}|{}|{}\n".format(doc_id, docs[doc_id].title, docs[doc_id].origin_city,
-                                                      docs[doc_id].num_of_unique_words, docs[doc_id].max_tf,
-                                                      docs[doc_id].five_entities)
+                                                         docs[doc_id].num_of_unique_words, docs[doc_id].max_tf,
+                                                         docs[doc_id].five_entities)
                 f.write(doc_index)
                 self.docs_dict[doc_id] = [lines_count, docs[doc_id].length]
                 lines_count += 1
@@ -161,9 +161,8 @@ class Indexer:
 
         tmp_dict = {}
         for term in self.terms_dict.keys():
-            tmp_dict[term] = [self.terms_dict[term][0], self.terms_dict[term][1] , self.terms_dict[term][2]]
+            tmp_dict[term] = [self.terms_dict[term][0], self.terms_dict[term][1], self.terms_dict[term][2]]
         self.terms_dict = tmp_dict
-
 
         if self.to_stem:
             with open(self.posting_path + "\\Pointers\\sTerms Pointers Dictionary", 'wb') as f:
@@ -172,6 +171,8 @@ class Indexer:
                 cPickle.dump(self.cities_dict, f)
             with open(self.posting_path + "\\Pointers\\sDocuments Dictionary", 'wb') as f:
                 cPickle.dump(self.docs_dict, f)
+            with open(self.posting_path + "\\Pointers\\sAvg Doc Length", 'wb') as f:
+                cPickle.dump(self.docs_avg_length, f)
             with open(self.posting_path + "\\Pointers\\sLanguages Dictionary", 'wb') as f:
                 cPickle.dump(languages, f)
 
@@ -182,6 +183,8 @@ class Indexer:
                 cPickle.dump(self.cities_dict, f)
             with open(self.posting_path + "\\Pointers\\Documents Dictionary", 'wb') as f:
                 cPickle.dump(self.docs_dict, f)
+            with open(self.posting_path + "\\Pointers\\Avg Doc Length", 'wb') as f:
+                cPickle.dump(self.docs_avg_length, f)
             with open(self.posting_path + "\\Pointers\\Languages Dictionary", 'wb') as f:
                 cPickle.dump(languages, f)
 
@@ -206,7 +209,7 @@ class Indexer:
                 doc = term_doc_info.keys()[0]
                 tf = term_doc_info[doc][1]
                 tf_idf = (
-                    (float(tf) / self.docs_dict[doc][1]) * (math.log10(len(self.docs_dict) / float(df))))
+                        (float(tf) / self.docs_dict[doc][1]) * (math.log10(len(self.docs_dict) / float(df))))
                 if not doc in self.tf_idf_dict:
                     self.tf_idf_dict[doc] = {}
                 self.tf_idf_dict[doc][term] = tf_idf
@@ -240,6 +243,10 @@ class Indexer:
                         filename = os.path.join(root, filename)
                         with open(filename, 'rb') as f:
                             self.docs_dict = cPickle.load(f)
+                    if filename == 'sAvg Doc Length':
+                        filename = os.path.join(root, filename)
+                        with open(filename, 'rb') as f:
+                            self.docs_avg_length = cPickle.load(f)
                     if filename == 'sLanguages Dictionary':
                         filename = os.path.join(root, filename)
                         with open(filename, 'rb') as f:
@@ -257,6 +264,10 @@ class Indexer:
                         filename = os.path.join(root, filename)
                         with open(filename, 'rb') as f:
                             self.docs_dict = cPickle.load(f)
+                    if filename == 'Avg Doc Length':
+                        filename = os.path.join(root, filename)
+                        with open(filename, 'rb') as f:
+                            self.docs_avg_length = cPickle.load(f)
                     if filename == 'Languages Dictionary':
                         filename = os.path.join(root, filename)
                         with open(filename, 'rb') as f:

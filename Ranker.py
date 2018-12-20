@@ -14,11 +14,11 @@ def rank_BM25(self, word_df, doc_freq, query_freq, dl):
 
 
 class Ranker:
-    def __init__(self):
+    def __init__(self,avg_doc_length):
         self.k = 2
         self.b = 0.75
         self.num_of_docs = 472525
-        self.avdl = 235
+        self.avg_doc_length = avg_doc_length
 
     def rank_doc(self, query_dict, words_dict, docs_dict):
         result = {}

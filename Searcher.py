@@ -6,13 +6,13 @@ import linecache
 
 class Searcher:
 
-    def __init__(self, corpus_path, posting_path, terms_dict, cities_dict, docs_dict):
+    def __init__(self, corpus_path, posting_path, terms_dict, cities_dict, docs_dict,avg_doc_length):
         self.terms_dict = terms_dict
         self.cities_dict = cities_dict
         self.docs_dict = docs_dict
         self.parser = Parse(corpus_path)  ## corpus path for stop words
         self.posting_path = posting_path
-        self.ranker = Ranker()
+        self.ranker = Ranker(avg_doc_length)
         self.model = None
         self.with_semantics = False
 
