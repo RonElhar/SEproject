@@ -11,7 +11,7 @@ import os
 import ParallelMain
 import Parse
 from Searcher import Searcher
-from gensim.models import Word2Vec
+# from gensim.models import Word2Vec
 
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~  Module Description ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -66,18 +66,20 @@ class Main:
         post_files_lines = []
         total_length = 0
         for dir in dirs_dict.keys():
-            for doc in docs:
-                tmp_docs_dict = dirs_dict[dir][2]
-                for doc_id in tmp_docs_dict:
-                    docs[doc_id] = tmp_docs_dict[doc_id]
-                    total_length += docs[doc_id].length
-            self.avg_doc_length= total_length/len(docs)
+            tmp_docs_dict = dirs_dict[dir][2]
+            for doc_id in tmp_docs_dict:
+                docs[doc_id] = tmp_docs_dict[doc_id]
+                total_length += docs[doc_id].length
             for lang in dirs_dict[dir][3]:
                 self.languages.add(lang)
             old_post_files_lines = dirs_dict[dir][0]
             for i in range(0, len(old_post_files_lines)):
                 files_names.append(dir + "\\Posting" + str(i) if not self.to_stem else dir + "\\sPosting" + str(i))
                 post_files_lines.append(old_post_files_lines[i])
+
+        self.avg_doc_length= total_length/len(docs)
+
+
 
         # Gets Cities that appear in the corpus
         i = 0
@@ -113,9 +115,9 @@ class Main:
         self.languages = self.indexer.load()
         self.searcher = Searcher(self.main_path, self.posting_path, self.indexer.terms_dict, self.indexer.cities_dict,
                                  self.indexer.docs_dict,self.avg_doc_length)
-        self.searcher.model = Word2Vec.load('model.bin')
+        # self.searcher.model = Word2Vec.load('model.bin')
         path = self.posting_path + '\FinalPost' + '\Final_Post'
-        linecache.getline(path, 500,000)
+        linecache.getline(path, 500000)
         # self.searcher.search("china is great")
 
     """

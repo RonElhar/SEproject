@@ -19,23 +19,40 @@ class Searcher:
     def get_terms_from_post(self, query_terms,cities):
         path = self.posting_path + '\FinalPost' + '\Final_Post'
         query_dict = {}
-        for term in query_terms:
-            term = str(term)
-            if term not in self.terms_dict:
-                continue
-            line = self.terms_dict[term][0] + 1
-            term_index = linecache.getline(path, line)
-            term_index = term_index.split('|')[1].split('#')
-            i = 0
-            while i < len(term_index) - 1:
-                term_doc_info = ast.literal_eval(term_index[i])
-                for doc in term_doc_info:
-                    if not self.docs_dict[doc].origin_city in cities:
-                        continue
-                    if term not in query_dict:
-                        query_dict[term] = {}
-                    query_dict[term][doc] = term_doc_info[doc]
-                i += 1
+        if len(cities)>0 :
+            for term in query_terms:
+                # term = str(term)
+                if term not in self.terms_dict:
+                    continue
+                line = self.terms_dict[term][0] + 1
+                term_index = linecache.getline(path, line)
+                term_index = term_index.split('|')[1].split('#')
+                i = 0
+                while i < len(term_index) - 1:
+                    term_doc_info = ast.literal_eval(term_index[i])
+                    for doc in term_doc_info:
+                        if term not in query_dict:
+                            query_dict[term] = {}
+                        query_dict[term][doc] = term_doc_info[doc]
+                    i += 1
+        else:
+            for term in query_terms:
+                if term not in self.terms_dict:
+                    continue
+                line = self.terms_dict[term][0] + 1
+                term_index = linecache.getline(path, line)
+                term_index = term_index.split('|')[1].split('#')
+                i = 0
+                while i < len(term_index) - 1:
+                    term_doc_info = ast.literal_eval(term_index[i])
+                    for doc in term_doc_info:
+                        if not self.docs_dict[doc].origin_city in cities:
+                            continue
+                        if term not in query_dict:
+                            query_dict[term] = {}
+                        query_dict[term][doc] = term_doc_info[doc]
+                    i += 1
+
         return query_dict
 
     def get_five_entities(self, document):
