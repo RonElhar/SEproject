@@ -16,7 +16,7 @@ class Searcher:
         self.model = None
         self.with_semantics = False
 
-    def get_terms_from_post(self, query_terms):
+    def get_terms_from_post(self, query_terms,cities):
         path = self.posting_path + '\FinalPost' + '\Final_Post'
         query_dict = {}
         for term in query_terms:
@@ -30,6 +30,8 @@ class Searcher:
             while i < len(term_index) - 1:
                 term_doc_info = ast.literal_eval(term_index[i])
                 for doc in term_doc_info:
+                    if not self.docs_dict[doc].origin_city in cities:
+                        continue
                     if term not in query_dict:
                         query_dict[term] = {}
                     query_dict[term][doc] = term_doc_info[doc]
@@ -39,7 +41,7 @@ class Searcher:
     def get_five_entities(self, document):
         pass
 
-    def search(self, query):
+    def search(self, query, cities):
         self.parser.parsed_doc = None
         query_terms = {}
         if self.with_semantics:
@@ -53,7 +55,7 @@ class Searcher:
             query = self.parser.main_parser(text=query)
             for word in query:
                 query_terms[word] = query[word][0]
-        words_terms = self.get_terms_from_post(query_terms)
+        words_terms = self.get_terms_from_post(query_terms,cities)
         result = self.ranker.rank_doc(query_terms, words_terms, self.docs_dict)
         return result
 

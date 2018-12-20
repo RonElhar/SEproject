@@ -132,11 +132,6 @@ class Indexer:
 
     def index_docs(self, docs):
 
-        tmp_dict = {}
-        for term in self.terms_dict.keys():
-            tmp_dict[term] = [self.terms_dict[term][0], self.terms_dict[term][1] , self.terms_dict[term][2]]
-        self.terms_dict = tmp_dict
-
         length_sum = 0
         with open(self.posting_path + "\\Documents", 'wb') as f:
             lines_count = 0
@@ -164,12 +159,18 @@ class Indexer:
         if not os.path.exists(self.posting_path + "\\Pointers"):
             os.makedirs(self.posting_path + "\\Pointers")
 
+        tmp_dict = {}
+        for term in self.terms_dict.keys():
+            tmp_dict[term] = [self.terms_dict[term][0], self.terms_dict[term][1] , self.terms_dict[term][2]]
+        self.terms_dict = tmp_dict
+
+
         if self.to_stem:
             with open(self.posting_path + "\\Pointers\\sTerms Pointers Dictionary", 'wb') as f:
                 cPickle.dump(self.terms_dict, f)
             with open(self.posting_path + "\\Pointers\\sCities Pointers Dictionary", 'wb') as f:
                 cPickle.dump(self.cities_dict, f)
-            with open(self.posting_path + "\\Pointers\\sDocuments Pointers Dictionary", 'wb') as f:
+            with open(self.posting_path + "\\Pointers\\sDocuments Dictionary", 'wb') as f:
                 cPickle.dump(self.docs_dict, f)
             with open(self.posting_path + "\\Pointers\\sLanguages Dictionary", 'wb') as f:
                 cPickle.dump(languages, f)
@@ -179,7 +180,7 @@ class Indexer:
                 cPickle.dump(self.terms_dict, f)
             with open(self.posting_path + "\\Pointers\\Cities Pointers Dictionary", 'wb') as f:
                 cPickle.dump(self.cities_dict, f)
-            with open(self.posting_path + "\\Pointers\\Documents Pointers Dictionary", 'wb') as f:
+            with open(self.posting_path + "\\Pointers\\Documents Dictionary", 'wb') as f:
                 cPickle.dump(self.docs_dict, f)
             with open(self.posting_path + "\\Pointers\\Languages Dictionary", 'wb') as f:
                 cPickle.dump(languages, f)
@@ -235,7 +236,7 @@ class Indexer:
                         filename = os.path.join(root, filename)
                         with open(filename, 'rb') as f:
                             self.cities_dict = cPickle.load(f)
-                    if filename == 'sDocuments Pointers Dictionary':
+                    if filename == 'sDocuments Dictionary':
                         filename = os.path.join(root, filename)
                         with open(filename, 'rb') as f:
                             self.docs_dict = cPickle.load(f)
@@ -252,7 +253,7 @@ class Indexer:
                         filename = os.path.join(root, filename)
                         with open(filename, 'rb') as f:
                             self.cities_dict = cPickle.load(f)
-                    if filename == 'Documents Pointers Dictionary':
+                    if filename == 'Documents Dictionary':
                         filename = os.path.join(root, filename)
                         with open(filename, 'rb') as f:
                             self.docs_dict = cPickle.load(f)

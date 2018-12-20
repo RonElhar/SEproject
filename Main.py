@@ -41,6 +41,7 @@ class Main:
         self.reader = ReadFile()
         self.languages = set()
         self.searcher = None
+        self.queries_docs_results = []
 
     """
         Description :
@@ -81,14 +82,18 @@ class Main:
         terms_dict = Merge.start_merge(files_names, post_files_lines, terms_dicts, self.posting_path, self.to_stem)
 
         self.indexer.terms_dict = terms_dict
-        self.indexer.index_docs(docs)
+        self.indexer.docs_dict = docs
         self.indexer.index_cities(self.reader.cities)
         self.indexer.post_pointers(self.languages)
+        # self.searcher = Searcher(self.main_path, self.posting_path, self.indexer.terms_dict, self.indexer.cities_dict,
+        #                          self.indexer.docs_dict)
+        # self.searcher.model = Word2Vec.load('model.bin')
 
     """
         Description :
             This method calls the Indexer function for loading saved files to the programs main memory
     """
+
     def load(self):
         if self.to_stem:
             self.indexer.to_stem = True
@@ -97,8 +102,7 @@ class Main:
         self.searcher = Searcher(self.main_path, self.posting_path, self.indexer.terms_dict, self.indexer.cities_dict,
                                  self.indexer.docs_dict)
         self.searcher.model = Word2Vec.load('model.bin')
-        self.searcher.search("china is great")
-        pass
+        # self.searcher.search("china is great")
 
     """
         Description :
@@ -180,6 +184,30 @@ class Main:
         if self.indexer is None:
             return None
         return self.indexer.cities_dict.keys()
+
+    def start_query_search(self, query, chosen_cities):
+        return self.searcher.search(query, chosen_cities)
+
+    def start_file_search(self, queries_path_entry, chosen_cities):
+        queries_list = []
+        current_queries_results = []
+        with open(queries_path_entry, 'rb') as f:
+            lines = f.readlines()
+            id = 0
+            for line in lines:
+                if '<num>' in line:
+                    id = line.split(':')[1]
+                elif '<title>' in line:
+                    query = line.replace('<title>', '').replace('\n','')
+                    queries_list.append((id, query))
+                ### option add desc or narr
+        for query_tuple in queries_list:
+            docs_result = self.start_query_search(query_tuple[1],chosen_cities)
+            tmp = (query_tuple[0], query_tuple[1], docs_result)
+            current_queries_results.append(tmp)
+            self.queries_docs_results.append(tmp)
+
+
 
 """
 Script Description:

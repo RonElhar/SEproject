@@ -56,7 +56,7 @@ class View:
         self.corpus_entry = make_entry(self.index_window, "Corpus Path:", 1, 0, 60)
         self.posting_entry = make_entry(self.index_window, "Posting Path:", 2, 0, 60)
         self.language_list = None
-        self.currnent_qID = ""
+        self.currnent_qID = 0
 
     """
         Description :
@@ -276,8 +276,8 @@ class View:
                 docs_list.insert(END, doc)
 
         def start_file_search():
-            values = [cities_list.get(idx) for idx in cities_list.curselection()]
-            queries_docs = self.controller.start_file_search(queries_path_entry, values)
+            chosen_cities = [cities_list.get(idx) for idx in cities_list.curselection()]
+            queries_docs = self.controller.start_file_search(queries_path_entry.get(), chosen_cities)
             for query in queries_docs:
                 docs_list.insert("Query ID " +query + " Results:")
                 for doc in queries_docs[query]:
@@ -286,15 +286,15 @@ class View:
 
         def browse_queries_file_dir():
             queries_path_entry.delete(first=0, last=100)
-            dir_path = tkFileDialog.askdirectory()
-            queries_path_entry.insert(0, dir_path)
-            self.controller.set_save_path(dir_path)  ####################
+            file = tkFileDialog.askopenfile(parent=search_file_window,mode='rb',title='Choose a file')
+            queries_path_entry.insert(0, file.name)
+            file.close()
+
 
         def browse_file_results_save():
             save_file_results_entry.delete(first=0, last=100)
             dir_path = tkFileDialog.askdirectory()
             save_file_results_entry.insert(0, dir_path)
-            self.controller.set_save_path(dir_path)  ####################
 
         def on_closing():
             search_file_window.destroy()
@@ -342,7 +342,6 @@ class View:
         cities_list.pack(expand=True, fill=Y)
         cities_scrollbar.config(command=cities_list.yview)
 
-        """
         cities_names = self.controller.get_cities_list()
         if cities_names is None:
             tkMessageBox.showinfo("Error ", "Please Load Dictionary before Search")
@@ -351,7 +350,6 @@ class View:
 
         for city in sorted(cities_names):
             cities_list.insert(END, city)
-        """
 
         docs_frame = Frame(search_file_window)
         docs_frame.grid(row=4, column=1)
