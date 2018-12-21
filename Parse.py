@@ -303,6 +303,7 @@ class Parse:
     """
 
     def word_term(self, word):
+        self.to_stem = True ############################################# delete
         if self.to_stem:
             word = str(self.pystemmer.stemWord(word))
         lower = word.lower()
