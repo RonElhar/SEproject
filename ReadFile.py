@@ -65,7 +65,7 @@ class ReadFile:
             if line.__contains__("<DOCNO>"):
                 line = line.replace("<DOCNO>", '')
                 line = line.replace("</DOCNO>", '')
-                doc_id = line.replace('\n', '')
+                doc_id = line.replace('\n', '').replace(' ', '')
                 continue
             if line.__contains__("<TI>"):
                 line = line.replace("<TI>", '')
@@ -73,6 +73,7 @@ class ReadFile:
                 line = line.replace("<H3>", '')
                 line = line.replace("</H3>", '')
                 doc_title = line.replace('\n', '')
+                doc_text += doc_title
                 continue
             if line.__contains__('<F P=104>'):
                 temp = line.split('>')
@@ -80,11 +81,7 @@ class ReadFile:
                 temp = temp[0].split(' ')
                 for s in temp:
                     if not s == ' ' and not s == '':
-                        doc_city = temp[2]
-                if not doc_city in self.cities:
-                    self.cities[doc_city] = [doc_id]
-                else:
-                    self.cities[doc_city].append(doc_id)
+                        doc_city = temp[2].upper()
             if line.__contains__('<DATE>') or line.__contains__('<DATE1>'):
                 no1 = False
                 if line.__contains__('<DATE>'):
@@ -99,9 +96,11 @@ class ReadFile:
                     temp = lines[i + 1].split('>')
                     temp = temp[1].split('<')
                     temp = temp[0].split(' ')
-                    language = temp[0]
+                    language = temp[0].replace(',','')
                     self.languages.add(language)
                     lines[i + 1] = ' '
+                if lines[i + 2].__contains__("Article Type"):
+                    lines[i + 2] = ''
                 if lines[i + 4].__contains__('<F P=106>'):
                     lines[i + 4] = lines[i + 4].replace('<F P=106>', '')
                     lines[i + 4] = lines[i + 4].replace('</F>', '')
@@ -121,6 +120,8 @@ class ReadFile:
     def read_cities(self, path, filename):
         with open(path + "\\" + filename + "\\" + filename, "r") as f:
             lines = f.readlines()
+            doc_city = ""
+            doc_id = ""
             for i in range(len(lines)):
                 line = lines[i]
                 if line.__contains__("<DOC>"):
@@ -136,11 +137,11 @@ class ReadFile:
                     temp = temp[0].split(' ')
                     for s in temp:
                         if not s == ' ' and not s == '':
-                            doc_city = temp[2]
-                    if doc_city not in self.cities:
-                        self.cities[doc_city] = [doc_id]
-                    else:
-                        self.cities[doc_city].append(doc_id)
+                            doc_city = temp[2].upper()
+                            if doc_city not in self.cities:
+                                self.cities[doc_city] = [doc_id]
+                            else:
+                                self.cities[doc_city].append(doc_id)
 
 
 class Document:
@@ -158,12 +159,13 @@ class Document:
         self.file_name = name
         self.id = doc_id
         self.date = date
-        self.title = title
+        self.title = title.upper()
         self.origin_city = city
         self.length = 0
         self.max_tf = 0
         self.num_of_unique_words = 0
         self.text = text
+        self.five_entities = []
 
     """
         Description
@@ -172,9 +174,11 @@ class Document:
 
     def set_length(self, length):
         self.length = length
+
     """
         @overriding str method
         Creates a string representation for document object
     """
+
     def __str__(self):
         return self.id + ', ' + self.title

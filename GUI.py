@@ -25,6 +25,8 @@ from timeit import default_timer as timer
    Returns:
        Dictionaries of documents - key = document id , value = Document object
 """
+
+
 def make_entry(parent, caption, row, column, width=None, **options):
     Label(parent, text=caption).grid(row=row, column=column, sticky='W')
     entry = Entry(parent, **options)
@@ -34,7 +36,7 @@ def make_entry(parent, caption, row, column, width=None, **options):
     return entry
 
 
-class IndexView:
+class View:
     """
        Class Description :
            This Class is used the the gui of the index phase of the search engine
@@ -49,11 +51,12 @@ class IndexView:
         self.controller = controller
         self.stemming_bool = False
         self.index_window = Tk()
+        self.index_window.protocol("WM_DELETE_WINDOW", self.index_window.destroy)
         self.index_window.title("Documents Inverted Indexing")
         self.corpus_entry = make_entry(self.index_window, "Corpus Path:", 1, 0, 60)
         self.posting_entry = make_entry(self.index_window, "Posting Path:", 2, 0, 60)
         self.language_list = None
-        self.start_index_view()
+        self.currnent_qID = 0
 
     """
         Description :
@@ -69,24 +72,29 @@ class IndexView:
             Browse button function - opens file dialog and gets the path of 
             the chosen directiory
     """
+
     def browse_corpus_dir(self):
         self.corpus_entry.delete(first=0, last=100)
         dir_path = tkFileDialog.askdirectory()
         self.corpus_entry.insert(0, dir_path)
         self.controller.set_corpus_path(dir_path)
+
     """
         Description :
             Browse button function - opens file dialog and gets the path of 
             the chosen directiory
     """
+
     def browse_posting_dir(self):
         self.posting_entry.delete(first=0, last=100)
         dir_path = tkFileDialog.askdirectory()
         self.posting_entry.insert(0, dir_path)
         self.controller.set_posting_path(dir_path)
+
     """
        To be continued..........
     """
+
     def language_chosen(self):
         pass
 
@@ -94,6 +102,7 @@ class IndexView:
          Description :
              reset button function - calls the controller reset function
     """
+
     def reset(self):
         dir_path = self.posting_entry.get()
         self.controller.set_posting_path(dir_path)
@@ -105,6 +114,7 @@ class IndexView:
          Description :
              start button function - gets paths from entries and calls controller to start the program
     """
+
     def start(self):
         dir_path = self.corpus_entry.get()
         if not os.path.isdir(dir_path):
@@ -131,6 +141,7 @@ class IndexView:
           Description :
               Shows invalid pass message 
     """
+
     def invalid_path(self, path_type):
         tkMessageBox.showinfo("Error ", "Invalid {} path".format(path_type))
 
@@ -138,6 +149,7 @@ class IndexView:
          Description :
              load button function - gets paths from entries and calls controller to start the program
     """
+
     def load(self):
         self.language_list.delete(0, END)
         dir_path = self.posting_entry.get()
@@ -155,6 +167,7 @@ class IndexView:
               Show button function - gets terms dictionary from controller and 
               opens a window with box view for the terms and their frequency
     """
+
     def show(self):
         dict_window = Tk()
         dict_window.geometry("300x900")
@@ -172,10 +185,12 @@ class IndexView:
 
         for term in sorted(terms_dict.keys()):
             listNodes.insert(END, "{} - {}\n".format(term, str(terms_dict[term][1])))
+
     """
          Description :
              stem radio button function - gets the user choose from the radio button
     """
+
     def stem_control(self):
         if self.stemming_bool:
             self.stemming_bool = False
@@ -187,6 +202,7 @@ class IndexView:
           Description :
               Creating the index view window and its buttons
     """
+
     def start_index_view(self):
         welcome_instruction = Label(master=self.index_window,
                                     text='Hello! In order to proceed, please insert Corpus and Posting paths:')
@@ -218,9 +234,134 @@ class IndexView:
 
         load_dict_button = Button(master=self.index_window, text="Load Dictionary", command=self.load)
         load_dict_button.grid(row=4, column=1, sticky='E')
+
+        search_file_query = Button(master=self.index_window, text="Search With File",
+                                   command=self.search_query_file_window)
+        search_file_query.grid(row=5, column=2, sticky='W')
+
         show_dict_button = Button(master=self.index_window, text="Show Dictionary", command=self.show)
         show_dict_button.grid(row=4, column=2)
         reset_button = Button(master=self.index_window, text='Reset', width=6, command=self.reset)
         reset_button.grid(row=4, column=3)
 
         self.index_window.mainloop()
+
+
+    def search_query_file_window(self):
+
+        def show_entities():
+            entities = self.controller.get_doc_five_entities(docs_list.curselection())
+            dict_window = Tk()
+            dict_window.geometry("300x300")
+
+            list_nodes = Listbox(dict_window, font=("Helvetica", 12))
+            list_nodes.pack(side="left", fill="y")
+
+            scrollbar = Scrollbar(dict_window, orient="vertical")
+            scrollbar.config(command=list_nodes.yview)
+            scrollbar.pack(side="right", fill="y")
+
+            list_nodes.config(yscrollcommand=scrollbar.set)
+
+            for entity in entities:
+                list_nodes.insert(END, entity)
+
+        def save():
+            self.controller.save()
+
+        def start_query_search():
+            values = [cities_list.get(idx) for idx in cities_list.curselection()]
+            docs = self.controller.start_query_search(query_entry, values)
+            for doc in docs:
+                docs_list.insert(END, doc)
+
+        def start_file_search():
+            chosen_cities = [cities_list.get(idx) for idx in cities_list.curselection()]
+            queries_docs = self.controller.start_file_search(queries_path_entry.get(), chosen_cities)
+            for query in queries_docs:
+                docs_list.insert("Query ID " +query + " Results:")
+                for doc in queries_docs[query]:
+                    docs_list.insert(END, doc)
+                docs_list.insert(END,"")
+
+        def browse_queries_file_dir():
+            queries_path_entry.delete(first=0, last=100)
+            file = tkFileDialog.askopenfile(parent=search_file_window,mode='rb',title='Choose a file')
+            queries_path_entry.insert(0, file.name)
+            file.close()
+
+
+        def browse_file_results_save():
+            save_file_results_entry.delete(first=0, last=100)
+            dir_path = tkFileDialog.askdirectory()
+            save_file_results_entry.insert(0, dir_path)
+
+        def on_closing():
+            search_file_window.destroy()
+            self.index_window.lift()
+
+        self.index_window.lower()
+        search_file_window = Tk()
+       # search_file_window.geometry("800x600")
+        Label(master=search_file_window, text="~~~~~~~~Search With Free Text Query~~~~~~~~").grid(row=0,column=1)
+
+        query_entry = make_entry(search_file_window, "Enter Query:", 1, 0, 60)
+        start_button = Button(master=search_file_window, text="Search", command=start_query_search)
+        start_button.grid(row=2, column=1)
+        search_file_window.protocol("WM_DELETE_WINDOW", on_closing)
+
+        Label(master=search_file_window, text="~~~~~~~~Search With Queries File~~~~~~~~").grid(row=5,column=1)
+        queries_path_entry = make_entry(search_file_window, "Queries Path:", 6, 0, 60)
+        browse_queries_file = Button(master=search_file_window, text='Browse', width=6,
+                                     command=browse_queries_file_dir)
+        browse_queries_file.grid(row=6, column=2, sticky='W')
+        search_queries_button = Button(master=search_file_window, text="Search", command=start_file_search)
+        search_queries_button.grid(row=7, column=1)
+
+        Label(master=search_file_window, text="~~~~~~~~Save Queries Results~~~~~~~").grid(row=8,column=1)
+        save_file_results_entry = make_entry(search_file_window, "Save Path:", 9, 0, 60)
+        browse_save_file = Button(master=search_file_window, text='Browse', width=6,
+                                  command=browse_file_results_save)
+        browse_save_file.grid(row=9, column=2, sticky='W')
+        save_button = Button(master=search_file_window, text="save", command=save)
+        save_button.grid(row=10, column=1)
+
+        entities_button = Button(master=search_file_window, text="Show Entities", command=show_entities)
+        entities_button.grid(row=4, column=1, sticky='E')
+
+        cities_frame = Frame(search_file_window)
+        cities_frame.grid(row=4, column=0)
+
+        Label(master=search_file_window, text="Choose Cities:").grid(row=3, column=0, sticky='NW')
+        cities_list = Listbox(master=cities_frame, width=20, height=20)
+
+        cities_scrollbar = Scrollbar(cities_frame, orient="vertical")
+        cities_scrollbar.pack(side=RIGHT, fill=Y)
+
+        cities_list.config(yscrollcommand=cities_scrollbar.set)
+        cities_list.pack(expand=True, fill=Y)
+        cities_scrollbar.config(command=cities_list.yview)
+
+        cities_names = self.controller.get_cities_list()
+        if cities_names is None:
+            tkMessageBox.showinfo("Error ", "Please Load Dictionary before Search")
+            on_closing()
+            return
+
+        for city in sorted(cities_names):
+            cities_list.insert(END, city)
+
+        docs_frame = Frame(search_file_window)
+        docs_frame.grid(row=4, column=1)
+
+        Label(master=search_file_window, text="      Results:").grid(row=4, column=1, sticky='W')
+        docs_list = Listbox(master=docs_frame, width=30, height=20)
+
+        docs_scrollbar = Scrollbar(docs_frame, orient="vertical")
+        docs_scrollbar.pack(side=RIGHT, fill=Y)
+
+        docs_list.config(yscrollcommand=docs_scrollbar.set)
+        docs_list.pack(expand=True, fill=Y)
+        docs_scrollbar.config(command=docs_list.yview)
+
+        search_file_window.mainloop()

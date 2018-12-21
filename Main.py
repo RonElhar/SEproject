@@ -1,4 +1,6 @@
-from GUI import IndexView
+import linecache
+
+from GUI import View
 from operator import itemgetter
 from ReadFile import ReadFile
 from Parse import Parse
@@ -8,6 +10,8 @@ import Merge
 import os
 import ParallelMain
 import Parse
+from Searcher import Searcher
+# from gensim.models import Word2Vec
 
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~  Module Description ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -38,6 +42,9 @@ class Main:
         self.indexer = None
         self.reader = ReadFile()
         self.languages = set()
+        self.searcher = None
+        self.queries_docs_results = []
+        self.avg_doc_length =0
 
     """
         Description :
@@ -45,7 +52,6 @@ class Main:
     """
 
     def start(self):
-
         self.indexer = Indexer(self.posting_path)
 
         if self.to_stem:
@@ -58,14 +64,22 @@ class Main:
         docs = {}
         files_names = []
         post_files_lines = []
+        total_length = 0
         for dir in dirs_dict.keys():
-            docs.update(dirs_dict[dir][2])
+            tmp_docs_dict = dirs_dict[dir][2]
+            for doc_id in tmp_docs_dict:
+                docs[doc_id] = tmp_docs_dict[doc_id]
+                total_length += docs[doc_id].length
             for lang in dirs_dict[dir][3]:
                 self.languages.add(lang)
             old_post_files_lines = dirs_dict[dir][0]
             for i in range(0, len(old_post_files_lines)):
                 files_names.append(dir + "\\Posting" + str(i) if not self.to_stem else dir + "\\sPosting" + str(i))
                 post_files_lines.append(old_post_files_lines[i])
+
+        self.avg_doc_length= total_length/len(docs)
+
+
 
         # Gets Cities that appear in the corpus
         i = 0
@@ -78,10 +92,16 @@ class Main:
 
         terms_dict = Merge.start_merge(files_names, post_files_lines, terms_dicts, self.posting_path, self.to_stem)
 
+        self.indexer.docs_avg_length = self.avg_doc_length
         self.indexer.terms_dict = terms_dict
-        self.indexer.index_docs(docs)
+        self.indexer.docs_dict = docs
         self.indexer.index_cities(self.reader.cities)
         self.indexer.post_pointers(self.languages)
+        # self.searcher = Searcher(self.main_path, self.posting_path, self.indexer.terms_dict, self.indexer.cities_dict,
+        #                         self.indexer.docs_dict,self.avg_doc_length)
+        # self.searcher.model = Word2Vec.load('model.bin')
+        # path = self.posting_path + '\FinalPost' + '\Final_Post'
+        # linecache.getline(path, 500,000)
 
     """
         Description :
@@ -89,9 +109,16 @@ class Main:
     """
 
     def load(self):
+        if self.to_stem:
+            self.indexer.to_stem = True
         self.indexer = Indexer(self.posting_path)
         self.languages = self.indexer.load()
-        pass
+        self.searcher = Searcher(self.main_path, self.posting_path, self.indexer.terms_dict, self.indexer.cities_dict,
+                                 self.indexer.docs_dict,self.avg_doc_length)
+        # self.searcher.model = Word2Vec.load('model.bin')
+        path = self.posting_path + '\FinalPost' + '\Final_Post'
+        linecache.getline(path, 500000)
+        # self.searcher.search("china is great")
 
     """
         Description :
@@ -163,6 +190,39 @@ class Main:
         print "Num of countries: " + str(len(self.indexer.countries))
         print "Num of capitals: " + str(self.indexer.num_of_capitals)
 
+    def set_save_path(self, dir_path):
+        pass
+
+    def save(self):
+        pass
+
+    def get_cities_list(self):
+        if self.indexer is None:
+            return None
+        return self.indexer.cities_dict.keys()
+
+    def start_query_search(self, query, chosen_cities):
+        return self.searcher.search(query, chosen_cities)
+
+    def start_file_search(self, queries_path_entry, chosen_cities):
+        queries_list = []
+        current_queries_results = []
+        with open(queries_path_entry, 'rb') as f:
+            lines = f.readlines()
+            id = 0
+            for line in lines:
+                if '<num>' in line:
+                    id = line.split(':')[1]
+                elif '<title>' in line:
+                    query = line.replace('<title>', '').replace('\n', '')
+                    queries_list.append((id, query))
+                ### option add desc or narr
+        for query_tuple in queries_list:
+            docs_result = self.start_query_search(query_tuple[1], chosen_cities)
+            tmp = (query_tuple[0], query_tuple[1], docs_result)
+            current_queries_results.append(tmp)
+            self.queries_docs_results.append(tmp)
+
 
 """
 Script Description:
@@ -172,5 +232,5 @@ Script Description:
 
 if __name__ == "__main__":
     controller = Main()
-    view = IndexView(controller)
+    view = View(controller)
     view.start_index_view()
