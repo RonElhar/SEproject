@@ -11,7 +11,7 @@ import os
 import ParallelMain
 import Parse
 from Searcher import Searcher
-# from gensim.models import Word2Vec
+from gensim.models import Word2Vec
 
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~  Module Description ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -44,7 +44,7 @@ class Main:
         self.languages = set()
         self.searcher = None
         self.queries_docs_results = []
-        self.avg_doc_length =0
+        self.avg_doc_length = 0
 
     """
         Description :
@@ -77,9 +77,7 @@ class Main:
                 files_names.append(dir + "\\Posting" + str(i) if not self.to_stem else dir + "\\sPosting" + str(i))
                 post_files_lines.append(old_post_files_lines[i])
 
-        self.avg_doc_length= total_length/len(docs)
-
-
+        self.avg_doc_length = total_length / len(docs)
 
         # Gets Cities that appear in the corpus
         i = 0
@@ -97,11 +95,11 @@ class Main:
         self.indexer.docs_dict = docs
         self.indexer.index_cities(self.reader.cities)
         self.indexer.post_pointers(self.languages)
-        # self.searcher = Searcher(self.main_path, self.posting_path, self.indexer.terms_dict, self.indexer.cities_dict,
-        #                         self.indexer.docs_dict,self.avg_doc_length)
-        # self.searcher.model = Word2Vec.load('model.bin')
-        # path = self.posting_path + '\FinalPost' + '\Final_Post'
-        # linecache.getline(path, 500,000)
+        self.searcher = Searcher(self.main_path, self.posting_path, self.indexer.terms_dict, self.indexer.cities_dict,
+                                 self.indexer.docs_dict, self.avg_doc_length)
+        self.searcher.model = Word2Vec.load('model.bin')
+        path = self.posting_path + '\FinalPost' + '\Final_Post'
+        linecache.getline(path, 500, 000)
 
     """
         Description :
@@ -113,12 +111,13 @@ class Main:
             self.indexer.to_stem = True
         self.indexer = Indexer(self.posting_path)
         self.languages = self.indexer.load()
+        self.avg_doc_length = self.indexer.docs_avg_length
         self.searcher = Searcher(self.main_path, self.posting_path, self.indexer.terms_dict, self.indexer.cities_dict,
-                                 self.indexer.docs_dict,self.avg_doc_length)
-        # self.searcher.model = Word2Vec.load('model.bin')
+                                 self.indexer.docs_dict, self.avg_doc_length)
+        self.searcher.model = Word2Vec.load('model.bin')
         path = self.posting_path + '\FinalPost' + '\Final_Post'
         linecache.getline(path, 500000)
-        # self.searcher.search("china is great")
+       # self.searcher.search("china is great", {})
 
     """
         Description :

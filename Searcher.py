@@ -6,7 +6,7 @@ import linecache
 
 class Searcher:
 
-    def __init__(self, corpus_path, posting_path, terms_dict, cities_dict, docs_dict,avg_doc_length):
+    def __init__(self, corpus_path, posting_path, terms_dict, cities_dict, docs_dict, avg_doc_length):
         self.terms_dict = terms_dict
         self.cities_dict = cities_dict
         self.docs_dict = docs_dict
@@ -16,10 +16,10 @@ class Searcher:
         self.model = None
         self.with_semantics = False
 
-    def get_terms_from_post(self, query_terms,cities):
+    def get_terms_from_post(self, query_terms, cities):
         path = self.posting_path + '\FinalPost' + '\Final_Post'
         query_dict = {}
-        if len(cities)>0 :
+        if len(cities) > 0:
             for term in query_terms:
                 # term = str(term)
                 if term not in self.terms_dict:
@@ -30,10 +30,13 @@ class Searcher:
                 i = 0
                 while i < len(term_index) - 1:
                     term_doc_info = ast.literal_eval(term_index[i])
-                    for doc in term_doc_info:
+                    for doc_id in term_doc_info:
+                        doc = self.docs_dict[doc_id]
+                        if doc.origin_city not in cities:
+                            continue
                         if term not in query_dict:
                             query_dict[term] = {}
-                        query_dict[term][doc] = term_doc_info[doc]
+                        query_dict[term][doc_id] = term_doc_info[doc_id]
                     i += 1
         else:
             for term in query_terms:
@@ -45,12 +48,10 @@ class Searcher:
                 i = 0
                 while i < len(term_index) - 1:
                     term_doc_info = ast.literal_eval(term_index[i])
-                    for doc in term_doc_info:
-                        if not self.docs_dict[doc].origin_city in cities:
-                            continue
+                    for doc_id in term_doc_info:
                         if term not in query_dict:
                             query_dict[term] = {}
-                        query_dict[term][doc] = term_doc_info[doc]
+                        query_dict[term][doc_id] = term_doc_info[doc_id]
                     i += 1
 
         return query_dict
@@ -72,7 +73,7 @@ class Searcher:
             query = self.parser.main_parser(text=query)
             for word in query:
                 query_terms[word] = query[word][0]
-        words_terms = self.get_terms_from_post(query_terms,cities)
+        words_terms = self.get_terms_from_post(query_terms, cities)
         result = self.ranker.rank_doc(query_terms, words_terms, self.docs_dict)
         return result
 

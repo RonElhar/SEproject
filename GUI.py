@@ -270,8 +270,8 @@ class View:
             self.controller.save()
 
         def start_query_search():
-            values = [cities_list.get(idx) for idx in cities_list.curselection()]
-            docs = self.controller.start_query_search(query_entry, values)
+            values = set(cities_list.get(idx) for idx in cities_list.curselection())
+            docs = self.controller.start_query_search(query_entry.get(), values)
             for doc in docs:
                 docs_list.insert(END, doc)
 
@@ -333,7 +333,7 @@ class View:
         cities_frame.grid(row=4, column=0)
 
         Label(master=search_file_window, text="Choose Cities:").grid(row=3, column=0, sticky='NW')
-        cities_list = Listbox(master=cities_frame, width=20, height=20)
+        cities_list = Listbox(master=cities_frame, width=20, height=20, selectmode=MULTIPLE)
 
         cities_scrollbar = Scrollbar(cities_frame, orient="vertical")
         cities_scrollbar.pack(side=RIGHT, fill=Y)
