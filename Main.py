@@ -45,6 +45,9 @@ class Main:
         self.searcher = None
         self.queries_docs_results = []
         self.avg_doc_length = 0
+        self.with_semantics = False
+        self.with_stem = False
+        self.save_path = ''
 
     """
         Description :
@@ -116,8 +119,9 @@ class Main:
                                  self.indexer.docs_dict, self.avg_doc_length)
         self.searcher.model = Word2Vec.load('model.bin')
         path = self.posting_path + '\FinalPost' + '\Final_Post'
-        linecache.getline(path, 500000)
-       # self.searcher.search("china is great", {})
+        linecache.getline(path, 650000)
+
+    # self.searcher.search("china is great", {})
 
     """
         Description :
@@ -171,6 +175,9 @@ class Main:
     def set_stemming_bool(self, to_stem):
         self.to_stem = to_stem
 
+    def set_with_semantics(self, with_semantics):
+        self.with_semantics = with_semantics
+
     def report(self):
         num_count = 0
         i = 0
@@ -190,10 +197,20 @@ class Main:
         print "Num of capitals: " + str(self.indexer.num_of_capitals)
 
     def set_save_path(self, dir_path):
-        pass
+        self.save_path = dir_path
 
     def save(self):
-        pass
+        file_name = ''
+        if self.to_stem:
+            file_name += 's'
+        if self.with_semantics:
+            file_name += 's'
+        file_name = '\\' + file_name + 'Results'
+        with open(self.save_path + file_name, 'a+') as f:
+            for query_result in self.queries_docs_results:
+                for doc in query_result[2]:
+                    line = " {} 0 {} 1 42.38 {}\n".format(query_result[0], doc[0], 'rg')
+                    f.write(line)
 
     def get_cities_list(self):
         if self.indexer is None:
@@ -211,7 +228,7 @@ class Main:
             id = 0
             for line in lines:
                 if '<num>' in line:
-                    id = line.split(':')[1]
+                    id = line.split(':')[1].replace('\n', '')
                 elif '<title>' in line:
                     query = line.replace('<title>', '').replace('\n', '')
                     queries_list.append((id, query))
@@ -222,7 +239,10 @@ class Main:
             current_queries_results.append(tmp)
             self.queries_docs_results.append(tmp)
 
+        return self.queries_docs_results
 
+    def get_doc_five_entities(self,doc_id):
+        return self.indexer.docs_dict[doc_id].five_entities
 """
 Script Description:
     This script starts the program by initializing Main object, GUI IndexView object
