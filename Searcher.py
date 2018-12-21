@@ -6,6 +6,22 @@ import gensim
 import Stemmer
 
 
+def string_to_dict(index_string):
+    i = 0
+    docs_dict = {}
+    doc_id_start = ''
+    doc_id_end = ''
+    while i < len(index_string):
+        c = index_string[i]
+        if c == '{':
+            doc_id_start = i+1
+            while c != ':':
+                index_string[i]
+                i += 1
+
+    pass
+
+
 class Searcher:
 
     def __init__(self, corpus_path, posting_path, terms_dict, cities_dict, docs_dict, avg_doc_length, with_semantics,
@@ -74,8 +90,8 @@ class Searcher:
 
     def search(self, query, cities):
         self.parser.parsed_doc = None
-        self.with_stemming = True ###################################################### delete
-        self.with_semantics = True ###################################################### delete
+        # self.with_stemming = True ###################################################### delete
+        # self.with_semantics = True ###################################################### delete
         query_terms = {}
         if self.with_semantics:
             if self.with_stemming:

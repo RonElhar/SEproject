@@ -250,7 +250,8 @@ class View:
     def search_query_file_window(self):
 
         def show_entities():
-            entities = self.controller.get_doc_five_entities(cities_list.get(idx) for idx in cities_list.curselection())
+            doc_id = [docs_list.get(idx) for idx in docs_list.curselection()]
+            entities = self.controller.get_doc_five_entities(doc_id[0])
             dict_window = Tk()
             dict_window.geometry("300x300")
 

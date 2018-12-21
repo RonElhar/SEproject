@@ -116,7 +116,7 @@ class Main:
         self.languages = self.indexer.load()
         self.avg_doc_length = self.indexer.docs_avg_length
         self.searcher = Searcher(self.main_path, self.posting_path, self.indexer.terms_dict, self.indexer.cities_dict,
-                                 self.indexer.docs_dict, self.avg_doc_length)
+                                 self.indexer.docs_dict, self.avg_doc_length,self.to_stem,self.with_semantics)
         self.searcher.model = Word2Vec.load('model.bin')
         path = self.posting_path + '\FinalPost' + '\Final_Post'
         linecache.getline(path, 650000)
@@ -211,6 +211,12 @@ class Main:
                 for doc in query_result[2]:
                     line = " {} 0 {} 1 42.38 {}\n".format(query_result[0], doc[0], 'rg')
                     f.write(line)
+        with open(self.save_path + "\\results4u", 'a+') as f:
+            for query_result in self.queries_docs_results:
+                f.write("Results For {}\n".format(query_result[0]))
+                for doc in query_result[2]:
+                    line = " {} \n".format(doc[0])
+                    f.write(line)
 
     def get_cities_list(self):
         if self.indexer is None:
@@ -242,7 +248,8 @@ class Main:
         return self.queries_docs_results
 
     def get_doc_five_entities(self,doc_id):
-        return self.indexer.docs_dict[doc_id].five_entities
+        return self.searcher.docs_dict[doc_id].five_entities
+
 """
 Script Description:
     This script starts the program by initializing Main object, GUI IndexView object
