@@ -2,11 +2,14 @@ import ast
 from Ranker import Ranker
 from Parse import Parse
 import linecache
+import gensim
+import Stemmer
 
 
 class Searcher:
 
-    def __init__(self, corpus_path, posting_path, terms_dict, cities_dict, docs_dict, avg_doc_length):
+    def __init__(self, corpus_path, posting_path, terms_dict, cities_dict, docs_dict, avg_doc_length, with_semantics,
+                 with_stemming):
         self.terms_dict = terms_dict
         self.cities_dict = cities_dict
         self.docs_dict = docs_dict
@@ -14,7 +17,8 @@ class Searcher:
         self.posting_path = posting_path
         self.ranker = Ranker(avg_doc_length)
         self.model = None
-        self.with_semantics = False
+        self.with_semantics = with_semantics
+        self.with_stemming = with_stemming
 
     def get_terms_from_post(self, query_terms, cities):
         path = self.posting_path + '\FinalPost' + '\Final_Post'
@@ -70,14 +74,29 @@ class Searcher:
 
     def search(self, query, cities):
         self.parser.parsed_doc = None
+        self.with_stemming = True ###################################################### delete
+        self.with_semantics = True ###################################################### delete
         query_terms = {}
         if self.with_semantics:
-            query = self.parser.main_parser(text=query)
-            for word in query:
-                synonyms = self.model.wv.most_similar(positive=word)
-                for i in range(0, 3):
-                    query_terms[(synonyms[i][0]).encode("ascii")] = 1
-                query_terms[word] = query[word][0]
+            if self.with_stemming:
+                stem_query = self.parser.main_parser(text=query)
+                query = gensim.utils.simple_preprocess(query)
+                for word in query:
+                    synonyms = self.model.wv.most_similar(positive=word)
+                    for i in range(0, 3):
+                        stem_word = str(self.parser.pystemmer.stemWord((synonyms[i][0]).encode("ascii")))
+                        query_terms[stem_word] = 1
+                    for stem in stem_query:
+                        if stem.lower() in query_terms or stem.upper() in query_terms:
+                            continue
+                        query_terms[stem] = stem_query[stem][0]
+            else:
+                query = self.parser.main_parser(text=query)
+                for word in query:
+                    synonyms = self.model.wv.most_similar(positive=word)
+                    for i in range(0, 3):
+                        query_terms[(synonyms[i][0]).encode("ascii")] = 1
+                    query_terms[word] = query[word][0]
         else:
             query = self.parser.main_parser(text=query)
             for word in query:
