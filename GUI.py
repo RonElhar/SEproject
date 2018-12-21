@@ -235,9 +235,9 @@ class View:
         load_dict_button = Button(master=self.index_window, text="Load Dictionary", command=self.load)
         load_dict_button.grid(row=4, column=1, sticky='E')
 
-        search_file_query = Button(master=self.index_window, text="Search With File",
-                                   command=self.search_query_file_window)
-        search_file_query.grid(row=5, column=2, sticky='W')
+        search_Button = Button(master=self.index_window, text="Go To Search",
+                               command=self.search_query_file_window)
+        search_Button.grid(row=5, column=2)
 
         show_dict_button = Button(master=self.index_window, text="Show Dictionary", command=self.show)
         show_dict_button.grid(row=4, column=2)
@@ -245,7 +245,6 @@ class View:
         reset_button.grid(row=4, column=3)
 
         self.index_window.mainloop()
-
 
     def search_query_file_window(self):
 
@@ -272,24 +271,27 @@ class View:
         def start_query_search():
             values = set(cities_list.get(idx) for idx in cities_list.curselection())
             docs = self.controller.start_query_search(query_entry.get(), values)
+            docs_list.delete(0, END)
+            docs_list.insert("Query ID " + str(self.currnent_qID) + " Results:")
+            self.currnent_qID +=1
             for doc in docs:
                 docs_list.insert(END, doc)
 
         def start_file_search():
             chosen_cities = [cities_list.get(idx) for idx in cities_list.curselection()]
             queries_docs = self.controller.start_file_search(queries_path_entry.get(), chosen_cities)
+            docs_list.delete(0, END)
             for query in queries_docs:
-                docs_list.insert("Query ID " +query + " Results:")
+                docs_list.insert("Query ID " + query + " Results:")
                 for doc in queries_docs[query]:
                     docs_list.insert(END, doc)
-                docs_list.insert(END,"")
+                docs_list.insert(END, "")
 
         def browse_queries_file_dir():
             queries_path_entry.delete(first=0, last=100)
-            file = tkFileDialog.askopenfile(parent=search_file_window,mode='rb',title='Choose a file')
+            file = tkFileDialog.askopenfile(parent=search_file_window, mode='rb', title='Choose a file')
             queries_path_entry.insert(0, file.name)
             file.close()
-
 
         def browse_file_results_save():
             save_file_results_entry.delete(first=0, last=100)
@@ -302,15 +304,15 @@ class View:
 
         self.index_window.lower()
         search_file_window = Tk()
-       # search_file_window.geometry("800x600")
-        Label(master=search_file_window, text="~~~~~~~~Search With Free Text Query~~~~~~~~").grid(row=0,column=1)
+        # search_file_window.geometry("800x600")
+        Label(master=search_file_window, text="~~~~~~~~Search With Free Text Query~~~~~~~~").grid(row=0, column=1)
 
         query_entry = make_entry(search_file_window, "Enter Query:", 1, 0, 60)
         start_button = Button(master=search_file_window, text="Search", command=start_query_search)
         start_button.grid(row=2, column=1)
         search_file_window.protocol("WM_DELETE_WINDOW", on_closing)
 
-        Label(master=search_file_window, text="~~~~~~~~Search With Queries File~~~~~~~~").grid(row=5,column=1)
+        Label(master=search_file_window, text="~~~~~~~~Search With Queries File~~~~~~~~").grid(row=5, column=1)
         queries_path_entry = make_entry(search_file_window, "Queries Path:", 6, 0, 60)
         browse_queries_file = Button(master=search_file_window, text='Browse', width=6,
                                      command=browse_queries_file_dir)
@@ -318,7 +320,7 @@ class View:
         search_queries_button = Button(master=search_file_window, text="Search", command=start_file_search)
         search_queries_button.grid(row=7, column=1)
 
-        Label(master=search_file_window, text="~~~~~~~~Save Queries Results~~~~~~~").grid(row=8,column=1)
+        Label(master=search_file_window, text="~~~~~~~~Save Queries Results~~~~~~~").grid(row=8, column=1)
         save_file_results_entry = make_entry(search_file_window, "Save Path:", 9, 0, 60)
         browse_save_file = Button(master=search_file_window, text='Browse', width=6,
                                   command=browse_file_results_save)
