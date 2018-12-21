@@ -18,17 +18,27 @@ class Searcher:
 
     def get_terms_from_post(self, query_terms, cities):
         path = self.posting_path + '\FinalPost' + '\Final_Post'
-        query_dict = {}
+        word_dict = {}
+        updated_query_terms = {}
         for term in query_terms:
             # term = str(term)
+            # stem here if stemming
             if term not in self.terms_dict:
                 term_lower = term.lower()
                 term_upper = term.upper()
                 if term_lower in self.terms_dict:
+                    tmp = query_terms[term]
                     term = term_lower
-                elif term_upper in self.terms_dict:
-                    term = term_lower
+                    updated_query_terms[term] = tmp
 
+                elif term_upper in self.terms_dict:
+                    tmp = query_terms[term]
+                    term = term_lower
+                    updated_query_terms[term] = tmp
+                else:
+                    continue
+            else:
+                updated_query_terms[term] = query_terms[term]
             line = self.terms_dict[term][0] + 1
             term_index = linecache.getline(path, line)
             term_index = term_index.split('|')[1].split('#')
@@ -40,20 +50,20 @@ class Searcher:
                         doc = self.docs_dict[doc_id]
                         if doc.origin_city not in cities:
                             continue
-                        if term not in query_dict:
-                            query_dict[term] = {}
-                        query_dict[term][doc_id] = term_doc_info[doc_id]
+                        if term not in word_dict:
+                            word_dict[term] = {}
+                        word_dict[term][doc_id] = term_doc_info[doc_id]
                     i += 1
             else:
                 while i < len(term_index) - 1:
                     term_doc_info = ast.literal_eval(term_index[i])
                     for doc_id in term_doc_info:
-                        if term not in query_dict:
-                            query_dict[term] = {}
-                        query_dict[term][doc_id] = term_doc_info[doc_id]
+                        if term not in word_dict:
+                            word_dict[term] = {}
+                        word_dict[term][doc_id] = term_doc_info[doc_id]
                     i += 1
 
-        return query_dict
+        return updated_query_terms, word_dict
 
     def get_five_entities(self, document):
         pass
@@ -72,7 +82,7 @@ class Searcher:
             query = self.parser.main_parser(text=query)
             for word in query:
                 query_terms[word] = query[word][0]
-        words_terms = self.get_terms_from_post(query_terms, cities)
+        query_terms, words_terms = self.get_terms_from_post(query_terms, cities)
         result = self.ranker.rank_doc(query_terms, words_terms, self.docs_dict)
         return result
 
