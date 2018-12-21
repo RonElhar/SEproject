@@ -11,7 +11,7 @@ class Ranker:
 
     def rank_doc(self, query_dict, words_dict, docs_dict):
         result = {}
-        for word in query_dict:
+        for word in words_dict:
             for doc in words_dict[word]:
                 if doc not in result:
                     result[doc] = self.rank_BM25(len(words_dict[word]), words_dict[word][doc][0], query_dict[word],

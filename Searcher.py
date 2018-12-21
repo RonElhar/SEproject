@@ -19,15 +19,21 @@ class Searcher:
     def get_terms_from_post(self, query_terms, cities):
         path = self.posting_path + '\FinalPost' + '\Final_Post'
         query_dict = {}
-        if len(cities) > 0:
-            for term in query_terms:
-                # term = str(term)
-                if term not in self.terms_dict:
-                    continue
-                line = self.terms_dict[term][0] + 1
-                term_index = linecache.getline(path, line)
-                term_index = term_index.split('|')[1].split('#')
-                i = 0
+        for term in query_terms:
+            # term = str(term)
+            if term not in self.terms_dict:
+                term_lower = term.lower()
+                term_upper = term.upper()
+                if term_lower in self.terms_dict:
+                    term = term_lower
+                elif term_upper in self.terms_dict:
+                    term = term_lower
+
+            line = self.terms_dict[term][0] + 1
+            term_index = linecache.getline(path, line)
+            term_index = term_index.split('|')[1].split('#')
+            i = 0
+            if len(cities) > 0:
                 while i < len(term_index) - 1:
                     term_doc_info = ast.literal_eval(term_index[i])
                     for doc_id in term_doc_info:
@@ -38,14 +44,7 @@ class Searcher:
                             query_dict[term] = {}
                         query_dict[term][doc_id] = term_doc_info[doc_id]
                     i += 1
-        else:
-            for term in query_terms:
-                if term not in self.terms_dict:
-                    continue
-                line = self.terms_dict[term][0] + 1
-                term_index = linecache.getline(path, line)
-                term_index = term_index.split('|')[1].split('#')
-                i = 0
+            else:
                 while i < len(term_index) - 1:
                     term_doc_info = ast.literal_eval(term_index[i])
                     for doc_id in term_doc_info:
