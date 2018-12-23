@@ -50,6 +50,7 @@ class View:
     def __init__(self, controller):
         self.controller = controller
         self.stemming_bool = False
+        self.with_semantics = False
         self.index_window = Tk()
         self.index_window.protocol("WM_DELETE_WINDOW", self.index_window.destroy)
         self.index_window.title("Documents Inverted Indexing")
@@ -249,7 +250,8 @@ class View:
     def search_query_file_window(self):
 
         def show_entities():
-            entities = self.controller.get_doc_five_entities(docs_list.curselection())
+            doc_id = [docs_list.get(idx) for idx in docs_list.curselection()]
+            entities = self.controller.get_doc_five_entities(doc_id[0])
             dict_window = Tk()
             dict_window.geometry("300x300")
 
@@ -266,25 +268,26 @@ class View:
                 list_nodes.insert(END, entity)
 
         def save():
+            self.controller.set_save_path(save_file_results_entry.get())
             self.controller.save()
 
         def start_query_search():
             values = set(cities_list.get(idx) for idx in cities_list.curselection())
             docs = self.controller.start_query_search(query_entry.get(), values)
             docs_list.delete(0, END)
-            docs_list.insert("Query ID " + str(self.currnent_qID) + " Results:")
-            self.currnent_qID +=1
+            docs_list.insert(END,"Query ID " + str(self.currnent_qID) + " Results:")
+            self.currnent_qID += 1
             for doc in docs:
-                docs_list.insert(END, doc)
+                docs_list.insert(END, doc[0])
 
         def start_file_search():
             chosen_cities = [cities_list.get(idx) for idx in cities_list.curselection()]
-            queries_docs = self.controller.start_file_search(queries_path_entry.get(), chosen_cities)
+            queries_results = self.controller.start_file_search(queries_path_entry.get(), chosen_cities)
             docs_list.delete(0, END)
-            for query in queries_docs:
-                docs_list.insert("Query ID " + query + " Results:")
-                for doc in queries_docs[query]:
-                    docs_list.insert(END, doc)
+            for query in queries_results:
+                docs_list.insert(END, "Query ID " + query[0] + " Results:")
+                for doc in query[2]:
+                    docs_list.insert(END, doc[0])
                 docs_list.insert(END, "")
 
         def browse_queries_file_dir():
@@ -302,16 +305,28 @@ class View:
             search_file_window.destroy()
             self.index_window.lift()
 
+        def semantics_control():
+            if self.with_semantics:
+                self.with_semantics = False
+            else:
+                self.with_semantics = True
+            self.controller.set_with_semantics(self.with_semantics)
+
+        cities_names = self.controller.get_cities_list()
+        if cities_names is None:
+            tkMessageBox.showinfo("Error ", "Please Load Dictionary before Search")
+            on_closing()
+            return
         self.index_window.lower()
         search_file_window = Tk()
         # search_file_window.geometry("800x600")
         Label(master=search_file_window, text="~~~~~~~~Search With Free Text Query~~~~~~~~").grid(row=0, column=1)
-
         query_entry = make_entry(search_file_window, "Enter Query:", 1, 0, 60)
         start_button = Button(master=search_file_window, text="Search", command=start_query_search)
         start_button.grid(row=2, column=1)
         search_file_window.protocol("WM_DELETE_WINDOW", on_closing)
-
+        stemming_check = Checkbutton(master=search_file_window, text="Semantics", command=semantics_control)
+        stemming_check.grid(row=2, column=1, sticky='W')
         Label(master=search_file_window, text="~~~~~~~~Search With Queries File~~~~~~~~").grid(row=5, column=1)
         queries_path_entry = make_entry(search_file_window, "Queries Path:", 6, 0, 60)
         browse_queries_file = Button(master=search_file_window, text='Browse', width=6,
@@ -343,12 +358,6 @@ class View:
         cities_list.config(yscrollcommand=cities_scrollbar.set)
         cities_list.pack(expand=True, fill=Y)
         cities_scrollbar.config(command=cities_list.yview)
-
-        cities_names = self.controller.get_cities_list()
-        if cities_names is None:
-            tkMessageBox.showinfo("Error ", "Please Load Dictionary before Search")
-            on_closing()
-            return
 
         for city in sorted(cities_names):
             cities_list.insert(END, city)
