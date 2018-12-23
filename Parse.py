@@ -236,7 +236,7 @@ class Parse:
     """
 
     def get_terms(self, text):
-        SEPS = (' ','')
+        SEPS = (' ')
         allowed = "{}{}-$%/.<>".format(string.ascii_letters, string.digits)
         rsplit = re.compile("|".join(SEPS)).split
         tokens_to_add = []
