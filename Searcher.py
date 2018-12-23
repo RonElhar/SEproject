@@ -6,22 +6,6 @@ import gensim
 import Stemmer
 
 
-def string_to_dict(index_string):
-    i = 0
-    docs_dict = {}
-    doc_id_start = ''
-    doc_id_end = ''
-    while i < len(index_string):
-        c = index_string[i]
-        if c == '{':
-            doc_id_start = i+1
-            while c != ':':
-                index_string[i]
-                i += 1
-
-    pass
-
-
 class Searcher:
 
     def __init__(self, corpus_path, posting_path, terms_dict, cities_dict, docs_dict, avg_doc_length, with_semantics,
@@ -41,8 +25,6 @@ class Searcher:
         word_dict = {}
         updated_query_terms = {}
         for term in query_terms:
-            # term = str(term)
-            # stem here if stemming
             if term not in self.terms_dict:
                 term_lower = term.lower()
                 term_upper = term.upper()
@@ -50,7 +32,6 @@ class Searcher:
                     tmp = query_terms[term]
                     term = term_lower
                     updated_query_terms[term] = tmp
-
                 elif term_upper in self.terms_dict:
                     tmp = query_terms[term]
                     term = term_lower
@@ -82,7 +63,6 @@ class Searcher:
                             word_dict[term] = {}
                         word_dict[term][doc_id] = term_doc_info[doc_id]
                     i += 1
-
         return updated_query_terms, word_dict
 
     def get_five_entities(self, document):
@@ -90,8 +70,6 @@ class Searcher:
 
     def search(self, query, cities):
         self.parser.parsed_doc = None
-        # self.with_stemming = True ###################################################### delete
-        # self.with_semantics = True ###################################################### delete
         query_terms = {}
         if self.with_semantics:
             if self.with_stemming:
