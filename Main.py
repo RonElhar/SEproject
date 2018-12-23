@@ -56,13 +56,11 @@ class Main:
 
     def start(self):
         self.indexer = Indexer(self.posting_path)
-
         if self.to_stem:
             self.indexer.to_stem = True
         dirs_list = os.listdir(self.main_path + '\\corpus')
         # Create temp postings Multiprocessing
         dirs_dict = ParallelMain.start(self.main_path, self.posting_path, self.to_stem, dirs_list)
-
         # Merging dictionaries that were created by the processes
         docs = {}
         files_names = []
@@ -98,11 +96,11 @@ class Main:
         self.indexer.docs_dict = docs
         self.indexer.index_cities(self.reader.cities)
         self.indexer.post_pointers(self.languages)
-        self.searcher = Searcher(self.main_path, self.posting_path, self.indexer.terms_dict, self.indexer.cities_dict,
-                                 self.indexer.docs_dict, self.avg_doc_length,self.to_stem,self.with_semantics)
-        self.searcher.model = Word2Vec.load('model.bin')
-        path = self.posting_path + '\FinalPost' + '\Final_Post'
-        linecache.getline(path, 500000)
+        # self.searcher = Searcher(self.main_path, self.posting_path, self.indexer.terms_dict, self.indexer.cities_dict,
+        #                          self.indexer.docs_dict, self.avg_doc_length, self.to_stem, self.with_semantics)
+        # self.searcher.model = Word2Vec.load('model.bin')
+        # path = self.posting_path + '\FinalPost' + '\Final_Post'
+        # linecache.getline(path, 500000)
 
     """
         Description :
@@ -116,10 +114,10 @@ class Main:
         self.languages = self.indexer.load()
         self.avg_doc_length = self.indexer.docs_avg_length
         self.searcher = Searcher(self.main_path, self.posting_path, self.indexer.terms_dict, self.indexer.cities_dict,
-                                 self.indexer.docs_dict, self.avg_doc_length,self.to_stem,self.with_semantics)
+                                 self.indexer.docs_dict, self.avg_doc_length, self.to_stem, self.with_semantics)
         self.searcher.model = Word2Vec.load('model.bin')
         path = self.posting_path + '\FinalPost' + '\Final_Post'
-        linecache.getline(path, 650000)
+        linecache.getline(path, 500000)
 
     # self.searcher.search("china is great", {})
 
@@ -238,7 +236,7 @@ class Main:
                 elif '<title>' in line:
                     query = line.replace('<title>', '').replace('\n', '')
                     queries_list.append((id, query))
-                ### option add desc or narr
+                    ### option add desc or narr
         for query_tuple in queries_list:
             docs_result = self.start_query_search(query_tuple[1], chosen_cities)
             tmp = (query_tuple[0], query_tuple[1], docs_result)
@@ -247,8 +245,9 @@ class Main:
 
         return self.queries_docs_results
 
-    def get_doc_five_entities(self,doc_id):
+    def get_doc_five_entities(self, doc_id):
         return self.searcher.docs_dict[doc_id].five_entities
+
 
 """
 Script Description:

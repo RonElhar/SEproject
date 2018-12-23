@@ -140,6 +140,7 @@ class Parse:
         self.num_dict = {'million': 1, 'm': 1, 'billion': 1000, 'bn': 1000, 'trillion': 1000000}
         self.num_word_dict = {'million': 'M', 'billion': 'B', 'thousand': 'K', 'trillion': '', "bn": 'B', "m": "M"}
         self.stop_words = get_stop_words(main_path)
+        self.main_path = main_path
         self.terms_dict = {}
         self.parsed_doc = object
         self.tokens_list = ''
