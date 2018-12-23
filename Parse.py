@@ -236,7 +236,7 @@ class Parse:
     """
 
     def get_terms(self, text):
-        SEPS = (' ', '--')
+        SEPS = (' ','')
         allowed = "{}{}-$%/.<>".format(string.ascii_letters, string.digits)
         rsplit = re.compile("|".join(SEPS)).split
         tokens_to_add = []
@@ -259,6 +259,7 @@ class Parse:
                     if isWord(t):
                         tokens_to_add.append(t)
                 tokens[i] = ""
+            tokens[i] = tokens[i].replace('--',' ')
             if tokens[i].startswith("-"):
                 tokens[i] = tokens[i][1:]
             if tokens[i].endswith("-"):

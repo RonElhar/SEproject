@@ -108,9 +108,10 @@ class Main:
     """
 
     def load(self):
+
+        self.indexer = Indexer(self.posting_path)
         if self.to_stem:
             self.indexer.to_stem = True
-        self.indexer = Indexer(self.posting_path)
         self.languages = self.indexer.load()
         self.avg_doc_length = self.indexer.docs_avg_length
         self.searcher = Searcher(self.main_path, self.posting_path, self.indexer.terms_dict, self.indexer.cities_dict,
