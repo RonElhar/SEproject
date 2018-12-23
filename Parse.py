@@ -251,11 +251,13 @@ class Parse:
                 for t in tmp:
                     if isWord(t):
                         tokens_to_add.append(t)
+                tokens[i] = ""
             elif '.' in tokens[i]:
                 tmp = tokens[i].split('.')
                 for t in tmp:
                     if isWord(t):
                         tokens_to_add.append(t)
+                tokens[i] = ""
             if tokens[i].startswith("-"):
                 tokens[i] = tokens[i][1:]
             if tokens[i].endswith("-"):

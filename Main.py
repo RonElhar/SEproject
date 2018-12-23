@@ -99,10 +99,10 @@ class Main:
         self.indexer.index_cities(self.reader.cities)
         self.indexer.post_pointers(self.languages)
         self.searcher = Searcher(self.main_path, self.posting_path, self.indexer.terms_dict, self.indexer.cities_dict,
-                                 self.indexer.docs_dict, self.avg_doc_length)
+                                 self.indexer.docs_dict, self.avg_doc_length,self.to_stem,self.with_semantics)
         self.searcher.model = Word2Vec.load('model.bin')
         path = self.posting_path + '\FinalPost' + '\Final_Post'
-        linecache.getline(path, 500, 000)
+        linecache.getline(path, 500000)
 
     """
         Description :
