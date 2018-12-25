@@ -8,8 +8,8 @@ import Stemmer
 
 class Searcher:
 
-    def __init__(self, corpus_path, posting_path, terms_dict, cities_dict, docs_dict, avg_doc_length,
-                 with_stemming, with_semantics):
+    def __init__(self, corpus_path, posting_path, terms_dict, cities_dict, docs_dict, avg_doc_length, with_stemming,
+                 with_semantics):
         self.terms_dict = terms_dict
         self.cities_dict = cities_dict
         self.docs_dict = docs_dict
@@ -26,6 +26,7 @@ class Searcher:
             path = self.posting_path + '\sFinalPost' + '\Final_Post'
         else:
             path = self.posting_path + '\FinalPost' + '\Final_Post'
+
         word_dict = {}
         updated_query_terms = {}
         for term in query_terms:
