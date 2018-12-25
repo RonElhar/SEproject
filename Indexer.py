@@ -203,7 +203,6 @@ class Indexer:
             term_docs = term_line.split('|')[1].split('#')
             df = self.terms_dict[term][2]
             i = 0
-
             while i < len(term_docs) - 1:
                 term_doc_info = ast.literal_eval(term_docs[i])
                 doc = term_doc_info.keys()[0]
