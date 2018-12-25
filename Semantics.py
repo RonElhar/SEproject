@@ -19,14 +19,12 @@ class Semantics:
             docs = self.reader.separate_docs_in_file(self.path, dirs_list[i])
             j = 0
             for doc_id in docs:
-                if j >= len(docs) /2:
-                    break
                 terms = gensim.utils.simple_preprocess(docs[doc_id].text)
                 self.sentences.append(terms)
                 j += 1
 
             i += 1
-            docs = None
+            docs.clear()
 
     def start(self):
         # train model
