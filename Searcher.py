@@ -8,12 +8,13 @@ import Stemmer
 
 class Searcher:
 
-    def __init__(self, corpus_path, posting_path, terms_dict, cities_dict, docs_dict, avg_doc_length, with_semantics,
-                 with_stemming):
+    def __init__(self, corpus_path, posting_path, terms_dict, cities_dict, docs_dict, avg_doc_length, with_stemming,
+                 with_semantics):
         self.terms_dict = terms_dict
         self.cities_dict = cities_dict
         self.docs_dict = docs_dict
         self.parser = Parse(corpus_path)  ## corpus path for stop words
+        self.parser.to_stem = with_stemming
         self.posting_path = posting_path
         self.ranker = Ranker(avg_doc_length)
         self.model = None
@@ -21,7 +22,11 @@ class Searcher:
         self.with_stemming = with_stemming
 
     def get_terms_from_post(self, query_terms, cities):
-        path = self.posting_path + '\FinalPost' + '\Final_Post'
+        if self.with_stemming:
+            path = self.posting_path + '\sFinalPost' + '\Final_Post'
+        else:
+            path = self.posting_path + '\FinalPost' + '\Final_Post'
+
         word_dict = {}
         updated_query_terms = {}
         for term in query_terms:
