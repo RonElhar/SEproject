@@ -73,6 +73,7 @@ class ReadFile:
                 line = line.replace("<H3>", '')
                 line = line.replace("</H3>", '')
                 doc_title = line.replace('\n', '')
+                doc_text += doc_title
                 continue
             if line.__contains__('<F P=104>'):
                 temp = line.split('>')
@@ -81,10 +82,6 @@ class ReadFile:
                 for s in temp:
                     if not s == ' ' and not s == '':
                         doc_city = temp[2].upper()
-                if not doc_city in self.cities:
-                    self.cities[doc_city] = [doc_id]
-                else:
-                    self.cities[doc_city].append(doc_id)
             if line.__contains__('<DATE>') or line.__contains__('<DATE1>'):
                 no1 = False
                 if line.__contains__('<DATE>'):
@@ -99,7 +96,7 @@ class ReadFile:
                     temp = lines[i + 1].split('>')
                     temp = temp[1].split('<')
                     temp = temp[0].split(' ')
-                    language = temp[0]
+                    language = temp[0].replace(',','')
                     self.languages.add(language)
                     lines[i + 1] = ' '
                 if lines[i + 2].__contains__("Article Type"):
@@ -141,10 +138,10 @@ class ReadFile:
                     for s in temp:
                         if not s == ' ' and not s == '':
                             doc_city = temp[2].upper()
-                    if doc_city not in self.cities:
-                        self.cities[doc_city] = [doc_id]
-                    else:
-                        self.cities[doc_city].append(doc_id)
+                            if doc_city not in self.cities:
+                                self.cities[doc_city] = [doc_id]
+                            else:
+                                self.cities[doc_city].append(doc_id)
 
 
 class Document:

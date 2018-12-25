@@ -17,6 +17,14 @@ import heapq
 """
 
 
+def split(txt, seps):
+    default_sep = seps[0]
+
+    # we skip seps[0] because that's the default seperator
+    for sep in seps[1:]:
+        txt = txt.replace(sep, default_sep)
+    return [i.strip() for i in txt.split(default_sep)]
+
 def get_stop_words(main_path):
     stop_words_file = open(main_path + "\\stop_words.txt")
     lines = stop_words_file.readlines()
@@ -132,6 +140,7 @@ class Parse:
         self.num_dict = {'million': 1, 'm': 1, 'billion': 1000, 'bn': 1000, 'trillion': 1000000}
         self.num_word_dict = {'million': 'M', 'billion': 'B', 'thousand': 'K', 'trillion': '', "bn": 'B', "m": "M"}
         self.stop_words = get_stop_words(main_path)
+        self.main_path = main_path
         self.terms_dict = {}
         self.parsed_doc = object
         self.tokens_list = ''
@@ -210,10 +219,11 @@ class Parse:
             self.parsed_doc.length = document_length
             self.parsed_doc.num_of_unique_words = len(self.terms_dict)
             self.add_to_entities()
-            five_entities = heapq.nlargest(5,self.entities)
+            five_entities = heapq.nlargest(5, self.entities)
             for entity in five_entities:
                 self.parsed_doc.five_entities.append(entity[1])
         return self.terms_dict
+
 
     """
        Description :
@@ -226,28 +236,36 @@ class Parse:
     """
 
     def get_terms(self, text):
-        SEPS = (' ', '--')
+        SEPS = (' ')
         allowed = "{}{}-$%/.<>".format(string.ascii_letters, string.digits)
-        start = timer()
         rsplit = re.compile("|".join(SEPS)).split
+        tokens_to_add = []
         tokens = [s.strip() for s in rsplit(text)]
-        # terms = str.split(text, " ")
         for i in range(0, len(tokens)):
             tokens[i] = filter(allowed.__contains__, tokens[i])
             if isFloat(tokens[i]):
                 if i + 1 < len(tokens) and isFraction(tokens[i + 1]):
                     tokens[i] = "{} {}".format(tokens[i], tokens[i + 1])
                     tokens[i + 1] = ''
-            else:
-                tokens[i] = tokens[i].replace('.', '')
+            elif '/' in tokens[i] and not isFraction(tokens[i]):
+                tmp = tokens[i].split('/')
+                for t in tmp:
+                    if isWord(t):
+                        tokens_to_add.append(t)
+                tokens[i] = ""
+            elif '.' in tokens[i]:
+                tmp = tokens[i].split('.')
+                for t in tmp:
+                    if isWord(t):
+                        tokens_to_add.append(t)
+                tokens[i] = ""
+            tokens[i] = tokens[i].replace('--',' ')
             if tokens[i].startswith("-"):
                 tokens[i] = tokens[i][1:]
             if tokens[i].endswith("-"):
                 tokens[i] = tokens[i][:-1]
-        end = timer()
-        # self.get_terms_time += float(end - start)
+        tokens.extend(tokens_to_add)
         return tokens
-
     """
        Description :
            This method adds a term to the terms dictionary and updating its 
@@ -273,10 +291,10 @@ class Parse:
             if term.isupper():
                 tf = self.terms_dict[term][0]
                 dominance = float(tf) / float(self.parsed_doc.length)
-                if term in self.parsed_doc.title :
-                    dominance = dominance*1.3
-                if self.terms_dict[term][1][0] < self.parsed_doc.length/10:
-                    dominance = dominance*1.1
+                if term in self.parsed_doc.title:
+                    dominance = dominance * 1.3
+                if self.terms_dict[term][1][0] < self.parsed_doc.length / 10:
+                    dominance = dominance * 1.1
                 heapq.heappush(self.entities, (dominance, term))
 
     """
