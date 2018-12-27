@@ -84,6 +84,8 @@ def isFraction(token):
 
 
 def isWord(token):
+    if token == '':
+        return False
     for c in token:
         if not str.isalpha(c):
             return False
@@ -142,7 +144,7 @@ class Parse:
         self.stop_words = get_stop_words(main_path)
         self.main_path = main_path
         self.terms_dict = {}
-        self.parsed_doc = object
+        self.parsed_doc = None
         self.tokens_list = ''
         self.index = 0
         self.to_stem = False
@@ -167,10 +169,11 @@ class Parse:
             Dictionary of occurrences and its location of the terms 
     """
 
-    def main_parser(self, text):
+    def main_parser(self, text, doc):
         self.entities = []
         self.terms_dict = {}
         self.index = 0
+        self.parsed_doc = doc
         self.tokens_list = self.get_terms(text)
         reg_number = re.compile(r'\$?\d+\.?\d*$')
         document_length = 0
@@ -215,7 +218,7 @@ class Parse:
             self.index += 1
             document_length += 1
         self.tokens_list = ''
-        if not self.parsed_doc is None:
+        if self.parsed_doc is not None:
             self.parsed_doc.length = document_length
             self.parsed_doc.num_of_unique_words = len(self.terms_dict)
             self.add_to_entities()
@@ -241,9 +244,10 @@ class Parse:
         rsplit = re.compile("|".join(SEPS)).split
         tokens_to_add = []
         tokens = [s.strip() for s in rsplit(text)]
+        new_tokens = []
         for i in range(0, len(tokens)):
             tokens[i] = filter(allowed.__contains__, tokens[i])
-            if isFloat(tokens[i]):
+            if isFloat(tokens[i]) or tokens[i].endswith('%') or tokens[i].startswith('$'):
                 if i + 1 < len(tokens) and isFraction(tokens[i + 1]):
                     tokens[i] = "{} {}".format(tokens[i], tokens[i + 1])
                     tokens[i + 1] = ''
@@ -251,21 +255,27 @@ class Parse:
                 tmp = tokens[i].split('/')
                 for t in tmp:
                     if isWord(t):
-                        tokens_to_add.append(t)
-                tokens[i] = ""
+                        new_tokens.append(t)
+                tokens[i] = ''
             elif '.' in tokens[i]:
                 tmp = tokens[i].split('.')
                 for t in tmp:
                     if isWord(t):
-                        tokens_to_add.append(t)
-                tokens[i] = ""
-            tokens[i] = tokens[i].replace('--',' ')
+                        new_tokens.append(t)
+                tokens[i] = ''
+            elif '--' in tokens[i]:
+                tmp = tokens[i].split('--')
+                for t in tmp:
+                    if isWord(t) or isNumTerm(t):
+                        new_tokens.append(t)
+                tokens[i] = ''
             if tokens[i].startswith("-"):
                 tokens[i] = tokens[i][1:]
             if tokens[i].endswith("-"):
                 tokens[i] = tokens[i][:-1]
-        tokens.extend(tokens_to_add)
-        return tokens
+            if tokens[i] != '':
+                new_tokens.append(tokens[i])
+        return new_tokens
     """
        Description :
            This method adds a term to the terms dictionary and updating its 
@@ -344,7 +354,7 @@ class Parse:
 
         orig_idx = self.index
         terms_len = len(self.tokens_list)
-        dollars_regex = re.compile("^\$?(\d+\.?\d*) ?(million|billion|trillion|m|bn)? ?(U\.S\.)? ?([Dd]ollars)?")
+        dollars_regex = re.compile("^\$?(\d+\.?\d*) ?(million|billion|trillion|m|bn)? ?(US)? ?([Dd]ollars)?")
         dollar_expression = dollars_regex.match(num_word + dollar_addons())
         term = ''
         if self.index + 1 < terms_len and (self.tokens_list[self.index + 1] == "percent"
@@ -382,18 +392,18 @@ class Parse:
                 ("{}-{}".format(num_word.zfill(2), month.zfill(2)))
         elif self.index + 1 < terms_len and self.tokens_list[self.index + 1].lower() in self.num_word_dict:
             if self.tokens_list[self.index + 1] == "Trillion":
-                term = "{}".format(float(num_word) * 100, 'B')
+                term = "{:.3f}{}".format(float(num_word) * 100, 'B').replace('.000','')
             else:
-                term = "{}".format(num_word, self.num_word_dict[self.tokens_list[self.index + 1].lower()])
+                term = "{}{}".format(num_word, self.num_word_dict[self.tokens_list[self.index + 1].lower()])
             self.index += 1
-        else:
+        elif isFloat(num_word):
             amounts = ['', 'K', 'M', 'B']
             counter = 0
             number = float(num_word)
-            if number > 1000000000000:
-                return num_word + amounts[counter]
-            while number > 999:
+            while number > 999 and counter<3:
                 number = number / 1000.0
                 counter += 1
             term = "{:.3f}{}".format(number, amounts[counter]).replace(".000", "")
+        else:
+            term = num_word
         self.add_to_dict(term, orig_idx)

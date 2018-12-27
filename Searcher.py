@@ -7,7 +7,6 @@ import Stemmer
 
 
 class Searcher:
-
     def __init__(self, corpus_path, posting_path, terms_dict, cities_dict, docs_dict, avg_doc_length, with_stemming,
                  with_semantics):
         self.terms_dict = terms_dict
@@ -74,11 +73,10 @@ class Searcher:
         pass
 
     def search(self, query, cities):
-        self.parser.parsed_doc = None
         query_terms = {}
         if self.with_semantics:
             if self.with_stemming:
-                stem_query = self.parser.main_parser(text=query)
+                stem_query = self.parser.main_parser(text=query, doc=None)
                 query = gensim.utils.simple_preprocess(query)
                 for word in query:
                     synonyms = self.model.wv.most_similar(positive=word)
@@ -90,14 +88,14 @@ class Searcher:
                             continue
                         query_terms[stem] = stem_query[stem][0]
             else:
-                query = self.parser.main_parser(text=query)
+                query = self.parser.main_parser(text=query, doc=None)
                 for word in query:
                     synonyms = self.model.wv.most_similar(positive=word)
                     for i in range(0, 3):
                         query_terms[(synonyms[i][0]).encode("ascii")] = 1
                     query_terms[word] = query[word][0]
         else:
-            query = self.parser.main_parser(text=query)
+            query = self.parser.main_parser(text=query, doc=None)
             for word in query:
                 query_terms[word] = query[word][0]
         query_terms, words_terms = self.get_terms_from_post(query_terms, cities)
