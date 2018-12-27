@@ -280,15 +280,15 @@ class Indexer:
         cities = self.cities_dict.keys()
         for city in cities:
             if city in self.terms_dict:
-                city_term_index = linecache.getline(path, self.terms_dict[city][0]+1)
+                city_term_index = linecache.getline(path, self.terms_dict[city][0] + 1)
                 city_term_index = city_term_index.split('|')[1].split('#')
                 i = 0
                 self.cities_dict[city][2] = set()
-                while i < len(city_term_index) -1:
+                while i < len(city_term_index) - 1:
                     term_doc_info = ast.literal_eval(city_term_index[i])
                     for doc_id in term_doc_info:
                         self.cities_dict[city][2].add(doc_id)
-                    i+=1
+                    i += 1
 
         languages.remove('')
         return languages

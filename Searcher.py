@@ -49,11 +49,15 @@ class Searcher:
             term_index = term_index.split('|')[1].split('#')
             i = 0
             if len(cities) > 0:
+                cities_docs = set()
+                for city in cities:
+                    if self.cities_dict[city][2] is not None:
+                        cities_docs.update(self.cities_dict[city][2])
                 while i < len(term_index) - 1:
                     term_doc_info = ast.literal_eval(term_index[i])
                     for doc_id in term_doc_info:
                         doc = self.docs_dict[doc_id]
-                        if doc.origin_city not in cities:
+                        if doc.origin_city not in cities and doc_id not in cities_docs:
                             continue
                         if term not in word_dict:
                             word_dict[term] = {}
