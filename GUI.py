@@ -106,10 +106,12 @@ class View:
 
     def reset(self):
         dir_path = self.posting_entry.get()
+        if dir_path == '':
+            self.invalid_path("Posting")
         self.controller.set_posting_path(dir_path)
         self.controller.reset()
         self.language_list.insert(END, '')
-        pass
+        tkMessageBox.showinfo("Reset Successfully")
 
     """
          Description :
