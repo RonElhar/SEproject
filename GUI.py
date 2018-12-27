@@ -108,10 +108,11 @@ class View:
         dir_path = self.posting_entry.get()
         if dir_path == '':
             self.invalid_path("Posting")
+            return
         self.controller.set_posting_path(dir_path)
         self.controller.reset()
         self.language_list.insert(END, '')
-        tkMessageBox.showinfo("Reset Successfully")
+        tkMessageBox.showinfo('Reset',"Reset Executed Successfully")
 
     """
          Description :
@@ -154,6 +155,10 @@ class View:
     """
 
     def load(self):
+        dir_path = self.corpus_entry.get()
+        if not os.path.isdir(dir_path):
+            self.invalid_path("Corpus")
+            return
         self.language_list.delete(0, END)
         dir_path = self.posting_entry.get()
         if not os.path.isdir(dir_path):
@@ -164,6 +169,7 @@ class View:
         lang_list = self.controller.get_languages()
         for lang in sorted(lang_list):
             self.language_list.insert(END, lang)
+        tkMessageBox.showinfo('Load',"Loading Executed Successfully")
 
     """
           Description :
@@ -270,10 +276,22 @@ class View:
                 list_nodes.insert(END, entity)
 
         def save():
+            dir_path = save_file_results_entry.get()
+            if not os.path.isdir(dir_path):
+                self.invalid_path("Save")
+                self.index_window.lower(search_file_window)
+                return
             self.controller.set_save_path(save_file_results_entry.get())
             self.controller.save()
+            tkMessageBox.showinfo('Save', "Save Executed Successfully")
+            self.index_window.lower(search_file_window)
 
         def start_query_search():
+            query = query_entry.get()
+            if query == '' or query is NONE:
+                tkMessageBox.showinfo('Query Search', "Query search failed please insert query")
+                self.index_window.lower(search_file_window)
+                return
             values = set(cities_list.get(idx) for idx in cities_list.curselection())
             docs = self.controller.start_query_search(query_entry.get(), values)
             docs_list.delete(0, END)
@@ -283,6 +301,11 @@ class View:
                 docs_list.insert(END, doc[0])
 
         def start_file_search():
+            dir_path = queries_path_entry.get()
+            if not os.path.isdir(dir_path):
+                self.invalid_path("Queries File")
+                self.index_window.lower(search_file_window)
+                return
             chosen_cities = [cities_list.get(idx) for idx in cities_list.curselection()]
             queries_results = self.controller.start_file_search(queries_path_entry.get(), chosen_cities)
             docs_list.delete(0, END)
@@ -294,9 +317,10 @@ class View:
 
         def browse_queries_file_dir():
             queries_path_entry.delete(first=0, last=100)
-            file = tkFileDialog.askopenfile(parent=search_file_window, mode='rb', title='Choose a file')
-            queries_path_entry.insert(0, file.name)
-            file.close()
+            f = tkFileDialog.askopenfile(parent=search_file_window, mode='rb', title='Choose a file')
+            self.index_window.lower(search_file_window)
+            queries_path_entry.insert(0, f.name)
+            f.close()
 
         def browse_file_results_save():
             save_file_results_entry.delete(first=0, last=100)
@@ -319,8 +343,9 @@ class View:
             tkMessageBox.showinfo("Error ", "Please Load Dictionary before Search")
             on_closing()
             return
-        self.index_window.lower()
+
         search_file_window = Tk()
+        self.index_window.lower(search_file_window)
         # search_file_window.geometry("800x600")
         Label(master=search_file_window, text="~~~~~~~~Search With Free Text Query~~~~~~~~").grid(row=0, column=1)
         query_entry = make_entry(search_file_window, "Enter Query:", 1, 0, 60)
@@ -342,7 +367,7 @@ class View:
         browse_save_file = Button(master=search_file_window, text='Browse', width=6,
                                   command=browse_file_results_save)
         browse_save_file.grid(row=9, column=2, sticky='W')
-        save_button = Button(master=search_file_window, text="save", command=save)
+        save_button = Button(master=search_file_window, text="Save", command=save)
         save_button.grid(row=10, column=1)
 
         entities_button = Button(master=search_file_window, text="Show Entities", command=show_entities)
