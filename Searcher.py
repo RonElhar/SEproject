@@ -7,13 +7,13 @@ import Stemmer
 
 
 class Searcher:
-
-    def __init__(self, corpus_path, posting_path, terms_dict, cities_dict, docs_dict, avg_doc_length, with_semantics,
-                 with_stemming):
+    def __init__(self, corpus_path, posting_path, terms_dict, cities_dict, docs_dict, avg_doc_length, with_stemming,
+                 with_semantics):
         self.terms_dict = terms_dict
         self.cities_dict = cities_dict
         self.docs_dict = docs_dict
         self.parser = Parse(corpus_path)  ## corpus path for stop words
+        self.parser.to_stem = with_stemming
         self.posting_path = posting_path
         self.ranker = Ranker(avg_doc_length)
         self.model = None
@@ -21,7 +21,11 @@ class Searcher:
         self.with_stemming = with_stemming
 
     def get_terms_from_post(self, query_terms, cities):
-        path = self.posting_path + '\FinalPost' + '\Final_Post'
+        if self.with_stemming:
+            path = self.posting_path + '\sFinalPost' + '\Final_Post'
+        else:
+            path = self.posting_path + '\FinalPost' + '\Final_Post'
+
         word_dict = {}
         updated_query_terms = {}
         for term in query_terms:
@@ -45,11 +49,15 @@ class Searcher:
             term_index = term_index.split('|')[1].split('#')
             i = 0
             if len(cities) > 0:
+                cities_docs = set()
+                for city in cities:
+                    if self.cities_dict[city][2] is not None:
+                        cities_docs.update(self.cities_dict[city][2])
                 while i < len(term_index) - 1:
                     term_doc_info = ast.literal_eval(term_index[i])
                     for doc_id in term_doc_info:
                         doc = self.docs_dict[doc_id]
-                        if doc.origin_city not in cities:
+                        if doc.origin_city not in cities and doc_id not in cities_docs:
                             continue
                         if term not in word_dict:
                             word_dict[term] = {}
@@ -69,11 +77,10 @@ class Searcher:
         pass
 
     def search(self, query, cities):
-        self.parser.parsed_doc = None
         query_terms = {}
         if self.with_semantics:
             if self.with_stemming:
-                stem_query = self.parser.main_parser(text=query)
+                stem_query = self.parser.main_parser(text=query, doc=None)
                 query = gensim.utils.simple_preprocess(query)
                 for word in query:
                     synonyms = self.model.wv.most_similar(positive=word)
@@ -85,14 +92,14 @@ class Searcher:
                             continue
                         query_terms[stem] = stem_query[stem][0]
             else:
-                query = self.parser.main_parser(text=query)
+                query = self.parser.main_parser(text=query, doc=None)
                 for word in query:
                     synonyms = self.model.wv.most_similar(positive=word)
                     for i in range(0, 3):
                         query_terms[(synonyms[i][0]).encode("ascii")] = 1
                     query_terms[word] = query[word][0]
         else:
-            query = self.parser.main_parser(text=query)
+            query = self.parser.main_parser(text=query, doc=None)
             for word in query:
                 query_terms[word] = query[word][0]
         query_terms, words_terms = self.get_terms_from_post(query_terms, cities)

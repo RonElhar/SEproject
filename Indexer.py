@@ -105,10 +105,10 @@ class Indexer:
 
     """
 
-    def index_cities(self, cities):
+    def index_cities(self, cities_docs):
         capitals_details = CityDetailes.get_capitals_details()
         lines_count = 0
-        for city in cities:
+        for city in cities_docs:
             if Parse.isWord(city):
                 city_details = None
                 if city in capitals_details:
@@ -119,7 +119,7 @@ class Indexer:
                     city_details = CityDetailes.get_city_details(city)
                     if not city_details is "" and not city_details is None:
                         self.countries.add(city_details["Country"])
-                self.cities_dict[city] = [city_details, cities[city], self.terms_dict.get(city)]
+                self.cities_dict[city] = [city_details, cities_docs[city], self.terms_dict.get(city)]
                 lines_count += 1
 
     """
@@ -203,7 +203,6 @@ class Indexer:
             term_docs = term_line.split('|')[1].split('#')
             df = self.terms_dict[term][2]
             i = 0
-
             while i < len(term_docs) - 1:
                 term_doc_info = ast.literal_eval(term_docs[i])
                 doc = term_doc_info.keys()[0]
@@ -272,5 +271,24 @@ class Indexer:
                         filename = os.path.join(root, filename)
                         with open(filename, 'rb') as f:
                             languages = cPickle.load(f)
+        if self.to_stem:
+            path = self.posting_path + '\sFinalPost' + '\Final_Post'
+        else:
+            path = self.posting_path + '\FinalPost' + '\Final_Post'
 
+        linecache.getline(path, 500000)
+        cities = self.cities_dict.keys()
+        for city in cities:
+            if city in self.terms_dict:
+                city_term_index = linecache.getline(path, self.terms_dict[city][0] + 1)
+                city_term_index = city_term_index.split('|')[1].split('#')
+                i = 0
+                self.cities_dict[city][2] = set()
+                while i < len(city_term_index) - 1:
+                    term_doc_info = ast.literal_eval(city_term_index[i])
+                    for doc_id in term_doc_info:
+                        self.cities_dict[city][2].add(doc_id)
+                    i += 1
+
+        languages.remove('')
         return languages

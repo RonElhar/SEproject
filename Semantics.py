@@ -20,7 +20,7 @@ class Semantics:
                 terms = gensim.utils.simple_preprocess(docs[doc_id].text)
                 self.sentences.append(terms)
             i += 1
-            docs = None
+            docs.clear()
 
     def start(self):
         # train model

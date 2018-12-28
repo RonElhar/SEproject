@@ -34,8 +34,7 @@ def start_indexing(dirs_list, dirs_dicts, main_path, posting_path, to_stem, star
         docs = reader.separate_docs_in_file(main_path + '\\corpus', dirs_list[i])
         j = 0
         for doc_id in docs:
-            parser.parsed_doc = docs[doc_id]
-            doc_dict = parser.main_parser(docs[doc_id].text)
+            doc_dict = parser.main_parser(docs[doc_id].text, docs[doc_id])
             docs[doc_id].text = None
             if i == end_index - 1 and j == len(docs) - 1:
                 indexer.finished_parse = True
