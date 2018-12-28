@@ -46,7 +46,6 @@ class Main:
         self.queries_docs_results = []
         self.avg_doc_length = 0
         self.with_semantics = False
-        self.with_stem = False
         self.save_path = ''
 
     """
@@ -102,7 +101,7 @@ class Main:
                                  self.indexer.docs_dict, self.avg_doc_length)
         self.searcher.model = Word2Vec.load('model.bin')
         path = self.posting_path + '\FinalPost' + '\Final_Post'
-        linecache.getline(path, 500, 000)
+        linecache.getline(path, 500000)
 
     """
         Description :
