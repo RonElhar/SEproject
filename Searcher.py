@@ -5,6 +5,35 @@ import linecache
 import gensim
 import Stemmer
 
+def string_to_dict(index_string):
+    i = 2
+    docs_dict = {}
+    locations = []
+    while i < len(index_string):
+        doc_id_start = i
+        while index_string[i] != '\'':
+            i += 1
+        doc_id = index_string[doc_id_start:i]
+        i += 3  # go over ':' and '['
+        c = index_string[i]
+        tf_start = i
+        while index_string[i] != ',':
+            i += 1
+        tf = index_string[tf_start: i]
+        i += 2  # go over ',' and 2nd '['
+        while index_string[i] != ']':
+            loc_start = i
+            while index_string[i] != ',' and index_string[i] != ']':
+                c = index_string[i]
+                i += 1
+            loc = index_string[loc_start:i]
+            locations.append(loc)
+            i += 1
+        docs_dict[doc_id] = [int(tf), locations]
+        locations = []
+        c = index_string[i]
+        i += 3  # go over ']]' and next ',' if exists (go to the start of first doc
+    return docs_dict
 
 class Searcher:
     def __init__(self, corpus_path, posting_path, terms_dict, cities_dict, docs_dict, avg_doc_length, with_stemming,
@@ -38,7 +67,7 @@ class Searcher:
                     updated_query_terms[term] = tmp
                 elif term_upper in self.terms_dict:
                     tmp = query_terms[term]
-                    term = term_lower
+                    term = term_upper
                     updated_query_terms[term] = tmp
                 else:
                     continue
@@ -54,7 +83,7 @@ class Searcher:
                     if self.cities_dict[city][2] is not None:
                         cities_docs.update(self.cities_dict[city][2])
                 while i < len(term_index) - 1:
-                    term_doc_info = ast.literal_eval(term_index[i])
+                    term_doc_info = string_to_dict(term_index[i])
                     for doc_id in term_doc_info:
                         doc = self.docs_dict[doc_id]
                         if doc.origin_city not in cities and doc_id not in cities_docs:
@@ -65,7 +94,7 @@ class Searcher:
                     i += 1
             else:
                 while i < len(term_index) - 1:
-                    term_doc_info = ast.literal_eval(term_index[i])
+                    term_doc_info = string_to_dict(term_index[i])
                     for doc_id in term_doc_info:
                         if term not in word_dict:
                             word_dict[term] = {}
