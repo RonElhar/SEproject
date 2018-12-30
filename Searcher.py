@@ -73,13 +73,11 @@ class Searcher:
                     i += 1
         return updated_query_terms, word_dict
 
-    def get_five_entities(self, document):
-        pass
-
     def search(self, query, cities):
         query_terms = {}
         if self.with_semantics:
             if self.with_stemming:
+                print "stem & sem"
                 stem_query = self.parser.main_parser(text=query, doc=None)
                 query = gensim.utils.simple_preprocess(query)
                 for word in query:
@@ -103,22 +101,20 @@ class Searcher:
             for word in query:
                 query_terms[word] = query[word][0]
         query_terms, words_terms = self.get_terms_from_post(query_terms, cities)
-        result = self.ranker.rank_doc(query_terms, words_terms, self.docs_dict)
+        '''
+        words = words_terms.keys()
+        new_words_terms = {}
+        for term in query_terms:
+            new_words_terms[term] = {}
+            docs = words_terms[term]
+            for doc in docs:
+                count = 0
+                for i in range(0, len(words)):
+                    if doc in words_terms[words[i]]:
+                        count += 1
+                if count > 1:
+                    if doc in words_terms[term]:
+                        new_words_terms[term][doc] = words_terms[term][doc]
+        '''
+        result = self.ranker.rank_doc(query_terms, words_terms, self.docs_dict, 1)
         return result
-
-
-''''
-query_dict = {}
-term = "$30-million"
-term_index = "$30-million|{'FBIS3-23':[1,[28726]]}#{'FBIS3-6310':[1,[514]],'FBIS3-6955':[1,[286]],'FBIS3-6279':[1,[514]]}#{'FBIS3-6310':[1,[514]],'FBIS3-6955':[1,[286]],'FBIS3-6279':[1,[514]]}#"
-term_index = term_index.split('|')[1].split('#')
-i = 0
-while i < len(term_index) - 1:
-    term_doc_info = ast.literal_eval(term_index[i])
-    doc = term_doc_info.keys()[0]
-    if i == 0:
-        query_dict[term] = {}
-    query_dict[term][doc] = term_doc_info[doc]
-    i += 1
-print query_dict
-'''''

@@ -301,8 +301,8 @@ class View:
                 docs_list.insert(END, doc[0])
 
         def start_file_search():
-            dir_path = queries_path_entry.get()
-            if not os.path.isdir(dir_path):
+            file_path = queries_path_entry.get()
+            if not os.path.isfile(file_path):
                 self.invalid_path("Queries File")
                 self.index_window.lower(search_file_window)
                 return
