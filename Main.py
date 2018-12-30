@@ -225,19 +225,26 @@ class Main:
         with open(queries_path_entry, 'rb') as f:
             lines = f.readlines()
             id = 0
-            for line in lines:
-                if '<num>' in line:
-                    id = line.split(':')[1].replace('\n', '')
-                elif '<title>' in line:
-                    query = line.replace('<title>', '').replace('\n', '')
+            i = 0
+            query = ''
+            while i < len(lines):
+                if '<num>' in lines[i]:
+                    id = lines[i].split(':')[1].replace('\n', '')
+                elif '<title>' in lines[i]:
+                    query = lines[i].replace('<title>', '').replace('\n', '')
+                elif '<desc>' in lines[i]:
+                    i += 1
+                    while '<narr>' not in lines[i]:
+                        query += lines[i].replace('<title>', '').replace('\n', '')
+                        i += 1
                     queries_list.append((id, query))
                     ### option add desc or narr
+                i += 1
         for query_tuple in queries_list:
             docs_result = self.start_query_search(query_tuple[1], chosen_cities)
             tmp = (query_tuple[0], query_tuple[1], docs_result)
             current_queries_results.append(tmp)
             self.queries_docs_results.append(tmp)
-
         return self.queries_docs_results
 
     def get_doc_five_entities(self, doc_id):

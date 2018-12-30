@@ -77,7 +77,6 @@ class Searcher:
         query_terms = {}
         if self.with_semantics:
             if self.with_stemming:
-                print "stem & sem"
                 stem_query = self.parser.main_parser(text=query, doc=None)
                 query = gensim.utils.simple_preprocess(query)
                 for word in query:
