@@ -170,6 +170,7 @@ class Main:
 
     def set_with_semantics(self, with_semantics):
         self.with_semantics = with_semantics
+        self.searcher.with_semantics = with_semantics
 
     def report(self):
         num_count = 0
@@ -227,6 +228,7 @@ class Main:
             id = 0
             i = 0
             query = ''
+            narr = ''
             while i < len(lines):
                 if '<num>' in lines[i]:
                     id = lines[i].split(':')[1].replace('\n', '')
@@ -234,9 +236,29 @@ class Main:
                     query = lines[i].replace('<title>', '').replace('\n', '')
                 elif '<desc>' in lines[i]:
                     i += 1
-                    while '<narr>' not in lines[i]:
-                        query += lines[i].replace('<title>', '').replace('\n', '')
+                    while not '<narr>' in lines[i]:
+                        query = '{} {}'.format(query, lines[i].replace('<title>', '').replace('\n', ''))
                         i += 1
+                    '''
+                    i += 1                    
+                    narr = ''
+                    narr_l = []
+                    while not '</top>' in lines[i]:
+                        narr = '{} {}'.format(narr, lines[i].replace('<title>', '').replace('\n', ''))
+                        i += 1
+                    if 'relevant.' in narr:
+                        narr_l = narr.split('relevant.')
+                        if narr_l[0].endswith("not "):
+                            query = '{} {}'.format(query, narr_l[1])
+                        else:
+                            query = '{} {}'.format(query, narr_l[0])
+                    elif 'relevant:' in narr:
+                        narr_l = narr.split('relevant:')
+                        narr_l = narr_l[1].split('Document')
+                        query = '{} {}'.format(query, narr_l[0])
+                    else:
+                        query = '{} {}'.format(query, narr)
+                    '''
                     queries_list.append((id, query))
                     ### option add desc or narr
                 i += 1
@@ -245,6 +267,7 @@ class Main:
             tmp = (query_tuple[0], query_tuple[1], docs_result)
             current_queries_results.append(tmp)
             self.queries_docs_results.append(tmp)
+
         return self.queries_docs_results
 
     def get_doc_five_entities(self, doc_id):

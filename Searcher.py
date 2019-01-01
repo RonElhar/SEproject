@@ -1,10 +1,37 @@
-import ast
 from Ranker import Ranker
 from Parse import Parse
 import linecache
 import gensim
-import Stemmer
 
+def string_to_dict(index_string):
+    i = 2
+    docs_dict = {}
+    locations = []
+    while i < len(index_string):
+        doc_id_start = i
+        while index_string[i] != '\'':
+            i += 1
+        doc_id = index_string[doc_id_start:i]
+        i += 3  # go over ':' and '['
+        c = index_string[i]
+        tf_start = i
+        while index_string[i] != ',':
+            i += 1
+        tf = index_string[tf_start: i]
+        i += 2  # go over ',' and 2nd '['
+        while index_string[i] != ']':
+            loc_start = i
+            while index_string[i] != ',' and index_string[i] != ']':
+                c = index_string[i]
+                i += 1
+            loc = index_string[loc_start:i]
+            locations.append(loc)
+            i += 1
+        docs_dict[doc_id] = [int(tf), locations]
+        locations = []
+        c = index_string[i]
+        i += 3  # go over ']]' and next ',' if exists (go to the start of first doc
+    return docs_dict
 
 class Searcher:
     def __init__(self, corpus_path, posting_path, terms_dict, cities_dict, docs_dict, avg_doc_length, with_stemming,
@@ -38,7 +65,7 @@ class Searcher:
                     updated_query_terms[term] = tmp
                 elif term_upper in self.terms_dict:
                     tmp = query_terms[term]
-                    term = term_lower
+                    term = term_upper
                     updated_query_terms[term] = tmp
                 else:
                     continue
@@ -54,7 +81,7 @@ class Searcher:
                     if self.cities_dict[city][2] is not None:
                         cities_docs.update(self.cities_dict[city][2])
                 while i < len(term_index) - 1:
-                    term_doc_info = ast.literal_eval(term_index[i])
+                    term_doc_info = string_to_dict(term_index[i])
                     for doc_id in term_doc_info:
                         doc = self.docs_dict[doc_id]
                         if doc.origin_city not in cities and doc_id not in cities_docs:
@@ -65,7 +92,7 @@ class Searcher:
                     i += 1
             else:
                 while i < len(term_index) - 1:
-                    term_doc_info = ast.literal_eval(term_index[i])
+                    term_doc_info = string_to_dict(term_index[i])
                     for doc_id in term_doc_info:
                         if term not in word_dict:
                             word_dict[term] = {}
@@ -77,10 +104,18 @@ class Searcher:
         query_terms = {}
         if self.with_semantics:
             if self.with_stemming:
+                self.parser.set_stemming_bool(False)
                 stem_query = self.parser.main_parser(text=query, doc=None)
-                query = gensim.utils.simple_preprocess(query)
-                for word in query:
-                    synonyms = self.model.wv.most_similar(positive=word)
+                self.parser.set_stemming_bool(True)
+                #query = gensim.utils.simple_preprocess(query)
+                for word in stem_query:
+                    word = word.lower()
+                    if not word.isalpha():
+                        continue
+                    try:
+                        synonyms = self.model.wv.most_similar(positive=word)
+                    except:
+                        continue
                     for i in range(0, 3):
                         stem_word = str(self.parser.pystemmer.stemWord((synonyms[i][0]).encode("ascii")))
                         query_terms[stem_word] = 1
@@ -100,20 +135,5 @@ class Searcher:
             for word in query:
                 query_terms[word] = query[word][0]
         query_terms, words_terms = self.get_terms_from_post(query_terms, cities)
-        '''
-        words = words_terms.keys()
-        new_words_terms = {}
-        for term in query_terms:
-            new_words_terms[term] = {}
-            docs = words_terms[term]
-            for doc in docs:
-                count = 0
-                for i in range(0, len(words)):
-                    if doc in words_terms[words[i]]:
-                        count += 1
-                if count > 1:
-                    if doc in words_terms[term]:
-                        new_words_terms[term][doc] = words_terms[term][doc]
-        '''
         result = self.ranker.rank_doc(query_terms, words_terms, self.docs_dict, 1)
         return result
