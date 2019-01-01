@@ -3,6 +3,15 @@ from Parse import Parse
 import linecache
 import gensim
 
+"""
+~~~~~~~~~~~~~~~~~~~~~~~~  Module Description ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    This Module Contains Methods for searching and retrieve document by some query search 
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+"""
+
+
 def string_to_dict(index_string):
     i = 2
     docs_dict = {}
@@ -33,6 +42,7 @@ def string_to_dict(index_string):
         i += 3  # go over ']]' and next ',' if exists (go to the start of first doc
     return docs_dict
 
+
 class Searcher:
     def __init__(self, corpus_path, posting_path, terms_dict, cities_dict, docs_dict, avg_doc_length, with_stemming,
                  with_semantics):
@@ -47,6 +57,16 @@ class Searcher:
         self.with_semantics = with_semantics
         self.with_stemming = with_stemming
 
+    """
+       Description :
+           This method brings the posting list of all term in the query
+       Args:
+           param1: query_terms
+           param2: cities
+
+        Return:
+            parsed query and words dictionary with all the posting lists of all terms in query
+    """
     def get_terms_from_post(self, query_terms, cities):
         if self.with_stemming:
             path = self.posting_path + '\sFinalPost' + '\Final_Post'
@@ -100,6 +120,17 @@ class Searcher:
                     i += 1
         return updated_query_terms, word_dict
 
+    """
+       Description :
+           This method make the search of query brings the posting list and call the ranking function,
+           for ranking all the retrieved docs in the posting lists filtered by the cities list
+       Args:
+           param1: query
+           param2: cities
+
+        Return:
+            list of the 50 most relevant ranking docs
+    """
     def search(self, query, cities):
         query_terms = {}
         if self.with_semantics:
@@ -107,7 +138,6 @@ class Searcher:
                 self.parser.set_stemming_bool(False)
                 stem_query = self.parser.main_parser(text=query, doc=None)
                 self.parser.set_stemming_bool(True)
-                #query = gensim.utils.simple_preprocess(query)
                 for word in stem_query:
                     word = word.lower()
                     if not word.isalpha():

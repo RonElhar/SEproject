@@ -287,6 +287,7 @@ class View:
             self.index_window.lower(search_file_window)
 
         def start_query_search():
+            docs_list.delete(FIRST, LAST)
             query = query_entry.get()
             if query == '' or query is NONE:
                 tkMessageBox.showinfo('Query Search', "Query search failed please insert query")
@@ -294,13 +295,15 @@ class View:
                 return
             values = set(cities_list.get(idx) for idx in cities_list.curselection())
             docs = self.controller.start_query_search(query_entry.get(), values)
-            docs_list.delete(0, END)
+            # docs_list.delete(0, END)
             docs_list.insert(END,"Query ID " + str(self.currnent_qID) + " Results:")
             self.currnent_qID += 1
             for doc in docs:
                 docs_list.insert(END, doc[0])
+            tkMessageBox.showinfo('Query Search', "Search Query Executed Successfully")
 
         def start_file_search():
+            docs_list.delete(FIRST, LAST)
             file_path = queries_path_entry.get()
             if not os.path.isfile(file_path):
                 self.invalid_path("Queries File")
@@ -314,6 +317,7 @@ class View:
                 for doc in query[2]:
                     docs_list.insert(END, doc[0])
                 docs_list.insert(END, "")
+            tkMessageBox.showinfo('Queries Search', "Search File Queries Executed Successfully")
 
         def browse_queries_file_dir():
             queries_path_entry.delete(first=0, last=100)

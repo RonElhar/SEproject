@@ -205,12 +205,6 @@ class Main:
                 for doc in query_result[2]:
                     line = " {} 0 {} 1 42.38 {}\n".format(query_result[0], doc[0], 'rg')
                     f.write(line)
-        with open(self.save_path + "\\results4u", 'a+') as f:
-            for query_result in self.queries_docs_results:
-                f.write("Results For {}\n".format(query_result[0]))
-                for doc in query_result[2]:
-                    line = " {} \n".format(doc[0])
-                    f.write(line)
 
     def get_cities_list(self):
         if self.indexer is None:
@@ -239,35 +233,13 @@ class Main:
                     while not '<narr>' in lines[i]:
                         query = '{} {}'.format(query, lines[i].replace('<title>', '').replace('\n', ''))
                         i += 1
-                    '''
-                    i += 1                    
-                    narr = ''
-                    narr_l = []
-                    while not '</top>' in lines[i]:
-                        narr = '{} {}'.format(narr, lines[i].replace('<title>', '').replace('\n', ''))
-                        i += 1
-                    if 'relevant.' in narr:
-                        narr_l = narr.split('relevant.')
-                        if narr_l[0].endswith("not "):
-                            query = '{} {}'.format(query, narr_l[1])
-                        else:
-                            query = '{} {}'.format(query, narr_l[0])
-                    elif 'relevant:' in narr:
-                        narr_l = narr.split('relevant:')
-                        narr_l = narr_l[1].split('Document')
-                        query = '{} {}'.format(query, narr_l[0])
-                    else:
-                        query = '{} {}'.format(query, narr)
-                    '''
                     queries_list.append((id, query))
-                    ### option add desc or narr
                 i += 1
         for query_tuple in queries_list:
             docs_result = self.start_query_search(query_tuple[1], chosen_cities)
             tmp = (query_tuple[0], query_tuple[1], docs_result)
             current_queries_results.append(tmp)
             self.queries_docs_results.append(tmp)
-
         return self.queries_docs_results
 
     def get_doc_five_entities(self, doc_id):

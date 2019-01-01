@@ -1,16 +1,48 @@
 from math import log10
 from operator import itemgetter
 
+"""
+~~~~~~~~~~~~~~~~~~~~~~~~  Module Description ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    This Module Contains Methods for ranking the retrieval results 
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+"""
+
+"""
+   Description :
+       This method calculate the tf-idf of a term in a document
+   Args:
+       param1: tf - term frequency in doc
+       param2: df - documents frequency in corpus
+       param3: doc_length
+       param4: num_of_docs
+
+    Return:
+        tf-idf rank
+"""
 
 def calculate_tf_idf(tf, df, doc_length, num_of_docs):
     return (float(tf) / doc_length) * (log10(num_of_docs / float(df)))
-
 
 class Ranker:
     def __init__(self, avg_doc_length):
         self.k = 1.2
         self.b = 0.75
         self.avdl = avg_doc_length
+
+    """
+       Description :
+           This method ranking a document that had retrieved for some query search
+       Args:
+           param1: query_dict
+           param2: words_dict
+           param3: docs_dict
+           param4: value
+
+        Return:
+            list af all retrieved documents ranked by ascending order 
+    """
 
     def rank_doc(self, query_dict, words_dict, docs_dict, value):
         result = {}
@@ -42,6 +74,19 @@ class Ranker:
             i -= 1
         return final
 
+    """
+       Description :
+           This method calculate the bm25 ranking of a  retrieved document
+       Args:
+           param1: word_df
+           param2: doc_freq
+           param3: query_freq
+           param4: dl
+           param5: num_of_docs
+
+        Return:
+            bm25 ranking od document
+    """
     def rank_bm25(self, word_df, doc_freq, query_freq, dl, num_of_docs):
         k = self.k * ((1 - self.b) + self.b * (float(dl) / float(self.avdl)))
         log_part = log10(float(num_of_docs + 1) / float(word_df))
