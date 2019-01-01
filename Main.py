@@ -228,6 +228,7 @@ class Main:
             id = 0
             i = 0
             query = ''
+            narr = ''
             while i < len(lines):
                 if '<num>' in lines[i]:
                     id = lines[i].split(':')[1].replace('\n', '')
@@ -238,6 +239,26 @@ class Main:
                     while not '<narr>' in lines[i]:
                         query = '{} {}'.format(query, lines[i].replace('<title>', '').replace('\n', ''))
                         i += 1
+                    '''
+                    i += 1                    
+                    narr = ''
+                    narr_l = []
+                    while not '</top>' in lines[i]:
+                        narr = '{} {}'.format(narr, lines[i].replace('<title>', '').replace('\n', ''))
+                        i += 1
+                    if 'relevant.' in narr:
+                        narr_l = narr.split('relevant.')
+                        if narr_l[0].endswith("not "):
+                            query = '{} {}'.format(query, narr_l[1])
+                        else:
+                            query = '{} {}'.format(query, narr_l[0])
+                    elif 'relevant:' in narr:
+                        narr_l = narr.split('relevant:')
+                        narr_l = narr_l[1].split('Document')
+                        query = '{} {}'.format(query, narr_l[0])
+                    else:
+                        query = '{} {}'.format(query, narr)
+                    '''
                     queries_list.append((id, query))
                     ### option add desc or narr
                 i += 1

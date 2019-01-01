@@ -1,9 +1,7 @@
-import ast
 from Ranker import Ranker
 from Parse import Parse
 import linecache
 import gensim
-import Stemmer
 
 def string_to_dict(index_string):
     i = 2
@@ -106,11 +104,18 @@ class Searcher:
         query_terms = {}
         if self.with_semantics:
             if self.with_stemming:
-                print "stem & sem"
+                self.parser.set_stemming_bool(False)
                 stem_query = self.parser.main_parser(text=query, doc=None)
-                query = gensim.utils.simple_preprocess(query)
-                for word in query:
-                    synonyms = self.model.wv.most_similar(positive=word)
+                self.parser.set_stemming_bool(True)
+                #query = gensim.utils.simple_preprocess(query)
+                for word in stem_query:
+                    word = word.lower()
+                    if not word.isalpha():
+                        continue
+                    try:
+                        synonyms = self.model.wv.most_similar(positive=word)
+                    except:
+                        continue
                     for i in range(0, 3):
                         stem_word = str(self.parser.pystemmer.stemWord((synonyms[i][0]).encode("ascii")))
                         query_terms[stem_word] = 1
@@ -130,20 +135,5 @@ class Searcher:
             for word in query:
                 query_terms[word] = query[word][0]
         query_terms, words_terms = self.get_terms_from_post(query_terms, cities)
-        '''
-        words = words_terms.keys()
-        new_words_terms = {}
-        for term in query_terms:
-            new_words_terms[term] = {}
-            docs = words_terms[term]
-            for doc in docs:
-                count = 0
-                for i in range(0, len(words)):
-                    if doc in words_terms[words[i]]:
-                        count += 1
-                if count > 1:
-                    if doc in words_terms[term]:
-                        new_words_terms[term][doc] = words_terms[term][doc]
-        '''
         result = self.ranker.rank_doc(query_terms, words_terms, self.docs_dict, 1)
         return result
