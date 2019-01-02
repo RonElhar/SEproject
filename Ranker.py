@@ -27,7 +27,7 @@ def calculate_tf_idf(tf, df, doc_length, num_of_docs):
 
 class Ranker:
     def __init__(self, avg_doc_length):
-        self.k = 1.2
+        self.k = 1.3
         self.b = 0.75
         self.avdl = avg_doc_length
 
