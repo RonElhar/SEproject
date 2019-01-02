@@ -1,5 +1,3 @@
-import linecache
-
 from GUI import View
 from operator import itemgetter
 from ReadFile import ReadFile
@@ -114,7 +112,7 @@ class Main:
         self.avg_doc_length = self.indexer.docs_avg_length
         self.searcher = Searcher(self.main_path, self.posting_path, self.indexer.terms_dict, self.indexer.cities_dict,
                                  self.indexer.docs_dict, self.avg_doc_length, self.to_stem, self.with_semantics)
-        self.searcher.model = Word2Vec.load('model.bin')
+        self.searcher.model = Word2Vec.load(self.posting_path + '//model.bin')
 
     """
         Description :

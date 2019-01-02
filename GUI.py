@@ -245,7 +245,7 @@ class View:
         load_dict_button.grid(row=4, column=1, sticky='E')
 
         search_Button = Button(master=self.index_window, text="Go To Search",
-                               command=self.search_query_file_window)
+                               command=self.search_window)
         search_Button.grid(row=5, column=2)
 
         show_dict_button = Button(master=self.index_window, text="Show Dictionary", command=self.show)
@@ -255,7 +255,7 @@ class View:
 
         self.index_window.mainloop()
 
-    def search_query_file_window(self):
+    def search_window(self):
 
         def show_entities():
             doc_id = [docs_list.get(idx) for idx in docs_list.curselection()]
@@ -287,7 +287,6 @@ class View:
             self.index_window.lower(search_file_window)
 
         def start_query_search():
-            docs_list.delete(FIRST, LAST)
             query = query_entry.get()
             if query == '' or query is NONE:
                 tkMessageBox.showinfo('Query Search', "Query search failed please insert query")
@@ -295,7 +294,7 @@ class View:
                 return
             values = set(cities_list.get(idx) for idx in cities_list.curselection())
             docs = self.controller.start_query_search(query_entry.get(), values)
-            # docs_list.delete(0, END)
+            docs_list.delete(0, END)
             docs_list.insert(END,"Query ID " + str(self.currnent_qID) + " Results:")
             self.currnent_qID += 1
             for doc in docs:
@@ -303,7 +302,6 @@ class View:
             tkMessageBox.showinfo('Query Search', "Search Query Executed Successfully")
 
         def start_file_search():
-            docs_list.delete(FIRST, LAST)
             file_path = queries_path_entry.get()
             if not os.path.isfile(file_path):
                 self.invalid_path("Queries File")
@@ -332,8 +330,8 @@ class View:
             save_file_results_entry.insert(0, dir_path)
 
         def on_closing():
-            search_file_window.destroy()
             self.index_window.lift()
+            search_file_window.destroy()
 
         def semantics_control():
             if self.with_semantics:
@@ -345,10 +343,12 @@ class View:
         cities_names = self.controller.get_cities_list()
         if cities_names is None:
             tkMessageBox.showinfo("Error ", "Please Load Dictionary before Search")
-            on_closing()
+            self.index_window.lift()
             return
 
         search_file_window = Tk()
+        self.index_window.wm_state('iconic')
+        self.index_window.iconify()
         self.index_window.lower(search_file_window)
         # search_file_window.geometry("800x600")
         Label(master=search_file_window, text="~~~~~~~~Search With Free Text Query~~~~~~~~").grid(row=0, column=1)

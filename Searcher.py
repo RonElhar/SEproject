@@ -1,7 +1,6 @@
 from Ranker import Ranker
 from Parse import Parse
 import linecache
-import gensim
 
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~  Module Description ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -10,7 +9,6 @@ import gensim
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
-
 
 def string_to_dict(index_string):
     i = 2
@@ -156,7 +154,10 @@ class Searcher:
             else:
                 query = self.parser.main_parser(text=query, doc=None)
                 for word in query:
-                    synonyms = self.model.wv.most_similar(positive=word)
+                    try:
+                        synonyms = self.model.wv.most_similar(positive=word)
+                    except:
+                        continue
                     for i in range(0, 3):
                         query_terms[(synonyms[i][0]).encode("ascii")] = 1
                     query_terms[word] = query[word][0]
